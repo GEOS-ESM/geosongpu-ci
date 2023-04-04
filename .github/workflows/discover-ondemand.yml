@@ -1,0 +1,14 @@
+# Discover Nightly
+
+name: discover-nightly
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  run-discover-ondemand:
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
