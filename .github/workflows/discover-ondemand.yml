@@ -11,4 +11,4 @@ defaults:
 
 jobs:
   run-discover-ondemand:
-    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@516b6cdf5209981a4d1c25becb03c94ad890127d
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
