@@ -1,6 +1,6 @@
-# Discover Nightly
+# Discover on demand
 
-name: discover-nightly
+name: discover-ondemand
 
 on:
   workflow_dispatch:
