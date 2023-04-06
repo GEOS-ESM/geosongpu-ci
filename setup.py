@@ -20,7 +20,7 @@ setuptools.setup(
     author="NASA Advanced Software and Technology Group",
     description="On-premise continuous integration for the GEOS on GPU project",
     url="https://github.com/geos-esm/geosongpu-ci",
-    packages=["geosongpu_ci"],
+    packages=setuptools.find_packages(exclude=["test"]),
     classifiers=[
         "Development Status :: 1 - Planning",
         "Environment :: Console",

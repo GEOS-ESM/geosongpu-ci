@@ -1,7 +1,7 @@
 from geosongpu_ci.pipeline.task import dispatch
 from geosongpu_ci.pipeline.actions import PipelineAction
 
-if __name__ == "__main__":
+def main():
     import sys
 
     experiment_name = sys.argv[1]

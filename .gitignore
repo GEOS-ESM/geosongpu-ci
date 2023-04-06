@@ -7,6 +7,7 @@
 **/CVS/
 .vscode
 .venv
+venv
 __pycache__
 *.egg-info
 build/
