@@ -1,5 +1,7 @@
 from typing import Dict, Any
 from geosongpu_ci.pipeline.actions import PipelineAction
+import sys
+import site
 import os
 import yaml
 from abc import ABC
@@ -26,10 +28,26 @@ class TaskBase(ABC):
         ...
 
 
-def dispatch(experiment_name: str, experiment_action: PipelineAction):
-    experiment_path = os.path.join(
+def _find_experiments() -> str:
+    # pip install geosongpu-ci
+    candidate = f"{sys.prefix}/geosongpu/experiments/experiments.yaml"
+    if os.path.isfile(candidate):
+        return candidate
+    # pip install --user geosongpu-ci
+    candidate = f"{site.USER_BASE}/geosongpu/experiments/experiments.yaml"
+    if os.path.isfile(candidate):
+        return candidate
+    # pip install -e geosongpu-ci
+    candidate = os.path.join(
         os.path.dirname(__file__), "../../experiments/experiments.yaml"
     )
+    if os.path.isfile(candidate):
+        return candidate
+    raise RuntimeError("Cannot find experiments.yaml")
+    
+
+def dispatch(experiment_name: str, experiment_action: PipelineAction):
+    experiment_path = _find_experiments()
     with open(experiment_path) as f:
         configurations = yaml.safe_load(f)
 

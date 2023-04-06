@@ -34,12 +34,9 @@ setuptools.setup(
     install_requires=[
         "pyyaml",
     ],
-     package_data={
-        '': [
-               'experiments/*/*.yaml',
-             ],
-    },
-    include_package_data=True,
+    data_files=[
+        ('./geosongpu/experiments', ['./experiments/experiments.yaml']),
+    ],
     entry_points={
         "console_scripts": [
             "geosongpu_dispatch = geosongpu_ci.dispatch:main",
