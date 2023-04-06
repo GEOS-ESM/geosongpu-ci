@@ -27,5 +27,5 @@ jobs:
   run-discover-ondemand:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
-      experiment_name: ${{ inputs.experiment_name }}
-      experiment_type: ${{ inputs.experiment_type }}
+      experiment_name:   ${{ inputs.experiment_name }}
+      experiment_action: ${{ inputs.experiment_action }}
