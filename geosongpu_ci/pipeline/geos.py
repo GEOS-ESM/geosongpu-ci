@@ -22,22 +22,22 @@ class GEOS(TaskBase):
             modules=["other/mepo"],
             shell_commands=[
                 f"git clone {git_config['url']} geos",
-                f"cd geos",
+                "cd geos",
                 f"git checkout {git_config['tag_or_hash']}",
-                f"mepo clone",
+                "mepo clone",
             ],
         )
 
+        # Write metadata file
         mepo_status = shell_script(
             name="get_mepo_status",
             modules=["other/mepo"],
             shell_commands=[
-                f"mepo status",
+                "cd geos",
+                "mepo status",
             ],
             temporary=True,
         )
-
-        # Write metadata file
         with open("ci_metadata", "w") as f:
             metadata = {}
             metadata["timestamp"] = str(datetime.datetime.now())
@@ -52,11 +52,11 @@ class GEOS(TaskBase):
             modules=[],
             env_to_source="geos/@env/g5_modules.sh",
             shell_commands=[
-                f"cd geos",
-                f"mkdir build",
-                f"cd build",
-                f"cmake .. -DBASEDIR=$BASEDIR/Linux -DCMAKE_Fortran_COMPILER=gfortran -DCMAKE_INSTALL_PREFIX=../install"
-                f"make -j24 GEOSgcm.x",
+                "cd geos",
+                "mkdir build",
+                "cd build",
+                "cmake .. -DBASEDIR=$BASEDIR/Linux -DCMAKE_Fortran_COMPILER=gfortran -DCMAKE_INSTALL_PREFIX=../install",
+                "make -j24 GEOSgcm.x",
             ],
         )
 
