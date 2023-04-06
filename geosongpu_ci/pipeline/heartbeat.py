@@ -29,4 +29,12 @@ class Heartbeat(TaskBase):
         experiment_name: str,
         action: PipelineAction,
     ) -> bool:
-        return os.path.isfile("ci_metadata")
+        if action == PipelineAction.All or action == PipelineAction.Validation:
+            file_exists = os.path.isfile("ci_metadata")
+            if not file_exists:
+                raise RuntimeError("Heartbeat.run didn't write ci_metadata. Coding or Permission error.")
+            print(f"Heartbeart w/ {action} expect success")
+            return True
+        else:
+            print(f"Heartbeart w/ {action} expect failure")
+            return False
