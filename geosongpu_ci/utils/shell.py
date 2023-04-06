@@ -2,22 +2,25 @@ import subprocess
 from typing import Optional, List
 import os
 import sys
+import stat
 
 
 def run_subprocess(command: str, stdout=None, stderr=None) -> str:
-    # Run
-    stdout = None
     try:
-        stdout = subprocess.check_output(command).decode(sys.stdout.encoding)
+        result = subprocess.run(command, stdout=subprocess.PIPE)
+        if result.returncode != 0:
+            raise RuntimeError(f"Subprocess with command {command}")
     except subprocess.CalledProcessError as e:
         raise RuntimeError(
             f"Subprocess with command {command} failed, throwing error \n{e}"
         )
-    return stdout
+    return result.stdout.decode(sys.stdout.encoding)
 
 
 def execute_shell_script(name: str) -> str:
-    return run_subprocess(name)
+    st = os.stat(name)
+    os.chmod(name, st.st_mode | stat.S_IEXEC)
+    return run_subprocess(f"./{name}")
 
 
 def shell_script(
@@ -40,11 +43,12 @@ def shell_script(
         script += f"{c}\n"
     script += "\n"
 
-    with open(f"{name}.sh", "w") as f:
+    script_name = f"{name}.sh"
+    with open(script_name, "w") as f:
         f.write(script)
 
     if execute:
-        result = execute_shell_script(name)
+        result = execute_shell_script(script_name)
         if temporary:
-            os.remove(name)
+            os.remove(script_name)
         return result
