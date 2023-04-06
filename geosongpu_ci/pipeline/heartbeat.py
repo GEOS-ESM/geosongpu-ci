@@ -35,9 +35,9 @@ class Heartbeat(TaskBase):
             file_exists = os.path.isfile("ci_metadata")
             if not file_exists:
                 raise RuntimeError("Heartbeat.run didn't write ci_metadata. Coding or Permission error.")
-            artifact_directory = f"{artifact_base_directory}/{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}-ci-heartbeat/"
+            artifact_directory = f"{artifact_base_directory}/ci-heartbeat/"
             os.mkdir(artifact_directory)
-            shutil.copyfile("ci_metadata", artifact_directory)
+            shutil.copy("ci_metadata", artifact_directory)
             print(f"Heartbeart w/ {action} expect success & artifact saved.")
             return True
         else:
