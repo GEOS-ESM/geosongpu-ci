@@ -4,6 +4,7 @@ from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.pipeline.actions import PipelineAction
 import datetime
 import os
+import shutil
 import yaml
 
 
@@ -28,12 +29,16 @@ class Heartbeat(TaskBase):
         config: Dict[str, Any],
         experiment_name: str,
         action: PipelineAction,
+        artifact_base_directory: str,
     ) -> bool:
         if action == PipelineAction.All or action == PipelineAction.Validation:
             file_exists = os.path.isfile("ci_metadata")
             if not file_exists:
                 raise RuntimeError("Heartbeat.run didn't write ci_metadata. Coding or Permission error.")
-            print(f"Heartbeart w/ {action} expect success")
+            artifact_directory = f"{artifact_base_directory}/{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}-ci-heartbeat/"
+            os.mkdir(artifact_directory)
+            shutil.copyfile("ci_metadata", artifact_directory)
+            print(f"Heartbeart w/ {action} expect success & artifact saved.")
             return True
         else:
             print(f"Heartbeart w/ {action} expect failure")

@@ -59,3 +59,12 @@ class GEOS(TaskBase):
                 f"make -j24 GEOSgcm.x",
             ],
         )
+
+    def check(
+        self,
+        config: Dict[str, Any],
+        experiment_name: str,
+        action: PipelineAction,
+        artifact_directory: str,
+    ) -> bool:
+        return True

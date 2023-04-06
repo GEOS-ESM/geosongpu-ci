@@ -24,6 +24,7 @@ class TaskBase(ABC):
         config: Dict[str, Any],
         experiment_name: str,
         action: PipelineAction,
+        artifact_directory: str,
     ) -> bool:
         ...
 
@@ -46,7 +47,7 @@ def _find_experiments() -> str:
     raise RuntimeError("Cannot find experiments.yaml")
     
 
-def dispatch(experiment_name: str, experiment_action: PipelineAction):
+def dispatch(experiment_name: str, experiment_action: PipelineAction, artifact_directory: str,):
     experiment_path = _find_experiments()
     with open(experiment_path) as f:
         configurations = yaml.safe_load(f)
@@ -59,6 +60,6 @@ def dispatch(experiment_name: str, experiment_action: PipelineAction):
         print(f"{task}.run for {experiment_action}")
         t.run(config, experiment_name, experiment_action)
         print(f"{task}.check for {experiment_action}")
-        check = t.check(config, experiment_name, experiment_action)
+        check = t.check(config, experiment_name, experiment_action, artifact_directory)
         if check == False:
             raise RuntimeError(f"Check for {task} failed for {experiment_action}")
