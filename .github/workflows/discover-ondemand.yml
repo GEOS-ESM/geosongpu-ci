@@ -4,7 +4,6 @@ name: discover-ondemand
 
 on:
   workflow_dispatch:
-  workflow_call:
     inputs:
       experiment_name:
         required: true
