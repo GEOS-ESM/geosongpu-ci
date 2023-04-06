@@ -9,8 +9,8 @@ on:
         required: true
         type: choice
         options:
-          - ci-heartbeat
-          - geos_hs
+          - Heartbeat
+          - GEOS
       experiment_action:
         required: true
         type: choice
