@@ -4,7 +4,22 @@ name: discover-ondemand
 
 on:
   workflow_dispatch:
-
+  workflow_call:
+    inputs:
+      experiment_name:
+        required: true
+        type: choice
+        options:
+          - ci-heartbeat
+          - geos_hs
+      experiment_action:
+        required: true
+        type: choice
+        options:
+          - All
+          - Validation
+          - Benchmark
+        
 defaults:
   run:
     shell: bash
@@ -12,3 +27,6 @@ defaults:
 jobs:
   run-discover-ondemand:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+    with:
+      experiment_version: ${{ inputs.experiment_name }}
+      experiment_type: ${{ inputs.experiment_type }}
