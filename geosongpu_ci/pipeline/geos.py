@@ -2,9 +2,9 @@ from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.shell import shell_script
 from geosongpu_ci.utils.registry import Registry
-from actions import PipelineAction
+from geosongpu_ci.pipeline.actions import PipelineAction
 import datetime
-import os
+import yaml
 
 
 @Registry.register
@@ -44,7 +44,7 @@ class GEOS(TaskBase):
             metadata["config"] = {"name": experiment_name, "value": config}
             metadata["action"] = str(action)
             metadata["mepo_status"] = mepo_status
-            f.write(metadata)
+            yaml.dump(metadata, f)
 
         # Build GEOS
         shell_script(

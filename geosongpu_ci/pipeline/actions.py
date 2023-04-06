@@ -1,7 +1,7 @@
 import enum
 
 
-@enum
-class PipelineAction:
-    Validation = 0
-    Benchmark = 1
+class PipelineAction(enum.Enum):
+    All = 0
+    Validation = 1 
+    Benchmark = 2

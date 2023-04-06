@@ -1,9 +1,10 @@
 from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.registry import Registry
-from actions import PipelineAction
+from geosongpu_ci.pipeline.actions import PipelineAction
 import datetime
 import os
+import yaml
 
 
 @Registry.register
@@ -15,12 +16,12 @@ class Heartbeat(TaskBase):
         action: PipelineAction,
     ):
         # Write metadata file
-        with open("ci_metadata") as f:
+        with open("ci_metadata", "w") as f:
             metadata = {}
             metadata["timestamp"] = str(datetime.datetime.now())
             metadata["config"] = {"name": experiment_name, "value": config}
             metadata["action"] = str(action)
-            f.write(metadata)
+            yaml.dump(metadata, f)
 
     def check(
         self,

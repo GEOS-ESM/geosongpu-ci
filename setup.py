@@ -20,8 +20,7 @@ setuptools.setup(
     author="NASA Advanced Software and Technology Group",
     description="On-premise continuous integration for the GEOS on GPU project",
     url="https://github.com/geos-esm/geosongpu-ci",
-    package_dir={"": "geosongpu_ci"},
-    packages=setuptools.find_packages(where="geosongpu_ci"),
+    packages=["geosongpu_ci"],
     classifiers=[
         "Development Status :: 1 - Planning",
         "Environment :: Console",
@@ -32,7 +31,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3",
-    install_requires=[],
+    install_requires=[
+        "pyyaml",
+    ],
     entry_points={
         "console_scripts": [
             "geosongpu_dispatch = geosongpu_ci.dispatch:main",

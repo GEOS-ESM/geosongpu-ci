@@ -5,11 +5,9 @@ class Registry:
     registry = {}
 
     @classmethod
-    def register(cls) -> Callable:
-        def inner_wrapper(wrapped_class: type) -> type:
-            if not isinstance(wrapped_class, function):
-                raise RuntimeError("Register only registers function")
-            cls.registry[wrapped_class.__name__] = wrapped_class
-            return wrapped_class
+    def register(cls, to_register_cls):
+        if not isinstance(to_register_cls, type):
+            raise RuntimeError("Register only registers function")
+        cls.registry[to_register_cls.__name__] = to_register_cls
 
-        return inner_wrapper
+        return to_register_cls
