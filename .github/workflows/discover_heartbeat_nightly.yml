@@ -1,0 +1,19 @@
+# Discover's CI check
+
+name: discover_heartbeat_nightly
+
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 0 * * *'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  run-discover-ondemand:
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+    with:
+      experiment_name:   ci-heartbeat
+      experiment_action: All
