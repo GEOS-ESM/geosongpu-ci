@@ -1,15 +1,14 @@
 import subprocess
 from typing import Optional, List
 import os
+import sys
 
 
 def run_subprocess(command: str, stdout=None, stderr=None) -> str:
     # Run
     stdout = None
     try:
-        stdout = subprocess.check_output(
-            command, check=True, stdout=stdout, stderr=stderr
-        )
+        stdout = subprocess.check_output(command).decode(sys.stdout.encoding)
     except subprocess.CalledProcessError as e:
         raise RuntimeError(
             f"Subprocess with command {command} failed, throwing error \n{e}"
@@ -29,7 +28,7 @@ def shell_script(
     execute=True,
     temporary=False,
 ) -> Optional[str]:
-    script = "/!bin/sh\n"
+    script = "#!/bin/sh\n"
     if modules:
         for m in modules:
             script += f"module load {m}\n"
@@ -38,7 +37,7 @@ def shell_script(
         script += f"source {env_to_source}\n"
         script += "\n"
     for c in shell_commands:
-        script += c
+        script += f"{c}\n"
     script += "\n"
 
     with open(f"{name}.sh", "w") as f:

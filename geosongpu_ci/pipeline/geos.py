@@ -38,7 +38,7 @@ class GEOS(TaskBase):
         )
 
         # Write metadata file
-        with open("ci_metadata") as f:
+        with open("ci_metadata", "w") as f:
             metadata = {}
             metadata["timestamp"] = str(datetime.datetime.now())
             metadata["config"] = {"name": experiment_name, "value": config}
