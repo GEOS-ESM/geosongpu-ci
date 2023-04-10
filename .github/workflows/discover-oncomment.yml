@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Message success
-        if: ${{ needs.run-discover-ondemand.steps.check.outcome == 'success' }}
+        if: ${{ needs.run-discover-ondemand.result == 'success' }}
         uses: actions/github-script@v6
         with:
           script: |
@@ -62,7 +62,7 @@ jobs:
               body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }} succeeded! ✅',
             });          
       - name: Message failure
-        if: ${{ needs.run-discover-ondemand.steps.check.outcome != 'success' }}
+        if: ${{ needs.run-discover-ondemand.result != 'success' }}
         uses: actions/github-script@v6
         with:
           script: |
