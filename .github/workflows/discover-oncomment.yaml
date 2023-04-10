@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.issue.pull_request }}
     steps:
-      name: check-command
-      if: contains(github.event.comment.body, '/discover-ci')
-      run: |
-        echo Launching Discover CI: ${{github.event.comment.body}}    
+      - name: check-command
+        if: contains(github.event.comment.body, '/discover-ci')
+        run: |
+          echo Launching Discover CI: ${{github.event.comment.body}}    
 
 
   # run-discover-ondemand:
