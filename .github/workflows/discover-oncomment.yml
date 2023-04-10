@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.issue.pull_request }}
     outputs:
-      experiance-name: ${{ steps.extractor.outputs.EXP_NAME }}
-      experiance-action: ${{ steps.extractor.outputs.EXP_ACTION }}
+      experiment-name: ${{ steps.extractor.outputs.EXP_NAME }}
+      experiment-action: ${{ steps.extractor.outputs.EXP_ACTION }}
     steps:
       - name: Extract command
         id: extractor
@@ -23,50 +23,42 @@ jobs:
         shell: bash
         run: |
           echo Launching Discover CI: ${{github.event.comment.body}}
-          BODY=${{github.event.comment.body}}
+          BODY="${{github.event.comment.body}}"
           EXP_NAME_DIRTY=${BODY#*experiment-name=}
-          echo "EXP_NAME=${EXP_NAME_DIRTY%% }" >> GITHUB_OUTPUT
+          echo "EXP_NAME=${EXP_NAME_DIRTY%% *}" >> "$GITHUB_OUTPUT"
           EXP_ACTION_DIRTY=${BODY#*experiment-action=}
-          echo "EXP_ACTION=${EXP_ACTION_DIRTY%% }" >> $GITHUB_OUTPUT
+          echo "EXP_ACTION=${EXP_ACTION_DIRTY%% *}" >> "$GITHUB_OUTPUT"
 
   run-discover-ondemand:
     needs: check-valid-comment
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check
-        shell: bash
-        run: |
-          echo ${{ needs.check-valid-comment.outputs.experiance-name }} ${{ needs.check-valid-comment.outputs.experiance-action }}
-# run-discover-ondemand:
-#   
-#   if: ${{ success() }}
-#   uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
-#   with:
-#     experiment_name:   ${{ inputs.experiment_name }}
-#     experiment_action: ${{ inputs.experiment_action }}
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+    with:
+      experiment_name:   ${{ needs.check-valid-comment.outputs.experiment-name }}
+      experiment_action: ${{ needs.check-valid-comment.outputs.experiment-action }}
 
   respond-to-comment:
+    needs: [run-discover-ondemand, check-valid-comment]
     runs-on: ubuntu-latest
     steps:
       - name: Message success
-        if: ${{ success() }}
-        uses: actions/github-script@v4
+        if: ${{ needs.run-discover-ondemand.result == 'success' }}
+        uses: actions/github-script@v6
         with:
           script: |
-            github.issues.createComment({
+            github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Discover check succeeded! ✅',
+              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }} succeeded! ✅',
             });          
       - name: Message failure
-        if: ${{ failure() }}
-        uses: actions/github-script@v4
+        if: ${{ needs.run-discover-ondemand.result != 'success' }}
+        uses: actions/github-script@v6
         with:
           script: |
-            github.issues.createComment({
+            github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Discover CI failed! ❌',
+              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }} failed! ❌',
             }); 
