@@ -32,29 +32,26 @@ jobs:
   run-discover-ondemand:
     needs: check-valid-comment
     runs-on: ubuntu-latest
-    outputs:
-      is_ok: ${{ steps.check.outputs.OK }}
     steps:
       - name: check
         id: check
         run: |
           echo ${{ needs.check-valid-comment.outputs.experiment-name }} ${{ needs.check-valid-comment.outputs.experiment-action }}
-          echo "OK=True" >> "$GITHUB_OUTPUT"
 
-# run-discover-ondemand:
-#   needs: check-valid-comment
-#   if: ${{ steps.run-discover-ondemand.outcome == 'success' }}
-#   uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
-#   with:
-#     experiment_name:   ${{ inputs.experiment_name }}
-#     experiment_action: ${{ inputs.experiment_action }}
+  # run-discover-ondemand:
+  #   needs: check-valid-comment
+  #   if: ${{ steps.run-discover-ondemand.outcome == 'success' }}
+  #   uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+  #   with:
+  #     experiment_name:   ${{ needs.check-valid-comment.outputs.experiment-name }}
+  #     experiment_action: ${{ needs.check-valid-comment.outputs.experiment-action }}
 
   respond-to-comment:
     needs: [run-discover-ondemand, check-valid-comment]
     runs-on: ubuntu-latest
     steps:
       - name: Message success
-        if: ${{ needs.run-discover-ondemand.outputs.is_ok == 'True' }}
+        if: ${{ needs.run-discover-ondemand.steps.check.outcome == 'success' }}
         uses: actions/github-script@v6
         with:
           script: |
@@ -62,10 +59,10 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }}/ succeeded! ✅',
+              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }} succeeded! ✅',
             });          
       - name: Message failure
-        if: ${{ needs.run-discover-ondemand.outputs.is_ok != 'True' }}
+        if: ${{ needs.run-discover-ondemand.steps.check.outcome != 'success' }}
         uses: actions/github-script@v6
         with:
           script: |
@@ -73,5 +70,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }}/ failed! ❌',
+              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }} failed! ❌',
             }); 
