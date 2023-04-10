@@ -34,7 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check
-        shell: bash
         run: |
           echo ${{ needs.check-valid-comment.outputs.experiance-name }} ${{ needs.check-valid-comment.outputs.experiance-action }}
 
@@ -51,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Message success
-        if: ${{ steps.run-discover-ondemand.outcome == 'success' }}
+        if: ${{ needs.run-discover-ondemand.conclusion == 'success' }}
         uses: actions/github-script@v4
         with:
           script: |
@@ -62,7 +61,7 @@ jobs:
               body: 'Discover check succeeded! ✅',
             });          
       - name: Message failure
-        if: ${{ steps.run-discover-ondemand.outcome != 'success' }}
+        if: ${{ needs.run-discover-ondemand.conclusion != 'success' }}
         uses: actions/github-script@v4
         with:
           script: |
