@@ -25,17 +25,20 @@ jobs:
           echo Launching Discover CI: ${{github.event.comment.body}}
           BODY="${{github.event.comment.body}}"
           EXP_NAME_DIRTY=${BODY#*experiment-name=}
-          echo "EXP_NAME=${EXP_NAME_DIRTY%% }" >> GITHUB_OUTPUT
+          echo "EXP_NAME=${EXP_NAME_DIRTY%% }" >> "$GITHUB_OUTPUT"
           EXP_ACTION_DIRTY=${EXP_ACTION_DIRTY#*experiment-action=}
-          echo "EXP_ACTION=${EXP_ACTION_DIRTY%% }" >> $GITHUB_OUTPUT
+          echo "EXP_ACTION=${EXP_ACTION_DIRTY%% }" >> "$GITHUB_OUTPUT"
 
   run-discover-ondemand:
     needs: check-valid-comment
     runs-on: ubuntu-latest
+    outputs:
+      is_ok: ${{ steps.check.outputs.OK }}
     steps:
-      - name: Check
+      - name: check
         run: |
           echo ${{ needs.check-valid-comment.outputs.experiance-name }} ${{ needs.check-valid-comment.outputs.experiance-action }}
+          echo "OK=True" >> "$GITHUB_OUTPUT"
 
 # run-discover-ondemand:
 #   needs: check-valid-comment
@@ -50,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Message success
-        if: ${{ needs.run-discover-ondemand.conclusion == 'success' }}
+        if: ${{ needs.run-discover-ondemand.outputs.is_ok == 'True' }}
         uses: actions/github-script@v4
         with:
           script: |
@@ -61,7 +64,7 @@ jobs:
               body: 'Discover check succeeded! ✅',
             });          
       - name: Message failure
-        if: ${{ needs.run-discover-ondemand.conclusion != 'success' }}
+        if: ${{ needs.run-discover-ondemand.outputs.is_ok != 'True' }}
         uses: actions/github-script@v4
         with:
           script: |
