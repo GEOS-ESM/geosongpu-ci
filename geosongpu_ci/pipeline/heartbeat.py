@@ -1,6 +1,7 @@
 from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.registry import Registry
+from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.pipeline.actions import PipelineAction
 import datetime
 import os
@@ -15,6 +16,7 @@ class Heartbeat(TaskBase):
         config: Dict[str, Any],
         experiment_name: str,
         action: PipelineAction,
+        env: Environment,
     ):
         # Write metadata file
         with open("ci_metadata", "w") as f:
@@ -30,11 +32,17 @@ class Heartbeat(TaskBase):
         experiment_name: str,
         action: PipelineAction,
         artifact_base_directory: str,
+        env: Environment,
     ) -> bool:
+        if env.CI_WORKSPACE == "":
+            raise RuntimeError("Environment error: CI_WORKSPACE is not set.")
+
         if action == PipelineAction.All or action == PipelineAction.Validation:
             file_exists = os.path.isfile("ci_metadata")
             if not file_exists:
-                raise RuntimeError("Heartbeat.run didn't write ci_metadata. Coding or Permission error.")
+                raise RuntimeError(
+                    "Heartbeat.run didn't write ci_metadata. Coding or Permission error."
+                )
             artifact_directory = f"{artifact_base_directory}/ci-heartbeat/"
             os.mkdir(artifact_directory)
             shutil.copy("ci_metadata", artifact_directory)
