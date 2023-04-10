@@ -17,7 +17,7 @@ on:
           - All
           - Validation
           - Benchmark
-        
+
 defaults:
   run:
     shell: bash

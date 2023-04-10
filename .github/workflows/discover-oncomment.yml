@@ -2,9 +2,9 @@
 name: Discover CI On PR Comment
 
 on:
-  issue_comment:                                     
+  issue_comment:
       types: [created]
-        
+
 defaults:
   run:
     shell: bash
@@ -17,7 +17,7 @@ jobs:
       - name: check-command
         if: contains(github.event.comment.body, '/discover-ci')
         run: |
-          echo Launching Discover CI: ${{github.event.comment.body}}    
+          echo Launching Discover CI: ${{github.event.comment.body}}
 
 
   # run-discover-ondemand:
