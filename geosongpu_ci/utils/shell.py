@@ -37,8 +37,8 @@ def shell_script(
         for m in modules:
             script += f"module load {m}\n"
         script += "\n"
-    if env_to_source:
-        script += f"source {env_to_source}\n"
+    for env in env_to_source or []:
+        script += f"source {env}\n"
         script += "\n"
     for c in shell_commands:
         script += f"{c}\n"
