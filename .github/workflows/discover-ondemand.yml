@@ -1,6 +1,5 @@
 # Discover on demand
-
-name: discover-ondemand
+name: Discover CI On Demand
 
 on:
   workflow_dispatch:
@@ -18,7 +17,7 @@ on:
           - All
           - Validation
           - Benchmark
-        
+
 defaults:
   run:
     shell: bash

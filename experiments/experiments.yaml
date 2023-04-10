@@ -2,7 +2,7 @@ ci-heartbeat:
   repository:
     url: ci-heartbeat-dummy-git
     tag_or_hash: ci-heartbeat-dummy-tag_or_hash
-  tasks: 
+  tasks:
     - Heartbeat
 
 geos_hs:
