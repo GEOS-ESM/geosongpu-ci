@@ -26,7 +26,7 @@ jobs:
           BODY="${{github.event.comment.body}}"
           EXP_NAME_DIRTY=${BODY#*experiment-name=}
           echo "EXP_NAME=${EXP_NAME_DIRTY%% }" >> "$GITHUB_OUTPUT"
-          EXP_ACTION_DIRTY=${EXP_ACTION_DIRTY#*experiment-action=}
+          EXP_ACTION_DIRTY=${BODY#*experiment-action=}
           echo "EXP_ACTION=${EXP_ACTION_DIRTY%% }" >> "$GITHUB_OUTPUT"
 
   run-discover-ondemand:
@@ -55,10 +55,10 @@ jobs:
     steps:
       - name: Message success
         if: ${{ needs.run-discover-ondemand.outputs.is_ok == 'True' }}
-        uses: actions/github-script@v4
+        uses: actions/github-script@v5
         with:
           script: |
-            github.issues.createComment({
+            github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -66,10 +66,10 @@ jobs:
             });          
       - name: Message failure
         if: ${{ needs.run-discover-ondemand.outputs.is_ok != 'True' }}
-        uses: actions/github-script@v4
+        uses: actions/github-script@v5
         with:
           script: |
-            github.issues.createComment({
+            github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
