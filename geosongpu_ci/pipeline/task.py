@@ -71,9 +71,9 @@ def dispatch(
     # Run pipeline
     for task in config["tasks"]:
         t = Registry.registry[task]()
-        print(f"{task}.run for {experiment_action}")
+        print(f"> > > {task}.run for {experiment_action}")
         t.run(config, experiment_name, experiment_action, env)
-        print(f"{task}.check for {experiment_action}")
+        print(f"> > > {task}.check for {experiment_action}")
         check = t.check(
             config,
             experiment_name,

@@ -1,3 +1,4 @@
+from geosongpu_ci.utils.environment import Environment
 from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.shell import shell_script
@@ -14,6 +15,7 @@ class GEOS(TaskBase):
         config: Dict[str, Any],
         experiment_name: str,
         action: PipelineAction,
+        env: Environment,
     ):
         git_config = config["repository"]
 
@@ -50,14 +52,22 @@ class GEOS(TaskBase):
         shell_script(
             name="build_geos",
             modules=[],
-            env_to_source="geos/@env/g5_modules.sh",
+            env_to_source=[
+                "geos/@env/g5_modules.sh",
+            ],
             shell_commands=[
                 "cd geos",
                 "mkdir build",
                 "cd build",
                 "cmake .. -DBASEDIR=$BASEDIR/Linux -DCMAKE_Fortran_COMPILER=gfortran -DCMAKE_INSTALL_PREFIX=../install",
-                "make -j24 GEOSgcm.x",
+                "make -j12",
             ],
+        )
+
+        # Export GEOS_INSTALL for future scripts
+        env.set(
+            "GEOS_INSTALL",
+            f"{env.CI_WORKSPACE}/geos/GEOSgcm/held-suarez/hs-oacc-gtfv3",
         )
 
     def check(
@@ -66,5 +76,6 @@ class GEOS(TaskBase):
         experiment_name: str,
         action: PipelineAction,
         artifact_directory: str,
+        env: Environment,
     ) -> bool:
-        return True
+        return env.exists("GEOS_INSTALL")

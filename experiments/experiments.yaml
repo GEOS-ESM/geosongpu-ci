@@ -14,4 +14,4 @@ geos_hs:
     directory: /discover/nobackup/pchakrab/runs/agcm/held-suarez/hs-oacc-gtfv3/C12-L91/cuda11.2.2-gcc10.4.0nvptx-openmpi4.1.4/reference
   tasks:
     - GEOS
-
+    - HeldSuarez

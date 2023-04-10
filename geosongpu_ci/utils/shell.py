@@ -18,6 +18,7 @@ def run_subprocess(command: str, stdout=None, stderr=None) -> str:
 
 
 def execute_shell_script(name: str) -> str:
+    print(f"> > > Executing {name}")
     st = os.stat(name)
     os.chmod(name, st.st_mode | stat.S_IEXEC)
     return run_subprocess(f"./{name}")
@@ -27,7 +28,7 @@ def shell_script(
     name: str,
     shell_commands: List[str],
     modules: Optional[List[str]] = None,
-    env_to_source: Optional[str] = None,
+    env_to_source: Optional[List[str]] = None,
     execute=True,
     temporary=False,
 ) -> Optional[str]:
