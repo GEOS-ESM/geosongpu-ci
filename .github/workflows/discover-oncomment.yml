@@ -13,15 +13,60 @@ jobs:
   check-valid-comment:
     runs-on: ubuntu-latest
     if: ${{ github.event.issue.pull_request }}
+    outputs:
+      experiance-name: ${{ steps.extractor.outputs.EXP_NAME }}
+      experiance-action: ${{ steps.extractor.outputs.EXP_ACTION }}
     steps:
-      - name: check-command
+      - name: Extract command
+        id: extractor
         if: contains(github.event.comment.body, '/discover-ci')
+        shell: bash
         run: |
           echo Launching Discover CI: ${{github.event.comment.body}}
+          BODY=${{github.event.comment.body}}
+          EXP_NAME_DIRTY=${BODY#*experiment-name=}
+          echo "EXP_NAME=${EXP_NAME_DIRTY%% }" >> GITHUB_OUTPUT
+          EXP_ACTION_DIRTY=${BODY#*experiment-action=}
+          echo "EXP_ACTION=${EXP_ACTION_DIRTY%% }" >> $GITHUB_OUTPUT
 
+  run-discover-ondemand:
+    needs: check-valid-comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        shell: bash
+        run: |
+          echo ${{ needs.check-valid-comment.outputs.experiance-name }} ${{ needs.check-valid-comment.outputs.experiance-action }}
+# run-discover-ondemand:
+#   
+#   if: ${{ success() }}
+#   uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+#   with:
+#     experiment_name:   ${{ inputs.experiment_name }}
+#     experiment_action: ${{ inputs.experiment_action }}
 
-  # run-discover-ondemand:
-  #   uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
-  #   with:
-  #     experiment_name:   ${{ inputs.experiment_name }}
-  #     experiment_action: ${{ inputs.experiment_action }}
+  respond-to-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Message success
+        if: ${{ success() }}
+        uses: actions/github-script@v4
+        with:
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Discover check succeeded! ✅',
+            });          
+      - name: Message failure
+        if: ${{ failure() }}
+        uses: actions/github-script@v4
+        with:
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Discover CI failed! ❌',
+            }); 
