@@ -1,6 +1,6 @@
 # Discover's CI check
 
-name: discover_heartbeat_nightly
+name: Discover CI Nightly Heartbeat
 
 on:
   schedule:
