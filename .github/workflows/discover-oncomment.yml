@@ -36,6 +36,7 @@ jobs:
       is_ok: ${{ steps.check.outputs.OK }}
     steps:
       - name: check
+        id: check
         run: |
           echo ${{ needs.check-valid-comment.outputs.experiance-name }} ${{ needs.check-valid-comment.outputs.experiance-action }}
           echo "OK=True" >> "$GITHUB_OUTPUT"
