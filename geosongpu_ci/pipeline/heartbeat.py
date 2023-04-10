@@ -36,6 +36,7 @@ class Heartbeat(TaskBase):
     ) -> bool:
         if env.CI_WORKSPACE == "":
             raise RuntimeError("Environment error: CI_WORKSPACE is not set.")
+        print(f"CI_WORKSPACE: {env.CI_WORKSPACE}")
 
         if action == PipelineAction.All or action == PipelineAction.Validation:
             file_exists = os.path.isfile("ci_metadata")
