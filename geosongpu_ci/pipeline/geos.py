@@ -56,6 +56,10 @@ class GEOS(TaskBase):
                 "geos/@env/g5_modules.sh",
             ],
             shell_commands=[
+                "mkdir tmp",
+                "export TMPDIR=./tmp",
+                "export TMP=./tmp",
+                "export TEMP=./tmp",
                 "cd geos",
                 "mkdir build",
                 "cd build",
