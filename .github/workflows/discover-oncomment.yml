@@ -50,7 +50,7 @@ jobs:
 #     experiment_action: ${{ inputs.experiment_action }}
 
   respond-to-comment:
-    needs: run-discover-ondemand
+    needs: [run-discover-ondemand, check-valid-comment]
     runs-on: ubuntu-latest
     steps:
       - name: Message success
@@ -62,7 +62,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Discover check succeeded! ✅',
+              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }}/ succeeded! ✅',
             });          
       - name: Message failure
         if: ${{ needs.run-discover-ondemand.outputs.is_ok != 'True' }}
@@ -73,5 +73,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Discover CI failed! ❌',
+              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }}/ failed! ❌',
             }); 
