@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.issue.pull_request }}
     outputs:
-      experiance-name: ${{ steps.extractor.outputs.EXP_NAME }}
-      experiance-action: ${{ steps.extractor.outputs.EXP_ACTION }}
+      experiment-name: ${{ steps.extractor.outputs.EXP_NAME }}
+      experiment-action: ${{ steps.extractor.outputs.EXP_ACTION }}
     steps:
       - name: Extract command
         id: extractor
@@ -38,7 +38,7 @@ jobs:
       - name: check
         id: check
         run: |
-          echo ${{ needs.check-valid-comment.outputs.experiance-name }} ${{ needs.check-valid-comment.outputs.experiance-action }}
+          echo ${{ needs.check-valid-comment.outputs.experiment-name }} ${{ needs.check-valid-comment.outputs.experiment-action }}
           echo "OK=True" >> "$GITHUB_OUTPUT"
 
 # run-discover-ondemand:
