@@ -1,0 +1,27 @@
+# Discover on demand
+name: Discover CI On PR Comment
+
+on:
+  issue_comment:                                     
+      types: [created]
+        
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check-valid-comment:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.issue.pull_request }}
+    steps:
+      - name: check-command
+        if: contains(github.event.comment.body, '/discover-ci')
+        run: |
+          echo Launching Discover CI: ${{github.event.comment.body}}    
+
+
+  # run-discover-ondemand:
+  #   uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+  #   with:
+  #     experiment_name:   ${{ inputs.experiment_name }}
+  #     experiment_action: ${{ inputs.experiment_action }}
