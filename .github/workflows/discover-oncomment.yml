@@ -25,9 +25,9 @@ jobs:
           echo Launching Discover CI: ${{github.event.comment.body}}
           BODY="${{github.event.comment.body}}"
           EXP_NAME_DIRTY=${BODY#*experiment-name=}
-          echo "EXP_NAME=${EXP_NAME_DIRTY%% }" >> "$GITHUB_OUTPUT"
+          echo "EXP_NAME=${EXP_NAME_DIRTY%% *}" >> "$GITHUB_OUTPUT"
           EXP_ACTION_DIRTY=${BODY#*experiment-action=}
-          echo "EXP_ACTION=${EXP_ACTION_DIRTY%% }" >> "$GITHUB_OUTPUT"
+          echo "EXP_ACTION=${EXP_ACTION_DIRTY%% *}" >> "$GITHUB_OUTPUT"
 
   run-discover-ondemand:
     needs: check-valid-comment
@@ -55,7 +55,7 @@ jobs:
     steps:
       - name: Message success
         if: ${{ needs.run-discover-ondemand.outputs.is_ok == 'True' }}
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           script: |
             github.rest.issues.createComment({
@@ -66,7 +66,7 @@ jobs:
             });          
       - name: Message failure
         if: ${{ needs.run-discover-ondemand.outputs.is_ok != 'True' }}
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           script: |
             github.rest.issues.createComment({
