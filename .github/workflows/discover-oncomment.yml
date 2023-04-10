@@ -25,9 +25,9 @@ jobs:
           echo Launching Discover CI: ${{github.event.comment.body}}
           BODY="${{github.event.comment.body}}"
           EXP_NAME_DIRTY=${BODY#*experiment-name=}
-          echo "${EXP_NAME_DIRTY%% }" >> GITHUB_OUTPUT
-          EXP_ACTION_DIRTY=${BODY#*experiment-action=}
-          echo "${EXP_ACTION_DIRTY%% }" >> $GITHUB_OUTPUT
+          echo "EXP_NAME=${EXP_NAME_DIRTY%% }" >> GITHUB_OUTPUT
+          EXP_ACTION_DIRTY=${EXP_ACTION_DIRTY#*experiment-action=}
+          echo "EXP_ACTION=${EXP_ACTION_DIRTY%% }" >> $GITHUB_OUTPUT
 
   run-discover-ondemand:
     needs: check-valid-comment
@@ -39,8 +39,8 @@ jobs:
           echo ${{ needs.check-valid-comment.outputs.experiance-name }} ${{ needs.check-valid-comment.outputs.experiance-action }}
 
 # run-discover-ondemand:
-#   
-#   if: ${{ success() }}
+#   needs: check-valid-comment
+#   if: ${{ steps.run-discover-ondemand.outcome == 'success' }}
 #   uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
 #   with:
 #     experiment_name:   ${{ inputs.experiment_name }}
