@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* CI workflow "on demand": triggered from the Action tab of github with configurable experiment and action
+* CI workflow command on PR: triggered form a comment `/discover-ci experience-name experience-action`
+
 ### Changed
 
 ### Fixed
@@ -16,4 +19,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Deprecated
-
