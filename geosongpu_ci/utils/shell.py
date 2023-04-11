@@ -7,7 +7,7 @@ import stat
 
 def run_subprocess(command: str, stdout=None, stderr=None) -> str:
     try:
-        result = subprocess.run(command, stdout=subprocess.PIPE)
+        result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
         if result.returncode != 0:
             raise RuntimeError(f"Subprocess with command {command}")
     except subprocess.CalledProcessError as e:
