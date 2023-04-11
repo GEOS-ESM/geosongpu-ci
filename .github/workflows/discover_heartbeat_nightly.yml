@@ -17,3 +17,4 @@ jobs:
     with:
       experiment_name:   ci-heartbeat
       experiment_action: All
+      geosongpu_ci_ref: main

@@ -17,6 +17,10 @@ on:
           - All
           - Validation
           - Benchmark
+      geosongpu_ci_ref:
+        required: true
+        type: string
+        default: main
 
 defaults:
   run:
