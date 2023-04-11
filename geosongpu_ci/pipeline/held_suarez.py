@@ -40,7 +40,7 @@ class HeldSuarez(TaskBase):
                 "GEOSBIN=$GEOS_INSTALL_DIR/bin",
                 "GEOSLIB=$GEOS_INSTALL_DIR/lib",
                 "",
-                "cp $GEOSBIN//GEOSgcm.x .",
+                "cp $GEOSBIN/GEOSgcm.x .",
                 "",
                 "source $GEOSBIN/g5_modules.sh",
                 "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${BASEDIR}/$(uname)/lib:${GEOSLIB}",
@@ -55,19 +55,6 @@ class HeldSuarez(TaskBase):
                 "export PYTHONPATH=${PYTHONPATH}:${GTFV3}/stencils",
             ],
             execute=False,
-        )
-
-        shell_script(
-            name="execute_geos",
-            modules=[],
-            env_to_source=[
-                "geos/@env/g5_modules.sh",
-                "setenv.sh",
-            ],
-            shell_commands=[
-                "cd ./geos/build/experiment",
-                "sbatch submit-six-gpus.sh",
-            ],
         )
 
         shell_script(
