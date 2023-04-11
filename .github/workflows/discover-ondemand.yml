@@ -32,3 +32,4 @@ jobs:
     with:
       experiment_name:   ${{ inputs.experiment_name }}
       experiment_action: ${{ inputs.experiment_action }}
+      geosongpu_ci_ref : ${{ inputs.geosongpu_ci_ref }}
