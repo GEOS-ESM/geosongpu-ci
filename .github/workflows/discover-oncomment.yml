@@ -35,6 +35,7 @@ jobs:
     with:
       experiment_name:   ${{ needs.check-valid-comment.outputs.experiment-name }}
       experiment_action: ${{ needs.check-valid-comment.outputs.experiment-action }}
+      geosongpu_ci_ref:  ${{ github.head_ref }}
 
   respond-to-comment:
     needs: [run-discover-ondemand, check-valid-comment]
