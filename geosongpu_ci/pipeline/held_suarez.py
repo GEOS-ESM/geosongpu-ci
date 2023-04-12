@@ -35,7 +35,7 @@ class HeldSuarez(TaskBase):
         shell_script(
             name="setenv",
             shell_commands=[
-                f"GEOS_INSTALL_DIR={env.get('GEOS_INSTALL')}/install/release/gtfv3/cuda11.2.2-gcc10.4.0nvptx-openmpi4.1.4",
+                f"GEOS_INSTALL_DIR={env.get('GEOS_INSTALL')}",
                 "",
                 "GEOSBIN=$GEOS_INSTALL_DIR/bin",
                 "GEOSLIB=$GEOS_INSTALL_DIR/lib",
@@ -60,7 +60,7 @@ class HeldSuarez(TaskBase):
         shell_script(
             name="srun_script",
             env_to_source=[
-                "setenv.sh",
+                "./setenv.sh",
             ],
             shell_commands=[
                 "cd ./geos/build/experiment",

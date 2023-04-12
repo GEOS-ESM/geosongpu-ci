@@ -65,14 +65,14 @@ class GEOS(TaskBase):
                 "mkdir $TMP",
                 "echo $TMP",
                 "cmake .. -DBASEDIR=$BASEDIR/Linux -DCMAKE_Fortran_COMPILER=gfortran -DCMAKE_INSTALL_PREFIX=../install",
-                "make -j12",
+                "make -j12 install",
             ],
         )
 
         # Export GEOS_INSTALL for future scripts
         env.set(
             "GEOS_INSTALL",
-            f"{env.CI_WORKSPACE}/geos/GEOSgcm/held-suarez/hs-oacc-gtfv3",
+            f"{env.CI_WORKSPACE}/geos/install",
         )
 
     def check(
