@@ -15,3 +15,7 @@ geos_hs:
   tasks:
     - GEOS
     - HeldSuarez
+
+ci-clean:
+  tasks:
+    - CIClean
