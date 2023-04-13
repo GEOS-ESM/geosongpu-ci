@@ -5,6 +5,8 @@ from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.pipeline.actions import PipelineAction
 import glob
 import shutil
+from os.path import abspath
+from os import mkdir
 
 
 @Registry.register
@@ -16,12 +18,10 @@ class CIClean(TaskBase):
         action: PipelineAction,
         env: Environment,
     ):
-        worked_dir = glob.glob(f"{env.CI_WORKSPACE}/../*")
-        for d in worked_dir:
-            if d == worked_dir:
-                continue
-            print(f"Nuking {d}")
-            shutil.rmtree(d, ignore_errors=False, onerror=None)
+        work_dir = abspath(f"{env.CI_WORKSPACE}/../")
+        base_dir = abspath(f"{env.CI_WORKSPACE}/../../")
+        shutil.rmtree(f"{work_dir}", ignore_errors=False, onerror=None)
+        mkdir(f"{base_dir}")
 
     def check(
         self,
