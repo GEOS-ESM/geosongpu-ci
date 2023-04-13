@@ -16,12 +16,10 @@ class CIClean(TaskBase):
         action: PipelineAction,
         env: Environment,
     ):
-        worked_root_dir = glob.glob(f"{env.CI_WORKSPACE}/../../2023*")
-        worked_dir = glob.glob(f"{env.CI_WORKSPACE}*")
-        for d in worked_root_dir:
-            print(f"Nuking {d}")
-            shutil.rmtree(d, ignore_errors=False, onerror=None)
+        worked_dir = glob.glob(f"{env.CI_WORKSPACE}/../*")
         for d in worked_dir:
+            if d == worked_dir:
+                continue
             print(f"Nuking {d}")
             shutil.rmtree(d, ignore_errors=False, onerror=None)
 
