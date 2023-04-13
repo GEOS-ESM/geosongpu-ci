@@ -19,9 +19,8 @@ class CIClean(TaskBase):
         env: Environment,
     ):
         work_dir = abspath(f"{env.CI_WORKSPACE}/../")
-        base_dir = abspath(f"{env.CI_WORKSPACE}/../../")
         shutil.rmtree(f"{work_dir}", ignore_errors=False, onerror=None)
-        mkdir(f"{base_dir}")
+        mkdir(f"{work_dir}")
 
     def check(
         self,
