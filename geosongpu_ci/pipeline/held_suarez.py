@@ -65,7 +65,8 @@ class HeldSuarez(TaskBase):
             shell_commands=[
                 "cd ./geos/build/experiment",
                 "",
-                "srun --nodes=2 --ntasks=6 --ntasks-per-node=4 \\",
+                "srun --account=j1013 \\",
+                "     --nodes=2 --ntasks=6 --ntasks-per-node=4 \\",
                 "     --ntasks-per-socket=2 --gpus-per-node=4 \\",
                 "     --sockets-per-node=2 --gpus-per-socket=2 \\",
                 "     --gpus-per-task=1 --constraint=rome \\",
