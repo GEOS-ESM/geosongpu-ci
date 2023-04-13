@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - ci-heartbeat
+          - ci-clean
           - geos_hs
       experiment_action:
         required: true
