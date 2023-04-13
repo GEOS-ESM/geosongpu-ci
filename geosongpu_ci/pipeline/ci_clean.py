@@ -4,7 +4,7 @@ from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.pipeline.actions import PipelineAction
 import glob
-import os
+import shutil
 
 
 @Registry.register
@@ -20,10 +20,10 @@ class CIClean(TaskBase):
         worked_dir = glob.glob(f"{env.CI_WORKSPACE}*")
         for d in worked_root_dir:
             print(f"Nuking {d}")
-            os.rmdir(d)
+            shutil.rmtree(d, ignore_errors=False, onerror=None)
         for d in worked_dir:
             print(f"Nuking {d}")
-            os.rmdir(d)
+            shutil.rmtree(d, ignore_errors=False, onerror=None)
 
     def check(
         self,
