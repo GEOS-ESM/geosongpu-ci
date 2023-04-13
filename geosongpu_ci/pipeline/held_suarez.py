@@ -37,6 +37,7 @@ class HeldSuarez(TaskBase):
             shell_commands=[
                 f"GEOS_INSTALL_DIR={env.get('GEOS_INSTALL')}",
                 "",
+                "GEOSDIR=$GEOS_INSTALL_DIR/..",
                 "GEOSBIN=$GEOS_INSTALL_DIR/bin",
                 "GEOSLIB=$GEOS_INSTALL_DIR/lib",
                 "",
