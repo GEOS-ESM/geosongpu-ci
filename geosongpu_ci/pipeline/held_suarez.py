@@ -18,7 +18,7 @@ class HeldSuarez(TaskBase):
         env: Environment,
     ):
         geos_install_path = env.get("GEOS_INSTALL")
-        geos_build_path = f"cd {geos_install_path}/../build",
+        geos_build_path = f"{geos_install_path}/../build",
         
         # Copy input
         input_config = config["input"]
@@ -82,7 +82,7 @@ class HeldSuarez(TaskBase):
         env: Environment,
     ) -> bool:
         geos_install_path = env.get("GEOS_INSTALL")
-        geos_build_path = f"cd {geos_install_path}/../build",
+        geos_build_path = f"{geos_install_path}/../build",
         file_exists = os.path.isfile("ci_metadata")
         if not file_exists:
             raise RuntimeError(
