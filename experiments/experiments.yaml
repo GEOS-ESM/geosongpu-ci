@@ -11,7 +11,7 @@ geos_hs:
     tag_or_hash: a230606aab427bf558c3ff171638e083832e7980
     note: Updated components.yaml to include tags to test gtFV3 + OpenACC port of Held Suarez
   input:
-    directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C12-L91
+    directory: /discover/nobackup/pchakrab/runs/agcm/held-suarez/hs-oacc-gtfv3/C12-L91/cuda11.2.2-gcc10.4.0nvptx-openmpi4.1.4/reference
   tasks:
     - GEOS_NO_HYDROSTATIC
     - HeldSuarez

@@ -30,7 +30,6 @@ class HeldSuarez(TaskBase):
                 "mkdir experiment", 
                 "cd experiment",
                 f"cp -r {input_config['directory']}/* .",
-                "rm ./setenv.sh",
             ],
         )
 
