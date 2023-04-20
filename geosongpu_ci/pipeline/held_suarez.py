@@ -34,8 +34,13 @@ class HeldSuarez(TaskBase):
             ],
         )
 
+        # TODO: this SimpleAGCM.rc edit should be removed/altered when
+        #       we will use proper data from /projects
+        with open(f"{geos_build_path}/experiment/AgcmSimple.rc", "a") as f:
+            f.write("RUN_GTFV3: 1\n")
+
         # Run
-        geos_fvdycore_comp = f"cd {geos_install_path}/../src/Components/@GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
+        geos_fvdycore_comp = f"{geos_install_path}/../src/Components/@GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
         shell_script(
             name="setenv",
             shell_commands=[
