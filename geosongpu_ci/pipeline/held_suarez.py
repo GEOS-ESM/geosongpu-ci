@@ -30,6 +30,7 @@ class HeldSuarez(TaskBase):
                 "mkdir experiment", 
                 "cd experiment",
                 f"cp -r {input_config['directory']}/* .",
+                "rm ./setenv.sh",
             ],
         )
 
@@ -40,7 +41,7 @@ class HeldSuarez(TaskBase):
             shell_commands=[
                 "echo \"Copy execurable GEOSgcm.x\"",
                 "",
-                f"cp {geos_install_path}/GEOSgcm.x {geos_build_path}/experiment",
+                f"cp {geos_install_path}/bin/GEOSgcm.x {geos_build_path}/experiment",
                 "",
                 "echo \"Loading env (g5modules & pyenv)\"",
                 f"source {geos_install_path}/../@env/g5_modules.sh",
