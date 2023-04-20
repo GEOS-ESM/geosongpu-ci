@@ -17,14 +17,17 @@ class HeldSuarez(TaskBase):
         action: PipelineAction,
         env: Environment,
     ):
+        geos_install_path = env.get("GEOS_INSTALL")
+        geos_build_path = f"cd {geos_install_path}/../build",
+        
         # Copy input
         input_config = config["input"]
         shell_script(
             name="copy_input",
             modules=[],
             shell_commands=[
-                "cd ./geos/build",
-                "mkdir experiment",
+                f"cd {geos_build_path}",
+                "mkdir experiment", 
                 "cd experiment",
                 f"cp -r {input_config['directory']}/* .",
                 "rm ./setenv.sh",
@@ -32,28 +35,20 @@ class HeldSuarez(TaskBase):
         )
 
         # Run
+        geos_fvdycore_comp = f"cd {geos_install_path}/../src/Components/@GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
         shell_script(
             name="setenv",
             shell_commands=[
-                f"GEOS_INSTALL_DIR={env.get('GEOS_INSTALL')}",
+                "echo \"Copy execurable GEOSgcm.x\"",
                 "",
-                "GEOSDIR=$GEOS_INSTALL_DIR/..",
-                "GEOSBIN=$GEOS_INSTALL_DIR/bin",
-                "GEOSLIB=$GEOS_INSTALL_DIR/lib",
+                f"cp {geos_install_path}/GEOSgcm.x {geos_build_path}/experiment",
                 "",
-                "cp $GEOSBIN/GEOSgcm.x $GEOS_INSTALL_DIR/../build/experiment",
-                "",
-                "source $GEOSBIN/g5_modules.sh",
-                "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${BASEDIR}/$(uname)/lib:${GEOSLIB}",
-                "",
-                "export PYTHONPATH=${GEOSDIR}/src/Components/@GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp/geos-gtfv3",
-                "GTFV3=${GEOSDIR}/src/Components/@GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp/@gtfv3",
-                "export PYTHONPATH=${PYTHONPATH}:${GTFV3}/dsl",
-                "export PYTHONPATH=${PYTHONPATH}:${GTFV3}/util",
-                "export PYTHONPATH=${PYTHONPATH}:${GTFV3}/driver",
-                "export PYTHONPATH=${PYTHONPATH}:${GTFV3}/physics",
-                "export PYTHONPATH=${PYTHONPATH}:${GTFV3}/fv3core",
-                "export PYTHONPATH=${PYTHONPATH}:${GTFV3}/stencils",
+                "echo \"Loading env (g5modules & pyenv)\"",
+                f"source {geos_install_path}/../@env/g5_modules.sh",
+                f"VENV_DIR=\"{geos_fvdycore_comp}/geos-gtfv3/driver/setenv/gtfv3_venv\"",
+                f"GTFV3_DIR=\"{geos_fvdycore_comp}/@gtFV3\"",
+                f"GEOS_INSTALL_DIR=\"{geos_install_path}\"",
+                f"source {geos_fvdycore_comp}/geos-gtfv3/driver/setenv/pyenv.sh",
             ],
             execute=False,
         )
@@ -64,7 +59,7 @@ class HeldSuarez(TaskBase):
                 "./setenv.sh",
             ],
             shell_commands=[
-                "cd ./geos/build/experiment",
+                f"cd {geos_build_path}/experiment",
                 "",
                 "srun --account=j1013 \\",
                 "     --nodes=2 --ntasks=6 --ntasks-per-node=4 \\",
@@ -86,6 +81,8 @@ class HeldSuarez(TaskBase):
         artifact_base_directory: str,
         env: Environment,
     ) -> bool:
+        geos_install_path = env.get("GEOS_INSTALL")
+        geos_build_path = f"cd {geos_install_path}/../build",
         file_exists = os.path.isfile("ci_metadata")
         if not file_exists:
             raise RuntimeError(
@@ -94,11 +91,11 @@ class HeldSuarez(TaskBase):
         artifact_directory = f"{artifact_base_directory}/held_suarez/"
         os.mkdir(artifact_directory)
         shutil.copy("ci_metadata", artifact_directory)
-        shutil.copy("log.0.out", artifact_directory)
-        shutil.copy("log.1.out", artifact_directory)
-        shutil.copy("log.2.out", artifact_directory)
-        shutil.copy("log.3.out", artifact_directory)
-        shutil.copy("log.4.out", artifact_directory)
-        shutil.copy("log.5.out", artifact_directory)
+        shutil.copy(f"{geos_build_path}/experiment/log.0.out", artifact_directory)
+        shutil.copy(f"{geos_build_path}/experiment/log.1.out", artifact_directory)
+        shutil.copy(f"{geos_build_path}/experiment/log.2.out", artifact_directory)
+        shutil.copy(f"{geos_build_path}/experiment/log.3.out", artifact_directory)
+        shutil.copy(f"{geos_build_path}/experiment/log.4.out", artifact_directory)
+        shutil.copy(f"{geos_build_path}/experiment/log.5.out", artifact_directory)
 
         return True
