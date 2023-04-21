@@ -68,7 +68,7 @@ class HeldSuarez(TaskBase):
                 "",
                 "export FV3_DACEMODE=BuildAndRun",
                 "export PACE_CONSTANTS=GEOS",
-                "export PACE_FLOAT_PRECISION=GEOS",
+                "export PACE_FLOAT_PRECISION=32",
                 "export PYTHONOPTIMIZE=1",
                 "",
                 "srun --account=j1013 \\",
