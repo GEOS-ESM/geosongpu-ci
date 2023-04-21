@@ -66,7 +66,7 @@ class HeldSuarez(TaskBase):
 
         srun_script_name = "srun_script.sh"
         shell_script(
-            name=srun_script_name.replace("sh", ""),
+            name=srun_script_name.replace(".sh", ""),
             env_to_source=[
                 "./setenv.sh",
             ],
