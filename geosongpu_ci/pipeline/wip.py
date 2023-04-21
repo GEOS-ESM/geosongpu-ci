@@ -7,7 +7,7 @@ from geosongpu_ci.pipeline.actions import PipelineAction
 import shutil
 from os.path import abspath
 from os import mkdir
-from geosongpu_ci.utils.shell import shell_script
+from geosongpu_ci.utils.shell import shell_script, print_subprocess
 
 @Registry.register
 class WIP(TaskBase):
@@ -19,15 +19,8 @@ class WIP(TaskBase):
         env: Environment,
     ):
         # Build GEOS
-        shell_script(
-            name="cancel_slurm_jobs",
-            modules=[],
-            env_to_source=[],
-            shell_commands=[
-                "echo `id`",
-                # "ls /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C12-L91",
-            ],
-        )
+        print_subprocess("id")
+        
 
     def check(
         self,

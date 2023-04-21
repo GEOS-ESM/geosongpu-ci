@@ -4,6 +4,9 @@ import os
 import sys
 import stat
 
+def print_subprocess(command: str):
+    r = subprocess.check_output("id", shell=True)
+    print(r)
 
 def run_subprocess(command: str, stdout=None, stderr=None) -> str:
     try:
