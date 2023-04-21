@@ -64,7 +64,7 @@ class HeldSuarez(TaskBase):
         with open(f"{geos_build_path}/experiment/AgcmSimple.rc", "a") as f:
             f.write("RUN_GTFV3: 1\n")
 
-        srun_script_name = "srun_script.sh",
+        srun_script_name = "srun_script.sh"
         shell_script(
             name=srun_script_name.replace("sh", ""),
             env_to_source=[
