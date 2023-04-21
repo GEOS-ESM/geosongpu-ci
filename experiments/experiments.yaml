@@ -22,4 +22,4 @@ ci-clean:
 
 ci-cancel-slurm:
   tasks:
-    -SlurmCancelJob
+    - SlurmCancelJob
