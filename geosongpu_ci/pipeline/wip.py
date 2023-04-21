@@ -24,11 +24,8 @@ class WIP(TaskBase):
             modules=[],
             env_to_source=[],
             shell_commands=[
-                "ls /discover/nobackup/projects/geosongpu",
-                "ls /discover/nobackup/projects/geosongpu/geos_data",
-                "ls /discover/nobackup/projects/geosongpu/geos_data/held_suarez",
+                "echo `id`",
                 "ls /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C12-L91",
-                "cp /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C12-L91/*",
             ],
         )
 
