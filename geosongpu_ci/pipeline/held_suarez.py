@@ -66,8 +66,10 @@ class HeldSuarez(TaskBase):
             shell_commands=[
                 f"cd {geos_build_path}/experiment",
                 "",
-                "FV3_DACEMODE=BuildAndRun",
-                "PYTHONOPTIMIZE=1",
+                "export FV3_DACEMODE=BuildAndRun",
+                "export PACE_CONSTANTS=GEOS",
+                "export PACE_FLOAT_PRECISION=GEOS",
+                "export PYTHONOPTIMIZE=1",
                 "",
                 "srun --account=j1013 \\",
                 "     --nodes=2 --ntasks=6 --ntasks-per-node=4 \\",
