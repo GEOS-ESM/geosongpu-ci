@@ -2,11 +2,17 @@ from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.pipeline.actions import PipelineAction
-from geosongpu_ci.utils.shell import shell_script
+from geosongpu_ci.utils.shell import shell_script, execute_shell_script
 from typing import Dict, Any
 import shutil
 import os
 
+def _replace_in_file(url:str, text_to_replace:str, new_text:str):
+    with open(url, "r") as f:
+        data = f.read()
+        data.replace(text_to_replace, new_text)
+    with open(url, "w") as f:
+        f.write(data)
 
 @Registry.register
 class HeldSuarez(TaskBase):
@@ -30,14 +36,9 @@ class HeldSuarez(TaskBase):
                 "mkdir experiment", 
                 "cd experiment",
                 f"cp -r {input_config['directory']}/* .",
-                "rm ./setenv.sh",
+                "rm -f ./setenv.sh",
             ],
         )
-
-        # TODO: this SimpleAGCM.rc edit should be removed/altered when
-        #       we will use proper data from /projects
-        with open(f"{geos_build_path}/experiment/AgcmSimple.rc", "a") as f:
-            f.write("RUN_GTFV3: 1\n")
 
         # Run
         geos_fvdycore_comp = f"{geos_install_path}/../src/Components/@GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
@@ -58,8 +59,14 @@ class HeldSuarez(TaskBase):
             execute=False,
         )
 
+        # TODO: this SimpleAGCM.rc edit should be removed/altered when
+        #       we will use proper data from /projects
+        with open(f"{geos_build_path}/experiment/AgcmSimple.rc", "a") as f:
+            f.write("RUN_GTFV3: 1\n")
+
+        srun_script_name = "srun_script.sh",
         shell_script(
-            name="srun_script",
+            name=srun_script_name.replace("sh", ""),
             env_to_source=[
                 "./setenv.sh",
             ],
@@ -81,8 +88,48 @@ class HeldSuarez(TaskBase):
                 "     --output=log.%t.out \\",
                 "     ./gpu-wrapper-ompi.sh ./GEOSgcm.x",
             ],
+            execute=False
         )
 
+        if action == PipelineAction.Validation or action == PipelineAction.All:
+            # Run the simulation as-is: one 3 timesteps
+            _replace_in_file(
+                srun_script_name,
+                "--output=log.%t.out",
+                "--output=log.validation.%t.out"
+            )
+            execute_shell_script(srun_script_name)
+        
+        if action == PipelineAction.Benchmark or action == PipelineAction.All:
+            # Go to 10 timesteps
+            _replace_in_file(
+                f"{geos_build_path}/experiment/CAP.rc",
+                "JOB_SGMT: 00000000 000730",
+                "JOB_SGMT: 00000000 004501"
+            )
+            
+            # Execute gtFV3
+            _replace_in_file(
+                srun_script_name,
+                "--output=log.%t.out",
+                "--output=log.gtfv3.%t.out"
+            )
+            execute_shell_script(srun_script_name)
+
+
+            # Execute Fortran
+            _replace_in_file(
+                f"{geos_build_path}/experiment/AgcmSimple.rc",
+                "RUN_GTFV3: 0",
+                "RUN_GTFV3: 1"
+            )
+            _replace_in_file(
+                srun_script_name,
+                "--output=log.gtfv3.%t.out",
+                "--output=log.fortran.%t.out"
+            )
+            execute_shell_script(srun_script_name)
+            
     def check(
         self,
         config: Dict[str, Any],
@@ -101,11 +148,27 @@ class HeldSuarez(TaskBase):
         artifact_directory = f"{artifact_base_directory}/held_suarez/"
         os.mkdir(artifact_directory)
         shutil.copy("ci_metadata", artifact_directory)
-        shutil.copy(f"{geos_build_path}/experiment/log.0.out", artifact_directory)
-        shutil.copy(f"{geos_build_path}/experiment/log.1.out", artifact_directory)
-        shutil.copy(f"{geos_build_path}/experiment/log.2.out", artifact_directory)
-        shutil.copy(f"{geos_build_path}/experiment/log.3.out", artifact_directory)
-        shutil.copy(f"{geos_build_path}/experiment/log.4.out", artifact_directory)
-        shutil.copy(f"{geos_build_path}/experiment/log.5.out", artifact_directory)
+        
+        if action == PipelineAction.Validation or action == PipelineAction.All:
+            shutil.copy(f"{geos_build_path}/experiment/log.validation.0.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.validation.1.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.validation.2.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.validation.3.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.validation.4.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.validation.5.out", artifact_directory)
+
+        if action == PipelineAction.Benchmark or action == PipelineAction.All:
+            shutil.copy(f"{geos_build_path}/experiment/log.fortran.0.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.fortran.1.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.fortran.2.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.fortran.3.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.fortran.4.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.fortran.5.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.0.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.1.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.2.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.3.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.4.out", artifact_directory)
+            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.5.out", artifact_directory)
 
         return True
