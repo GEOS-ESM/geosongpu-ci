@@ -19,3 +19,7 @@ geos_hs:
 ci-clean:
   tasks:
     - CIClean
+
+ci-cancel-slurm:
+  tasks:
+    -SlurmCancelJob
