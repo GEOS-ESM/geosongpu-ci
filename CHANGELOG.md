@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Check: barebone, check `ci-metadata` and archive logs
 * _Task_: CIClean
   * Run: clean the CI workspace from old working directory
+* _Task_: SlurmCancelJob
+  * Run: cancel all jobs of the username
 * _Workflow_: "on demand" - triggered from the Action tab of github with configurable experiment and action
 * _Workflow_: command on PR - triggered form a comment `/discover-ci experience-name experience-action`
 
