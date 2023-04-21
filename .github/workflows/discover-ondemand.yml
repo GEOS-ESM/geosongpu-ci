@@ -12,6 +12,7 @@ on:
           - ci-clean
           - ci-cancel-slurm
           - geos_hs
+          - wip
       experiment_action:
         required: true
         type: choice
