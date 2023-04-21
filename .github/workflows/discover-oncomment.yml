@@ -3,7 +3,7 @@ name: Discover CI On PR Comment
 
 on:
   issue_comment:
-      types: [created]
+    types: [created]
 
 defaults:
   run:
@@ -51,7 +51,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }} succeeded! ✅',
-            });          
+            });
       - name: Message failure
         if: ${{ needs.run-discover-ondemand.result != 'success' }}
         uses: actions/github-script@v6
@@ -62,4 +62,4 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }} failed! ❌',
-            }); 
+            });

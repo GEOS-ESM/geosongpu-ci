@@ -1,2 +1,1 @@
-import geosongpu_ci.pipeline.geos
-import geosongpu_ci.pipeline.heartbeat
+from geosongpu_ci.pipeline import geos, heartbeat, held_suarez, ci_clean

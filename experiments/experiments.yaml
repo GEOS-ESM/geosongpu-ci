@@ -1,16 +1,25 @@
 ci-heartbeat:
-    repository:
-      - url: ci-heartbeat-dummy-git
-      - tag_or_hash: ci-heartbeat-dummy-tag_or_hash
-    tasks:
-      - Heartbeat
+  repository:
+    url: ci-heartbeat-dummy-git
+    tag_or_hash: ci-heartbeat-dummy-tag_or_hash
+  tasks:
+    - Heartbeat
 
 geos_hs:
   repository:
-    - url: https://www.github.com/GEOS-ESM/GEOSgcm.git
-    - tag_or_hash: bad_SHA
+    url: https://github.com/GEOS-ESM/GEOSgcm.git
+    tag_or_hash: a230606aab427bf558c3ff171638e083832e7980
+    note: Updated components.yaml to include tags to test gtFV3 + OpenACC port of Held Suarez
   input:
-    - directory: /discover/nobackup/pchakrab/runs/agcm/held-suarez/hs-oacc-gtfv3/C12-L91/cuda11.2.2-gcc10.4.0nvptx-openmpi4.1.4/reference
+    directory: /discover/nobackup/pchakrab/runs/agcm/held-suarez/hs-oacc-gtfv3/C12-L91/cuda11.2.2-gcc10.4.0nvptx-openmpi4.1.4/reference
   tasks:
-    - GEOS
+    - GEOS_NO_HYDROSTATIC
+    - HeldSuarez
 
+ci-clean:
+  tasks:
+    - CIClean
+
+ci-cancel-slurm:
+  tasks:
+    - SlurmCancelJob
