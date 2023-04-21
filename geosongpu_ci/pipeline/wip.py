@@ -25,7 +25,7 @@ class WIP(TaskBase):
             env_to_source=[],
             shell_commands=[
                 "echo `id`",
-                "ls /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C12-L91",
+                # "ls /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C12-L91",
             ],
         )
 
