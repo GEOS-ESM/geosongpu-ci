@@ -10,7 +10,7 @@ import os
 def _replace_in_file(url:str, text_to_replace:str, new_text:str):
     with open(url, "r") as f:
         data = f.read()
-        data.replace(text_to_replace, new_text)
+        data = data.replace(text_to_replace, new_text)
     with open(url, "w") as f:
         f.write(data)
 
@@ -39,6 +39,9 @@ class HeldSuarez(TaskBase):
                 "rm -f ./setenv.sh",
             ],
         )
+
+        # TODO: cache build to not BuildAndRun all the time
+        # TODO: mepo hash as a combination of all the hashes
 
         # Run
         geos_fvdycore_comp = f"{geos_install_path}/../src/Components/@GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
@@ -102,16 +105,21 @@ class HeldSuarez(TaskBase):
         
         if action == PipelineAction.Benchmark or action == PipelineAction.All:
             # Go to 10 timesteps
-            _replace_in_file(
-                f"{geos_build_path}/experiment/CAP.rc",
-                "JOB_SGMT: 00000000 000730",
-                "JOB_SGMT: 00000000 004501"
-            )
+            # _replace_in_file(
+            #     f"{geos_build_path}/experiment/CAP.rc",
+            #     "JOB_SGMT: 00000000 010000",
+            #     "JOB_SGMT: 00000000 009001"
+            # )
             
             # Execute gtFV3
             _replace_in_file(
                 srun_script_name,
                 "--output=log.%t.out",
+                "--output=log.gtfv3.%t.out"
+            )
+            _replace_in_file(
+                srun_script_name,
+                "--output=log.validation.%t.out",
                 "--output=log.gtfv3.%t.out"
             )
             execute_shell_script(srun_script_name)
