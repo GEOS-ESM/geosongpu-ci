@@ -40,6 +40,18 @@ class HeldSuarez(TaskBase):
             ],
         )
 
+        shell_script(
+            name=f"{geos_build_path}/experiment/gpu-wrapper-slurm",
+            modules=[],
+            shell_commands=[
+                "#!/usr/bin/env sh",
+                "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
+                "echo \"Node: $SLURM_NODEID | Rank: $SLURM_PROCID, pinned to GPU: $CUDA_VISIBLE_DEVICES\"",
+                "$*",
+            ],
+            execute=False,
+        )
+
         # TODO: cache build to not BuildAndRun all the time
         # TODO: mepo hash as a combination of all the hashes
 
@@ -89,7 +101,7 @@ class HeldSuarez(TaskBase):
                 "     --partition=gpu_a100 --qos=4n_a100 \\",
                 "     --time=12:00:00 \\",
                 "     --output=log.%t.out \\",
-                "     ./gpu-wrapper-ompi.sh ./GEOSgcm.x",
+                "     ./gpu-wrapper-slurm.sh ./GEOSgcm.x",
             ],
             execute=False
         )
