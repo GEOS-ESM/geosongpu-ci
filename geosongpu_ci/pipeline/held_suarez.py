@@ -164,7 +164,7 @@ class HeldSuarez(TaskBase):
         env: Environment,
     ) -> bool:
         geos_install_path = env.get("GEOS_INSTALL")
-        geos_experiment_path = f"{geos_install_path}/../build/experiment"
+        geos_experiment_path = f"{geos_install_path}/../experiment"
         file_exists = os.path.isfile("ci_metadata")
         if not file_exists:
             raise RuntimeError(
@@ -176,36 +176,60 @@ class HeldSuarez(TaskBase):
 
         if action == PipelineAction.Validation or action == PipelineAction.All:
             shutil.copy(
-                f"{geos_experiment_path}/log.validation.0.out", artifact_directory
+                f"{geos_experiment_path}/1x6/log.validation.0.out", artifact_directory
             )
             shutil.copy(
-                f"{geos_experiment_path}/log.validation.1.out", artifact_directory
+                f"{geos_experiment_path}/1x6/log.validation.1.out", artifact_directory
             )
             shutil.copy(
-                f"{geos_experiment_path}/log.validation.2.out", artifact_directory
+                f"{geos_experiment_path}/1x6/log.validation.2.out", artifact_directory
             )
             shutil.copy(
-                f"{geos_experiment_path}/log.validation.3.out", artifact_directory
+                f"{geos_experiment_path}/1x6/log.validation.3.out", artifact_directory
             )
             shutil.copy(
-                f"{geos_experiment_path}/log.validation.4.out", artifact_directory
+                f"{geos_experiment_path}/1x6/log.validation.4.out", artifact_directory
             )
             shutil.copy(
-                f"{geos_experiment_path}/log.validation.5.out", artifact_directory
+                f"{geos_experiment_path}/1x6/log.validation.5.out", artifact_directory
             )
 
         if action == PipelineAction.Benchmark or action == PipelineAction.All:
-            shutil.copy(f"{geos_experiment_path}/log.fortran.0.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.fortran.1.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.fortran.2.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.fortran.3.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.fortran.4.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.fortran.5.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.gtfv3.0.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.gtfv3.1.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.gtfv3.2.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.gtfv3.3.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.gtfv3.4.out", artifact_directory)
-            shutil.copy(f"{geos_experiment_path}/log.gtfv3.5.out", artifact_directory)
+            shutil.copy(
+                f"{geos_experiment_path}/3x24/log.fortran.0.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/3x24/log.fortran.1.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/3x24/log.fortran.2.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/3x24/log.fortran.3.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/3x24/log.fortran.4.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/3x24/log.fortran.5.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/1x6/log.gtfv3.0.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/1x6/log.gtfv3.1.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/1x6/log.gtfv3.2.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/1x6/log.gtfv3.3.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/1x6/log.gtfv3.4.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/1x6/log.gtfv3.5.out", artifact_directory
+            )
 
         return True
