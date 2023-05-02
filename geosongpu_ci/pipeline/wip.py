@@ -24,7 +24,7 @@ class WIP(TaskBase):
             modules=[],
             env_to_source=[],
             shell_commands=[
-                "srun -A j1013 --qos=4n_a100 --partition=gpu_a100 --nodes=2 --ntasks=6 --ntasks-per-node=3 --gpus-per-node=3 --sockets-per-node=2 --mem-per-gpu=40G --output=log.%t.out nvidia-smi",
+                "srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100 --nodes=2 --ntasks=6 --ntasks-per-node=3 --gpus-per-node=3 --sockets-per-node=2 --mem-per-gpu=40G --output=log.%t.out nvidia-smi",
             ],
         )
 
