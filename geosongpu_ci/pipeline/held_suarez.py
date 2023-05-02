@@ -7,12 +7,14 @@ from typing import Dict, Any
 import shutil
 import os
 
-def _replace_in_file(url:str, text_to_replace:str, new_text:str):
+
+def _replace_in_file(url: str, text_to_replace: str, new_text: str):
     with open(url, "r") as f:
         data = f.read()
         data = data.replace(text_to_replace, new_text)
     with open(url, "w") as f:
         f.write(data)
+
 
 @Registry.register
 class HeldSuarez(TaskBase):
@@ -25,7 +27,7 @@ class HeldSuarez(TaskBase):
     ):
         geos_install_path = env.get("GEOS_INSTALL")
         geos_build_path = f"{geos_install_path}/../build"
-        
+
         # Copy input
         input_config = config["input"]
         shell_script(
@@ -33,7 +35,7 @@ class HeldSuarez(TaskBase):
             modules=[],
             shell_commands=[
                 f"cd {geos_build_path}",
-                "mkdir experiment", 
+                "mkdir experiment",
                 "cd experiment",
                 f"cp -r {input_config['directory']}/* .",
                 "rm -f ./setenv.sh",
@@ -46,9 +48,10 @@ class HeldSuarez(TaskBase):
             shell_commands=[
                 "#!/usr/bin/env sh",
                 "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
-                "echo \"Node: $SLURM_NODEID | Rank: $SLURM_PROCID, pinned to GPU: $CUDA_VISIBLE_DEVICES\"",
+                'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID, pinned to GPU: $CUDA_VISIBLE_DEVICES"',
                 "$*",
             ],
+            make_executable=True,
             execute=False,
         )
 
@@ -60,24 +63,19 @@ class HeldSuarez(TaskBase):
         shell_script(
             name="setenv",
             shell_commands=[
-                "echo \"Copy execurable GEOSgcm.x\"",
+                'echo "Copy execurable GEOSgcm.x"',
                 "",
                 f"cp {geos_install_path}/bin/GEOSgcm.x {geos_build_path}/experiment",
                 "",
-                "echo \"Loading env (g5modules & pyenv)\"",
+                'echo "Loading env (g5modules & pyenv)"',
                 f"source {geos_install_path}/../@env/g5_modules.sh",
-                f"VENV_DIR=\"{geos_fvdycore_comp}/geos-gtfv3/driver/setenv/gtfv3_venv\"",
-                f"GTFV3_DIR=\"{geos_fvdycore_comp}/@gtFV3\"",
-                f"GEOS_INSTALL_DIR=\"{geos_install_path}\"",
+                f'VENV_DIR="{geos_fvdycore_comp}/geos-gtfv3/driver/setenv/gtfv3_venv"',
+                f'GTFV3_DIR="{geos_fvdycore_comp}/@gtFV3"',
+                f'GEOS_INSTALL_DIR="{geos_install_path}"',
                 f"source {geos_fvdycore_comp}/geos-gtfv3/driver/setenv/pyenv.sh",
             ],
             execute=False,
         )
-
-        # TODO: this SimpleAGCM.rc edit should be removed/altered when
-        #       we will use proper data from /projects
-        with open(f"{geos_build_path}/experiment/AgcmSimple.rc", "a") as f:
-            f.write("RUN_GTFV3: 1\n")
 
         srun_script_name = "srun_script.sh"
         shell_script(
@@ -92,6 +90,7 @@ class HeldSuarez(TaskBase):
                 "export PACE_CONSTANTS=GEOS",
                 "export PACE_FLOAT_PRECISION=32",
                 "export PYTHONOPTIMIZE=1",
+                "export PACE_LOGLEVEL=DEBUG",
                 "",
                 "srun --account=j1013 \\",
                 "     --nodes=2 --ntasks=6 --ntasks-per-node=4 \\",
@@ -103,7 +102,7 @@ class HeldSuarez(TaskBase):
                 "     --output=log.%t.out \\",
                 "     ./gpu-wrapper-slurm.sh ./GEOSgcm.x",
             ],
-            execute=False
+            execute=False,
         )
 
         if action == PipelineAction.Validation or action == PipelineAction.All:
@@ -111,45 +110,37 @@ class HeldSuarez(TaskBase):
             _replace_in_file(
                 srun_script_name,
                 "--output=log.%t.out",
-                "--output=log.validation.%t.out"
+                "--output=log.validation.%t.out",
             )
             execute_shell_script(srun_script_name)
-        
+
         if action == PipelineAction.Benchmark or action == PipelineAction.All:
-            # Go to 10 timesteps
-            # _replace_in_file(
-            #     f"{geos_build_path}/experiment/CAP.rc",
-            #     "JOB_SGMT: 00000000 010000",
-            #     "JOB_SGMT: 00000000 009001"
-            # )
-            
-            # Execute gtFV3
-            _replace_in_file(
-                srun_script_name,
-                "--output=log.%t.out",
-                "--output=log.gtfv3.%t.out"
-            )
+            # Execute Fortran
             _replace_in_file(
                 srun_script_name,
                 "--output=log.validation.%t.out",
-                "--output=log.gtfv3.%t.out"
+                "--output=log.fortran.%t.out",
             )
             execute_shell_script(srun_script_name)
 
-
-            # Execute Fortran
+            # Execute gtFV3
             _replace_in_file(
                 f"{geos_build_path}/experiment/AgcmSimple.rc",
                 "RUN_GTFV3: 0",
-                "RUN_GTFV3: 1"
+                "RUN_GTFV3: 1",
+            )
+            _replace_in_file(
+                f"{geos_build_path}/experiment/GEOShs.rc",
+                "RUN_GTFV3: 0",
+                "RUN_GTFV3: 1",
             )
             _replace_in_file(
                 srun_script_name,
+                "--output=log.fortran.%t.out",
                 "--output=log.gtfv3.%t.out",
-                "--output=log.fortran.%t.out"
             )
             execute_shell_script(srun_script_name)
-            
+
     def check(
         self,
         config: Dict[str, Any],
@@ -159,7 +150,7 @@ class HeldSuarez(TaskBase):
         env: Environment,
     ) -> bool:
         geos_install_path = env.get("GEOS_INSTALL")
-        geos_build_path = f"{geos_install_path}/../build"
+        geos_experiment_path = f"{geos_install_path}/../build/experiment"
         file_exists = os.path.isfile("ci_metadata")
         if not file_exists:
             raise RuntimeError(
@@ -168,27 +159,39 @@ class HeldSuarez(TaskBase):
         artifact_directory = f"{artifact_base_directory}/held_suarez/"
         os.mkdir(artifact_directory)
         shutil.copy("ci_metadata", artifact_directory)
-        
+
         if action == PipelineAction.Validation or action == PipelineAction.All:
-            shutil.copy(f"{geos_build_path}/experiment/log.validation.0.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.validation.1.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.validation.2.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.validation.3.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.validation.4.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.validation.5.out", artifact_directory)
+            shutil.copy(
+                f"{geos_experiment_path}/log.validation.0.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/log.validation.1.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/log.validation.2.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/log.validation.3.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/log.validation.4.out", artifact_directory
+            )
+            shutil.copy(
+                f"{geos_experiment_path}/log.validation.5.out", artifact_directory
+            )
 
         if action == PipelineAction.Benchmark or action == PipelineAction.All:
-            shutil.copy(f"{geos_build_path}/experiment/log.fortran.0.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.fortran.1.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.fortran.2.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.fortran.3.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.fortran.4.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.fortran.5.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.0.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.1.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.2.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.3.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.4.out", artifact_directory)
-            shutil.copy(f"{geos_build_path}/experiment/log.gtfv3.5.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.fortran.0.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.fortran.1.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.fortran.2.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.fortran.3.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.fortran.4.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.fortran.5.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.gtfv3.0.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.gtfv3.1.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.gtfv3.2.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.gtfv3.3.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.gtfv3.4.out", artifact_directory)
+            shutil.copy(f"{geos_experiment_path}/log.gtfv3.5.out", artifact_directory)
 
         return True
