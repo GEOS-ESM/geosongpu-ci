@@ -26,7 +26,7 @@ class HeldSuarez(TaskBase):
         env: Environment,
     ):
         geos_install_path = env.get("GEOS_INSTALL")
-        geos_build_path = f"{geos_install_path}/../build"
+        geos = f"{geos_install_path}/.."
 
         # Copy input
         input_config = config["input"]
@@ -34,16 +34,29 @@ class HeldSuarez(TaskBase):
             name="copy_input",
             modules=[],
             shell_commands=[
-                f"cd {geos_build_path}",
-                "mkdir experiment",
-                "cd experiment",
-                f"cp -r {input_config['directory']}/* .",
-                "rm -f ./setenv.sh",
+                f"cd {geos}",
+                f"mkdir -p {geos}/experiment/1x6",
+                f"cd {geos}/experiment/1x6"
+                f"cp -r {input_config['directory']}/1x6/* .",
+                f"mkdir -p {geos}/experiment/3x24",
+                f"cd {geos}/experiment/3x24" "cd experiment",
             ],
         )
 
         shell_script(
-            name=f"{geos_build_path}/experiment/gpu-wrapper-slurm",
+            name=f"{geos}/experiment/1x6/gpu-wrapper-slurm",
+            modules=[],
+            shell_commands=[
+                "#!/usr/bin/env sh",
+                "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
+                'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID, pinned to GPU: $CUDA_VISIBLE_DEVICES"',
+                "$*",
+            ],
+            make_executable=True,
+            execute=False,
+        )
+        shell_script(
+            name=f"{geos}/experiment/3x24/gpu-wrapper-slurm",
             modules=[],
             shell_commands=[
                 "#!/usr/bin/env sh",
@@ -65,7 +78,8 @@ class HeldSuarez(TaskBase):
             shell_commands=[
                 'echo "Copy execurable GEOSgcm.x"',
                 "",
-                f"cp {geos_install_path}/bin/GEOSgcm.x {geos_build_path}/experiment",
+                f"cp {geos_install_path}/bin/GEOSgcm.x {geos}/experiment/1x6",
+                f"cp {geos_install_path}/bin/GEOSgcm.x {geos}/experiment/3x24",
                 "",
                 'echo "Loading env (g5modules & pyenv)"',
                 f"source {geos_install_path}/../@env/g5_modules.sh",
@@ -77,14 +91,14 @@ class HeldSuarez(TaskBase):
             execute=False,
         )
 
-        srun_script_name = "srun_script.sh"
+        srun_script_gpu_name = "srun_script_gpu.sh"
         shell_script(
-            name=srun_script_name.replace(".sh", ""),
+            name=srun_script_gpu_name.replace(".sh", ""),
             env_to_source=[
                 "./setenv.sh",
             ],
             shell_commands=[
-                f"cd {geos_build_path}/experiment",
+                f"cd {geos}/experiment/1x6",
                 "",
                 "export FV3_DACEMODE=BuildAndRun",
                 "export PACE_CONSTANTS=GEOS",
@@ -98,8 +112,28 @@ class HeldSuarez(TaskBase):
                 "     --sockets-per-node=2 --gpus-per-socket=2 \\",
                 "     --gpus-per-task=1 --constraint=rome \\",
                 "     --partition=gpu_a100 --qos=4n_a100 \\",
-                "     --time=12:00:00 \\",
-                "     --output=log.%t.out \\",
+                "     --time=1:00:00 \\",
+                "     --output=log.validation.%t.out \\",
+                "     ./gpu-wrapper-slurm.sh ./GEOSgcm.x",
+            ],
+            execute=False,
+        )
+
+        srun_script_fortran_name = "srun_script_fortran.sh"
+        shell_script(
+            name=srun_script_fortran_name.replace(".sh", ""),
+            env_to_source=[
+                "./setenv.sh",
+            ],
+            shell_commands=[
+                f"cd {geos}/experiment/3x24",
+                "",
+                "srun --account=j1013 --constraint=rome \\",
+                "     --nodes=2 --ntasks=72  \\",
+                "     --ntasks-per-socket=24 --sockets-per-node=2 \\",
+                "     --partition=gpu_a100 --qos=4n_a100 \\",
+                "     --time=1:00:00 \\",
+                "     --output=log.fortran.%t.out \\",
                 "     ./gpu-wrapper-slurm.sh ./GEOSgcm.x",
             ],
             execute=False,
@@ -107,39 +141,19 @@ class HeldSuarez(TaskBase):
 
         if action == PipelineAction.Validation or action == PipelineAction.All:
             # Run the simulation as-is: one 3 timesteps
-            _replace_in_file(
-                srun_script_name,
-                "--output=log.%t.out",
-                "--output=log.validation.%t.out",
-            )
-            execute_shell_script(srun_script_name)
+            execute_shell_script(srun_script_gpu_name)
 
         if action == PipelineAction.Benchmark or action == PipelineAction.All:
-            # Execute Fortran
-            _replace_in_file(
-                srun_script_name,
-                "--output=log.validation.%t.out",
-                "--output=log.fortran.%t.out",
-            )
-            execute_shell_script(srun_script_name)
-
             # Execute gtFV3
             _replace_in_file(
-                f"{geos_build_path}/experiment/AgcmSimple.rc",
-                "RUN_GTFV3: 0",
-                "RUN_GTFV3: 1",
-            )
-            _replace_in_file(
-                f"{geos_build_path}/experiment/GEOShs.rc",
-                "RUN_GTFV3: 0",
-                "RUN_GTFV3: 1",
-            )
-            _replace_in_file(
-                srun_script_name,
-                "--output=log.fortran.%t.out",
+                srun_script_gpu_name,
+                "--output=log.validation.%t.out",
                 "--output=log.gtfv3.%t.out",
             )
-            execute_shell_script(srun_script_name)
+            execute_shell_script(srun_script_gpu_name)
+
+            # Execute Fortran
+            execute_shell_script(srun_script_fortran_name)
 
     def check(
         self,
