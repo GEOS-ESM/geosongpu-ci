@@ -8,10 +8,10 @@ ci-heartbeat:
 geos_hs:
   repository:
     url: https://github.com/GEOS-ESM/GEOSgcm.git
-    tag_or_hash: a230606aab427bf558c3ff171638e083832e7980
+    tag_or_hash: de2c84334c7302a86c707774002aecd67a8a8545
     note: Updated components.yaml to include tags to test gtFV3 + OpenACC port of Held Suarez
   input:
-    directory: /discover/nobackup/pchakrab/runs/agcm/held-suarez/hs-oacc-gtfv3/C12-L91/cuda11.2.2-gcc10.4.0nvptx-openmpi4.1.4/reference
+    directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
   tasks:
     - GEOS_NO_HYDROSTATIC
     - HeldSuarez
