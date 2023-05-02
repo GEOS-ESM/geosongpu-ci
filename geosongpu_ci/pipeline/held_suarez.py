@@ -40,7 +40,7 @@ class HeldSuarez(TaskBase):
                 f"cp {input_config['directory']}/1x6/* .",
                 f"mkdir -p {geos}/experiment/3x24",
                 f"cd {geos}/experiment/3x24",
-                f"cp {input_config['directory']}/1x6/* .",
+                f"cp {input_config['directory']}/3x24/* .",
             ],
         )
 
