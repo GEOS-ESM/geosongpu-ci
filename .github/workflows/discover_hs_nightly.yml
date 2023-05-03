@@ -1,6 +1,6 @@
 # Discover's CI check
 
-name: Discover Nightly Heartbeat
+name: Discover Nightly GEOS Held-Suarez Validation
 
 on:
   schedule:
@@ -15,6 +15,6 @@ jobs:
   run-discover-ondemand:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
-      experiment_name:   ci-heartbeat
-      experiment_action: All
+      experiment_name:   geos_hs
+      experiment_action: Validation
       geosongpu_ci_ref: main
