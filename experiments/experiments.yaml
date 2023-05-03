@@ -8,7 +8,7 @@ ci-heartbeat:
 geos_hs:
   repository:
     url: https://github.com/GEOS-ESM/GEOSgcm.git
-    tag_or_hash: de2c84334c7302a86c707774002aecd67a8a8545
+    tag_or_hash: feature/pchakrab/integrate-gtfv3-held-suarez-oacc
     note: Updated components.yaml to include tags to test gtFV3 + OpenACC port of Held Suarez
   input:
     directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
