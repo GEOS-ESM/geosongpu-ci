@@ -1,4 +1,3 @@
-
 from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.registry import Registry
@@ -8,6 +7,7 @@ import shutil
 from os.path import abspath
 from os import mkdir
 from geosongpu_ci.utils.shell import shell_script
+
 
 @Registry.register
 class WIP(TaskBase):
@@ -20,15 +20,11 @@ class WIP(TaskBase):
     ):
         # Build GEOS
         shell_script(
-            name="cancel_slurm_jobs",
+            name="wip",
             modules=[],
             env_to_source=[],
             shell_commands=[
-                "ls /discover/nobackup/projects/geosongpu",
-                "ls /discover/nobackup/projects/geosongpu/geos_data",
-                "ls /discover/nobackup/projects/geosongpu/geos_data/held_suarez",
-                "ls /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C12-L91",
-                "cp /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C12-L91/*",
+                "srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100 --nodes=2 --ntasks=6 --ntasks-per-node=3 --gpus-per-node=3 --sockets-per-node=2 --mem-per-gpu=40G --output=log.%t.out nvidia-smi",
             ],
         )
 

@@ -17,10 +17,14 @@ def run_subprocess(command: str, stdout=None, stderr=None) -> str:
     return result.stdout.decode(sys.stdout.encoding)
 
 
-def execute_shell_script(name: str) -> str:
-    print(f"> > > Executing {name}")
+def _make_excutable(name: str):
     st = os.stat(name)
     os.chmod(name, st.st_mode | stat.S_IEXEC)
+
+
+def execute_shell_script(name: str) -> str:
+    print(f"> > > Executing {name}")
+    _make_excutable(name)
     return run_subprocess(f"./{name}")
 
 
@@ -29,6 +33,7 @@ def shell_script(
     shell_commands: List[str],
     modules: Optional[List[str]] = None,
     env_to_source: Optional[List[str]] = None,
+    make_executable=True,
     execute=True,
     temporary=False,
 ) -> Optional[str]:
@@ -47,6 +52,9 @@ def shell_script(
     script_name = f"{name}.sh"
     with open(script_name, "w") as f:
         f.write(script)
+
+    if make_executable:
+        _make_excutable(script_name)
 
     if execute:
         result = execute_shell_script(script_name)
