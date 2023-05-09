@@ -2,7 +2,7 @@ from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.utils.environment import Environment
-from geosongpu_ci.pipeline.actions import PipelineAction
+from geosongpu_ci.actions.pipeline import PipelineAction
 import shutil
 from os.path import abspath
 from os import mkdir
@@ -11,12 +11,13 @@ from geosongpu_ci.utils.shell import shell_script
 
 @Registry.register
 class WIP(TaskBase):
-    def run(
+    def run_action(
         self,
         config: Dict[str, Any],
         experiment_name: str,
         action: PipelineAction,
         env: Environment,
+        metadata: Dict[str, Any],
     ):
         # Build GEOS
         shell_script(

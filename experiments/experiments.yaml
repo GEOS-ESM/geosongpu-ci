@@ -9,12 +9,23 @@ geos_hs:
   repository:
     url: https://github.com/GEOS-ESM/GEOSgcm.git
     tag_or_hash: feature/pchakrab/integrate-gtfv3-held-suarez-oacc
-    note: Updated components.yaml to include tags to test gtFV3 + OpenACC port of Held Suarez
+    note: May 2023 performance analysis
   input:
     directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
   tasks:
     - GEOS_NO_HYDROSTATIC
     - HeldSuarez
+
+physics_standalone_radcoup:
+  repository:
+    url: https://github.com/GEOS-ESM/GEOSgcm_GridComp.git
+    tag_or_hash: orphan/openacc/moist/radcoup_loop
+    note: Original OpenACC port
+  input:
+    directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
+  tasks:
+    - OACCMoistRadCoup
+
 
 ci-clean:
   tasks:

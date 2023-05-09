@@ -3,45 +3,11 @@ from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.shell import shell_script
 from geosongpu_ci.utils.registry import Registry
-from geosongpu_ci.pipeline.actions import PipelineAction
+from geosongpu_ci.actions.pipeline import PipelineAction
+from geosongpu_ci.actions.git import git_prelude
 import datetime
 import yaml
 
-def _prelude(        
-    config: Dict[str, Any],
-    experiment_name: str,
-    action: PipelineAction,
-):
-    git_config = config["repository"]
-
-    shell_script(
-        name="setup_repository",
-        modules=["other/mepo"],
-        shell_commands=[
-            f"git clone {git_config['url']} geos",
-            "cd geos",
-            f"git checkout {git_config['tag_or_hash']}",
-            "mepo clone",
-        ],
-    )
-
-    # Write metadata file
-    mepo_status = shell_script(
-        name="get_mepo_status",
-        modules=["other/mepo"],
-        shell_commands=[
-            "cd geos",
-            "mepo status",
-        ],
-        temporary=True,
-    )
-    with open("ci_metadata", "w") as f:
-        metadata = {}
-        metadata["timestamp"] = str(datetime.datetime.now())
-        metadata["config"] = {"name": experiment_name, "value": config}
-        metadata["action"] = str(action)
-        metadata["mepo_status"] = mepo_status
-        yaml.dump(metadata, f)
 
 def _epilogue(env: Environment):
     # Export GEOS_INSTALL for future scripts
@@ -50,20 +16,29 @@ def _epilogue(env: Environment):
         f"{env.CI_WORKSPACE}/geos/install",
     )
 
-def _check(env:Environment) -> bool:
-        return env.exists("GEOS_INSTALL")
+
+def _check(env: Environment) -> bool:
+    return env.exists("GEOS_INSTALL")
 
 
 @Registry.register
 class GEOS_NO_HYDROSTATIC(TaskBase):
-    def run(
+    def run_action(
         self,
         config: Dict[str, Any],
         experiment_name: str,
         action: PipelineAction,
         env: Environment,
+        metadata: Dict[str, Any],
     ):
-        _prelude(config, experiment_name, action)
+        git_prelude(
+            config,
+            experiment_name,
+            action,
+            metadata,
+            override_repo_name="geos",
+            do_mepo=True,
+        )
 
         # Build GEOS
         shell_script(
@@ -97,18 +72,27 @@ class GEOS_NO_HYDROSTATIC(TaskBase):
         env: Environment,
     ) -> bool:
         return _check(env)
-    
+
+
 @Registry.register
 class GEOS(TaskBase):
-    def run(
+    def run_action(
         self,
         config: Dict[str, Any],
         experiment_name: str,
         action: PipelineAction,
         env: Environment,
+        metadata: Dict[str, Any],
     ):
-        _prelude(config, experiment_name, action)
-        
+        git_prelude(
+            config,
+            experiment_name,
+            action,
+            metadata,
+            override_repo_name="geos",
+            do_mepo=True,
+        )
+
         # Build GEOS
         shell_script(
             name="build_geos",
