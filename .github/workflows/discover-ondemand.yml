@@ -12,6 +12,7 @@ on:
           - ci-clean
           - ci-cancel-slurm
           - geos_hs
+          - geos_aq
           - physics_standalone_radcoup
           - wip
       experiment_action:

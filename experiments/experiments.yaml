@@ -16,6 +16,17 @@ geos_hs:
     - GEOS_NO_HYDROSTATIC
     - HeldSuarez
 
+geos_aq:
+  repository:
+    url: https://github.com/GEOS-ESM/GEOSgcm.git
+    tag_or_hash: feature/fgdeconi/gtfv3-input-env
+    note: Aquaplanet first validation run
+  input:
+    directory: /discover/nobackup/projects/geosongpu/geos_data/aquaplanet/C180_L72
+  tasks:
+    - GEOS_NO_HYDROSTATIC
+    - Aquaplanet
+
 physics_standalone_radcoup:
   repository:
     url: https://github.com/GEOS-ESM/GEOSgcm_GridComp.git
