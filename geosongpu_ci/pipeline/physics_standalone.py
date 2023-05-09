@@ -27,7 +27,7 @@ class OACCMoistRadCoup(TaskBase):
             action,
             metadata,
             override_repo_name=repo_name,
-            do_mepo=True,
+            do_mepo=False,
         )
 
         # Build
