@@ -1,5 +1,6 @@
 from geosongpu_ci.pipeline.task import dispatch
-from geosongpu_ci.pipeline.actions import PipelineAction
+from geosongpu_ci.actions.pipeline import PipelineAction
+
 
 def main():
     """
