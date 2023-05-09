@@ -37,6 +37,10 @@ class OACCMoistRadCoup(TaskBase):
             env_to_source=[],
             shell_commands=[
                 f"cd {repo_name}",
+                f"export TMP={env.CI_WORKSPACE}/tmp",
+                "export TMPDIR=$TMP",
+                "export TEMP=$TMP",
+                "mkdir $TMP",
                 "make",
             ],
         )
