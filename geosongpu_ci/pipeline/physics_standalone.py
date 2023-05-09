@@ -119,7 +119,7 @@ class OACCMoistRadCoup(TaskBase):
 
             # Check results are below a fixed theshold
             error_threshold = 1e-5
-            for var, value in results:
+            for var, value in results.items():
                 if value > error_threshold:
                     raise CICheckException(
                         f"Physics standalone: variable {var} fails (diff is {error_threshold})"
