@@ -37,7 +37,7 @@ class OACCMoistRadCoup(TaskBase):
             env_to_source=[],
             shell_commands=[
                 f"cd {repo_name}",
-                "make -j12",
+                "make",
             ],
         )
 
