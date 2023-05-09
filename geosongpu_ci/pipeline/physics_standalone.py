@@ -51,14 +51,14 @@ class OACCMoistRadCoup(TaskBase):
             modules=[],
             env_to_source=[],
             shell_commands=[
-                "ln -s /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180s_data c180_data",
+                "ln -s /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data c180_data",
             ],
         )
 
         scripts = []
         for i in range(0, 5):
             scripts.append(
-                f"srun --partition=gpu_a100 --constraint=rome --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 ./TEST_MOIST ./c24_data/radcoup_loop {i} >| oacc_out.{i}.log"
+                f"srun --partition=gpu_a100 --constraint=rome --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 ./{repo_name}/TEST_MOIST ./c24_data/radcoup_loop {i} >| oacc_out.{i}.log"
             )
 
         # Run and store in oacc_run.log for mining later
