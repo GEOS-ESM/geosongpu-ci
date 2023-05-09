@@ -39,7 +39,11 @@ class TaskBase(ABC):
         action: PipelineAction,
         env: Environment,
     ):
-        self._prelude()
+        self._prelude(
+            config=config,
+            experiment_name=experiment_name,
+            action=action,
+        )
         self.run_action(
             config=config,
             experiment_name=experiment_name,
