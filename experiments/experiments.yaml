@@ -22,7 +22,7 @@ physics_standalone_radcoup:
     tag_or_hash: orphan/openacc/moist/radcoup_loop
     note: Original OpenACC port
   input:
-    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/radcoup_loop
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/
   tasks:
     - OACCMoistRadCoup
 
@@ -32,7 +32,7 @@ physics_standalone_gfdl_microphysics:
     tag_or_hash: orphan/openacc/moist/gfdl_cloud_microphysics
     note: Original OpenACC port
   input:
-    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/gfdl_cloud_microphys_driver
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data
   tasks:
     - OACCGFDLMicrophysics
 
@@ -42,7 +42,7 @@ physics_standalone_buoyancy:
     tag_or_hash: orphan/openacc/moist/buoyancy
     note: Original OpenACC port
   input:
-    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/buoyancy
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data
   tasks:
     - OACCBuoyancy
 
@@ -52,7 +52,7 @@ physics_standalone_cup_gf_sh:
     tag_or_hash: orphan/openacc/moist/cup_gf_sh
     note: Original OpenACC port
   input:
-    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/cup_gf_sh
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data
   tasks:
     - OACCCupGfSh
 
@@ -62,7 +62,7 @@ physics_standalone_evap_subl_pdf_loop:
     tag_or_hash: orphan/openacc/moist/evap_subl_pdf_loop
     note: Original OpenACC port
   input:
-    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/evap_subl_pdf_loop
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data
   tasks:
     - OACCEvapSublPdfLoop    
 
@@ -72,7 +72,7 @@ physics_standalone_fillq2zero:
     tag_or_hash: orphan/openacc/moist/fillq2zero
     note: Original OpenACC port
   input:
-    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/fillq2zero
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data
   tasks:
     - OACCFillQ2Zero
 

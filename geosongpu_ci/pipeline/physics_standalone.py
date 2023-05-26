@@ -47,7 +47,7 @@ def _run_action(
         modules=[],
         env_to_source=[],
         shell_commands=[
-            f"ln -s {config['input']['directory']} input_data",
+            f"ln -s {config['input']['directory']} c180_data",
         ],
     )
 
@@ -56,7 +56,7 @@ def _run_action(
         scripts.append("srun --partition=gpu_a100 --constraint=rome \\")
         scripts.append(" --mem-per-gpu=40G --gres=gpu:1 \\")
         scripts.append(
-            f" --time=00:10:00 ./{physics_name}/TEST_MOIST ./input_data {i} \\"
+            f" --time=00:10:00 ./{physics_name}/TEST_MOIST ./c180_data {i} \\"
         )
         scripts.append(f" >| oacc_out.{physics_name}.{i}.log")
 
