@@ -47,14 +47,15 @@ def _run_action(
         modules=[],
         env_to_source=[],
         shell_commands=[
-            f"ln -s {config['input']} input_data_{physics_name}",
+            f"ln -s {config['input']['directory']} input_data_{physics_name}",
         ],
     )
 
     scripts = []
     for i in range(0, 5):
         scripts.append(
-            "srun --partition=gpu_a100 --constraint=rome --mem-per-gpu=40G --gres=gpu:1",
+            "srun --partition=gpu_a100 --constraint=rome",
+            " --mem-per-gpu=40G --gres=gpu:1",
             f" --time=00:10:00 ./{physics_name}/TEST_MOIST .input_data {i}",
             f" >| oacc_out.{physics_name}.{i}.log",
         )
@@ -80,7 +81,10 @@ def _check(
         log_name = f"oacc_out.{physics_name}.{i}.log"
         file_exists = os.path.isfile(log_name)
         if not file_exists:
-            raise CICheckException(f"Physics standalone: {log_name} doesn't exists.")
+            raise CICheckException(
+                "Physics standalone: ",
+                f"{log_name} doesn't exists.",
+            )
         # Parse logs to acquire results
         with open(log_name) as f:
             log_as_str = f.read()
@@ -103,14 +107,15 @@ def _check(
                 # Store key/value
                 results[varname] = value
                 # Move to next line
-                next_offset = log_as_str[read_head + 1 :].find(pattern)
+                next_offset = log_as_str[(read_head + 1) :].find(pattern)
                 if next_offset < 0:
                     break
                 read_head += next_offset + 1
                 infinite_loop_threshold -= 1
             if infinite_loop_threshold < 0:
                 raise RuntimeError(
-                    "Log analysis ran for more than 10000 iterations - unlikely...."
+                    "Log analysis ran for more than 10000",
+                    " iterations - unlikely....",
                 )
             print(results)
 
@@ -119,7 +124,8 @@ def _check(
         for var, value in results.items():
             if abs(value) > error_threshold:
                 raise CICheckException(
-                    f"Physics standalone: variable {var} fails (diff is {value})"
+                    f"Physics standalone: variable {var}",
+                    f" fails (diff is {value})",
                 )
     return True
 
