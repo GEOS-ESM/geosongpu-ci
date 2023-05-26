@@ -211,7 +211,7 @@ class OACCGFDLMicrophysics(TaskBase):
 
 @Registry.register
 class OACCBuoyancy(TaskBase):
-    name: str = "oacc_buoyancy"
+    name: str = "buoyancy"
 
     def run_action(
         self,
@@ -250,7 +250,7 @@ class OACCBuoyancy(TaskBase):
 
 @Registry.register
 class OACCCupGfSh(TaskBase):
-    name: str = "oacc_cup_gf_sh"
+    name: str = "cup_gf_sh"
 
     def run_action(
         self,
@@ -289,7 +289,7 @@ class OACCCupGfSh(TaskBase):
 
 @Registry.register
 class OACCEvapSublPdfLoop(TaskBase):
-    name: str = "oacc_evap_subl_pdf_loop"
+    name: str = "evap_subl_pdf_loop"
 
     def run_action(
         self,
@@ -328,7 +328,7 @@ class OACCEvapSublPdfLoop(TaskBase):
 
 @Registry.register
 class OACCFillQ2Zero(TaskBase):
-    name: str = "oacc_fill_q_2_zero"
+    name: str = "fill_q_2_zero"
 
     def run_action(
         self,
