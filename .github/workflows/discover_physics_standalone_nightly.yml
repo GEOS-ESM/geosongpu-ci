@@ -6,15 +6,51 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron:  '0 0 * * *'
+  workflow_dispatch:
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  run-discover-ondemand:
+  radcoup_loop:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
       experiment_name: physics_standalone_radcoup
+      experiment_action: Validation
+      geosongpu_ci_ref: main
+  
+  gfdl_microphysics:
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+    with:
+      experiment_name: physics_standalone_gfdl_microphysics
+      experiment_action: Validation
+      geosongpu_ci_ref: main
+  
+  buoyancy:
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+    with:
+      experiment_name: physics_standalone_buoyancy
+      experiment_action: Validation
+      geosongpu_ci_ref: main
+
+  cup_gf_sh:
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+    with:
+      experiment_name: physics_standalone_cup_gf_sh
+      experiment_action: Validation
+      geosongpu_ci_ref: main
+
+  evap_subl_pdf_loop:
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+    with:
+      experiment_name: physics_standalone_evap_subl_pdf_loop
+      experiment_action: Validation
+      geosongpu_ci_ref: main
+
+  fillq2zero:
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+    with:
+      experiment_name: physics_standalone_fillq2zero
       experiment_action: Validation
       geosongpu_ci_ref: main

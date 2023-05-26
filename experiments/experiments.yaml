@@ -22,10 +22,59 @@ physics_standalone_radcoup:
     tag_or_hash: orphan/openacc/moist/radcoup_loop
     note: Original OpenACC port
   input:
-    directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/radcoup_loop
   tasks:
     - OACCMoistRadCoup
 
+physics_standalone_gfdl_microphysics:
+  repository:
+    url: https://github.com/GEOS-ESM/GEOSgcm_GridComp.git
+    tag_or_hash: orphan/openacc/moist/gfdl_cloud_microphysics
+    note: Original OpenACC port
+  input:
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/gfdl_cloud_microphys_driver
+  tasks:
+    - OACCGFDLMicrophysics
+
+physics_standalone_buoyancy:
+  repository:
+    url: https://github.com/GEOS-ESM/GEOSgcm_GridComp.git
+    tag_or_hash: orphan/openacc/moist/buoyancy
+    note: Original OpenACC port
+  input:
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/buoyancy
+  tasks:
+    - OACCBuoyancy
+
+physics_standalone_cup_gf_sh:
+  repository:
+    url: https://github.com/GEOS-ESM/GEOSgcm_GridComp.git
+    tag_or_hash: orphan/openacc/moist/cup_gf_sh
+    note: Original OpenACC port
+  input:
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/cup_gf_sh
+  tasks:
+    - OACCCupGfSh
+
+physics_standalone_evap_subl_pdf_loop:
+  repository:
+    url: https://github.com/GEOS-ESM/GEOSgcm_GridComp.git
+    tag_or_hash: orphan/openacc/moist/evap_subl_pdf_loop
+    note: Original OpenACC port
+  input:
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/evap_subl_pdf_loop
+  tasks:
+    - OACCEvapSublPdfLoop    
+
+physics_standalone_fillq2zero:
+  repository:
+    url: https://github.com/GEOS-ESM/GEOSgcm_GridComp.git
+    tag_or_hash: orphan/openacc/moist/fillq2zero
+    note: Original OpenACC port
+  input:
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/fillq2zero
+  tasks:
+    - OACCFillQ2Zero
 
 ci-clean:
   tasks:
