@@ -53,12 +53,12 @@ def _run_action(
 
     scripts = []
     for i in range(0, 5):
+        scripts.append("srun --partition=gpu_a100 --constraint=rome \\")
+        scripts.append(" --mem-per-gpu=40G --gres=gpu:1 \\")
         scripts.append(
-            "srun --partition=gpu_a100 --constraint=rome",
-            " --mem-per-gpu=40G --gres=gpu:1",
-            f" --time=00:10:00 ./{physics_name}/TEST_MOIST .input_data {i}",
-            f" >| oacc_out.{physics_name}.{i}.log",
+            f" --time=00:10:00 ./{physics_name}/TEST_MOIST .input_data {i} \\"
         )
+        scripts.append(f" >| oacc_out.{physics_name}.{i}.log")
 
     # Run and store in oacc_run.log for mining later
     shell_script(
