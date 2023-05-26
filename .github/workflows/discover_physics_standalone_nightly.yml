@@ -18,39 +18,39 @@ jobs:
     with:
       experiment_name: physics_standalone_radcoup
       experiment_action: Validation
-      geosongpu_ci_ref: ${GITHUB_REF}
+      geosongpu_ci_ref: $GITHUB_REF
   
   gfdl_microphysics:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
       experiment_name: physics_standalone_gfdl_microphysics
       experiment_action: Validation
-      geosongpu_ci_ref: ${GITHUB_REF}
+      geosongpu_ci_ref: $GITHUB_REF
   
   buoyancy:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
       experiment_name: physics_standalone_buoyancy
       experiment_action: Validation
-      geosongpu_ci_ref: ${GITHUB_REF}
+      geosongpu_ci_ref: $GITHUB_REF
 
   cup_gf_sh:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
       experiment_name: physics_standalone_cup_gf_sh
       experiment_action: Validation
-      geosongpu_ci_ref: ${GITHUB_REF}
+      geosongpu_ci_ref: $GITHUB_REF
 
   evap_subl_pdf_loop:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
       experiment_name: physics_standalone_evap_subl_pdf_loop
       experiment_action: Validation
-      geosongpu_ci_ref: ${GITHUB_REF}
+      geosongpu_ci_ref: $GITHUB_REF
 
   fillq2zero:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
       experiment_name: physics_standalone_fillq2zero
       experiment_action: Validation
-      geosongpu_ci_ref: ${GITHUB_REF}
+      geosongpu_ci_ref: $GITHUB_REF
