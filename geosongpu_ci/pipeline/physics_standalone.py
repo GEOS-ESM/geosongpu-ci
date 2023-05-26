@@ -47,7 +47,8 @@ def _run_action(
         modules=[],
         env_to_source=[],
         shell_commands=[
-            f"ln -s {config['input']['directory']} c180_data",
+            "mkdir c180_data"
+            f"ln -s {config['input']['directory']} c180_data/{physics_name}",
         ],
     )
 
