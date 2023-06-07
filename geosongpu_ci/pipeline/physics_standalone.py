@@ -91,47 +91,42 @@ def _check(
                 "Physics standalone: ",
                 f"{log_name} doesn't exists.",
             )
-        # Parse logs to acquire results
-        with open(log_name) as f:
-            log_as_str = f.read()
-            pattern = "Compare sum(diff"
-            read_head = log_as_str.find(pattern)
-            results = {}
-            infinite_loop_threshold = 10000
-            while infinite_loop_threshold >= 0:
-                # Search the next )
-                read_head += len(pattern) + 1
-                search_head = read_head + log_as_str[read_head:].find(")")
-                assert search_head > read_head
-                varname = log_as_str[read_head:search_head]
-                read_head = search_head + 1
-                # Look results
-                read_head += log_as_str[read_head:].find("=") + 1
-                search_head = read_head + log_as_str[read_head:].find("\n")
-                number_as_str = log_as_str[read_head:search_head]
-                value = float(number_as_str)
-                # Store key/value
-                results[varname] = value
-                # Move to next line
-                next_offset = log_as_str[(read_head + 1) :].find(pattern)
-                if next_offset < 0:
-                    break
-                read_head += next_offset + 1
-                infinite_loop_threshold -= 1
-            if infinite_loop_threshold < 0:
-                raise RuntimeError(
-                    "Log analysis ran for more than 10000",
-                    " iterations - unlikely....",
-                )
-            print(results)
 
-        # Check results are below a fixed theshold
-        error_threshold = 1e-3
-        for var, value in results.items():
-            if abs(value) > error_threshold:
+        # Expected format
+        #  #CI#VAR|xxxx#KEY|yyyy
+        # with xxxx the varname
+        # and the KEY / yyyy a key, value data to check
+
+        results = {}
+        with open(log_name) as f:
+            line = f.readline()
+            while line != "":
+                # Look for CI encoding prefix
+                if line.strip().startswith("#CI"):
+                    sections = line.strip()[4:].split("#")
+                    # Var name
+                    varname = sections[0].split("|")[1]
+                    if varname not in results.keys():
+                        results[varname] = {}
+                    # Value
+                    verb, value = sections[1].split("|")
+                    results[varname][verb] = float(value)
+                line = f.readline()
+
+        print("Physics standalone checks variable against a 1e-5%% of the reference.")
+        print("Raw results (pre-check):")
+        print(results)
+
+        for varname, values in results.items():
+            if abs(values["DIFF"]) > values["REF"]:
                 raise CICheckException(
-                    f"Physics standalone: variable {var} fails (diff is {value})"
+                    f"Physics standalone variable {varname} fails:\n"
+                    f"-        diff: {values['DIFF']}\n"
+                    f"-   threshold: {values['THRSH']}\n"
+                    f"-         new: {values['NEW']}\n"
+                    f"-   reference: {values['REF']}"
                 )
+
     return True
 
 
