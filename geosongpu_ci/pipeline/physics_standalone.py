@@ -120,7 +120,7 @@ def _check(
 
         threshold_tenth_of_a_percent = 0.01 / 100
         for varname, values in results.items():
-            threshold = threshold_tenth_of_a_percent * values["REF"]
+            threshold = abs(threshold_tenth_of_a_percent * values["REF"])
             if abs(values["DIFF"]) > threshold:
                 raise CICheckException(
                     f"Physics standalone variable {varname} fails:\n"
