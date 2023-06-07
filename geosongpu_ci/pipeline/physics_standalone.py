@@ -62,7 +62,7 @@ def _run_action(
         scripts.append(
             "srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100"
             f" --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 "
-            f" ./{physics_name}/TEST_MOIST /c180_data/{input_data_name} {i}"
+            f" ./{physics_name}/TEST_MOIST ./c180_data/{input_data_name} {i}"
             f" >| oacc_out.{physics_name}.{i}.log\n"
         )
 
