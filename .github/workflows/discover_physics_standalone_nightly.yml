@@ -19,14 +19,14 @@ jobs:
       experiment_name: physics_standalone_radcoup
       experiment_action: Validation
       geosongpu_ci_ref: ${{ github.ref_name }}
-  
+
   gfdl_microphysics:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
       experiment_name: physics_standalone_gfdl_microphysics
       experiment_action: Validation
       geosongpu_ci_ref: ${{ github.ref_name }}
-  
+
   buoyancy:
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:

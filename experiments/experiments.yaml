@@ -64,7 +64,7 @@ physics_standalone_evap_subl_pdf_loop:
   input:
     directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/evap_subl_pdf_loop
   tasks:
-    - OACCEvapSublPdfLoop    
+    - OACCEvapSublPdfLoop
 
 physics_standalone_fillq2zero:
   repository:

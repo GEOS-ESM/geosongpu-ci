@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * _Task_: HeldSuarez
   * Run: copy inputs, wirte env setter and executor scripts, execute with srun
   * Check: barebone, check `ci-metadata` and archive logs
+* _Task_: Physics standalones
+  * Run: build a nvfortran OACC build of the physics standalone
+  * Check: check computed values are 0.01% of the reference
 * _Task_: CIClean
   * Run: clean the CI workspace from old working directory
 * _Task_: SlurmCancelJob
