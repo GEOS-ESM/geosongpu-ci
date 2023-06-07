@@ -96,6 +96,7 @@ def _check(
         #  #CI#VAR|xxxx#KEY|yyyy
         # with xxxx the varname
         # and the KEY / yyyy a key, value data to check
+        # with KEY = [NEW, DIFF, REF]
 
         results = {}
         with open(log_name) as f:
@@ -113,16 +114,18 @@ def _check(
                     results[varname][verb] = float(value)
                 line = f.readline()
 
-        print("Physics standalone checks variable against a 1e-5%% of the reference.")
+        print("Physics standalone checks variable against a 0.01% of the reference.")
         print("Raw results (pre-check):")
         print(results)
 
+        threshold_tenth_of_a_percent = 0.01 / 100
         for varname, values in results.items():
-            if abs(values["DIFF"]) > values["REF"]:
+            threshold = threshold_tenth_of_a_percent * values["REF"]
+            if abs(values["DIFF"]) > threshold:
                 raise CICheckException(
                     f"Physics standalone variable {varname} fails:\n"
                     f"-        diff: {values['DIFF']}\n"
-                    f"-   threshold: {values['THRSH']}\n"
+                    f"-   threshold: {threshold}\n"
                     f"-         new: {values['NEW']}\n"
                     f"-   reference: {values['REF']}"
                 )
