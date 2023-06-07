@@ -1,5 +1,5 @@
 from geosongpu_ci.utils.environment import Environment
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.shell import shell_script
 from geosongpu_ci.utils.registry import Registry
@@ -16,7 +16,11 @@ def _run_action(
     env: Environment,
     metadata: Dict[str, Any],
     physics_name: str,
+    input_data_name: Optional[str] = None,
 ):
+    if not input_data_name:
+        input_data_name = physics_name
+
     git_prelude(
         config,
         experiment_name,
@@ -48,14 +52,14 @@ def _run_action(
         env_to_source=[],
         shell_commands=[
             "mkdir c180_data",
-            f"ln -s {config['input']['directory']} c180_data/{physics_name}",
+            f"ln -s {config['input']['directory']} c180_data/{input_data_name}",
         ],
     )
 
     scripts = []
     for i in range(0, 5):
         scripts.append(
-            f"srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100 --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 ./{physics_name}/TEST_MOIST ./c180_data/{physics_name} {i} >| oacc_out.{physics_name}.{i}.log\n"
+            f"srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100 --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 ./{physics_name}/TEST_MOIST ./c180_data/{input_data_name} {i} >| oacc_out.{physics_name}.{i}.log\n"
         )
 
     # Run and store in oacc_run.log for mining later
@@ -146,6 +150,7 @@ class OACCMoistRadCoup(TaskBase):
             env=env,
             metadata=metadata,
             physics_name=self.name,
+            input_data_name="radcoup_loop",
         )
 
     def check(
@@ -185,6 +190,7 @@ class OACCGFDLMicrophysics(TaskBase):
             env=env,
             metadata=metadata,
             physics_name=self.name,
+            input_data_name="gfdl_cloud_microphys_driver",
         )
 
     def check(
@@ -341,6 +347,7 @@ class OACCFillQ2Zero(TaskBase):
             env=env,
             metadata=metadata,
             physics_name=self.name,
+            input_data_name="fillq2zero",
         )
 
     def check(
