@@ -41,7 +41,8 @@ def _run_action(
             "export TMPDIR=$TMP",
             "export TEMP=$TMP",
             "mkdir $TMP",
-            "srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100 --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 make",
+            "srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100"
+            " --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 make",
         ],
     )
 
@@ -59,7 +60,10 @@ def _run_action(
     scripts = []
     for i in range(0, 5):
         scripts.append(
-            f"srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100 --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 ./{physics_name}/TEST_MOIST ./c180_data/{input_data_name} {i} >| oacc_out.{physics_name}.{i}.log\n"
+            "srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100"
+            f" --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 "
+            f" ./{physics_name}/TEST_MOIST /c180_data/{input_data_name} {i}"
+            f" >| oacc_out.{physics_name}.{i}.log\n"
         )
 
     # Run and store in oacc_run.log for mining later
@@ -348,6 +352,45 @@ class OACCFillQ2Zero(TaskBase):
             metadata=metadata,
             physics_name=self.name,
             input_data_name="fillq2zero",
+        )
+
+    def check(
+        self,
+        config: Dict[str, Any],
+        experiment_name: str,
+        action: PipelineAction,
+        artifact_directory: str,
+        env: Environment,
+    ) -> bool:
+        return _check(
+            config=config,
+            experiment_name=experiment_name,
+            action=action,
+            artifact_directory=artifact_directory,
+            env=env,
+            physics_name=self.name,
+        )
+
+
+@Registry.register
+class OACCAerActivation(TaskBase):
+    name: str = "aer_activation"
+
+    def run_action(
+        self,
+        config: Dict[str, Any],
+        experiment_name: str,
+        action: PipelineAction,
+        env: Environment,
+        metadata: Dict[str, Any],
+    ):
+        _run_action(
+            config=config,
+            experiment_name=experiment_name,
+            action=action,
+            env=env,
+            metadata=metadata,
+            physics_name=self.name,
         )
 
     def check(
