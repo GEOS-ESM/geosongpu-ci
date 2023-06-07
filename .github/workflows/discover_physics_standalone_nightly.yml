@@ -54,3 +54,10 @@ jobs:
       experiment_name: physics_standalone_fillq2zero
       experiment_action: Validation
       geosongpu_ci_ref: ${{ github.ref_name }}
+
+  aer_activation:
+    uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
+    with:
+      experiment_name: physics_standalone_aer_activation
+      experiment_action: Validation
+      geosongpu_ci_ref: ${{ github.ref_name }}
