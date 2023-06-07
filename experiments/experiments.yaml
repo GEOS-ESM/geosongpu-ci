@@ -64,7 +64,7 @@ physics_standalone_evap_subl_pdf_loop:
   input:
     directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/evap_subl_pdf_loop
   tasks:
-    - OACCEvapSublPdfLoop    
+    - OACCEvapSublPdfLoop
 
 physics_standalone_fillq2zero:
   repository:
@@ -75,6 +75,16 @@ physics_standalone_fillq2zero:
     directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/fillq2zero
   tasks:
     - OACCFillQ2Zero
+
+physics_standalone_aer_activation:
+  repository:
+    url: https://github.com/GEOS-ESM/GEOSgcm_GridComp.git
+    tag_or_hash: orphan/openacc/moist/aer_activation
+    note: Original OpenACC port
+  input:
+    directory: /discover/nobackup/projects/geosongpu/physics_standalone_data/moist/c180_data/aer_activation
+  tasks:
+    - OACCAerActivation
 
 ci-clean:
   tasks:
