@@ -8,8 +8,12 @@ ci-heartbeat:
 geos_hs:
   repository:
     url: https://github.com/GEOS-ESM/GEOSgcm.git
-    tag_or_hash: feature/pchakrab/integrate-gtfv3-held-suarez-oacc
-    note: May 2023 performance analysis
+    tag_or_hash: gcm-v11.0.4
+    note: Held-Suarez Gridcomp & GTFV3 in develop
+    mepo:
+      develop:
+        - FVdycoreCubed_GridComp
+        - fvdycore
   input:
     directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
   tasks:

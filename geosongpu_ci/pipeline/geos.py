@@ -5,8 +5,6 @@ from geosongpu_ci.utils.shell import shell_script
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.git import git_prelude
-import datetime
-import yaml
 
 
 def _epilogue(env: Environment):
@@ -56,7 +54,10 @@ class GEOS_NO_HYDROSTATIC(TaskBase):
                 "export TEMP=$TMP",
                 "mkdir $TMP",
                 "echo $TMP",
-                "cmake .. -DBASEDIR=$BASEDIR/Linux -DCMAKE_Fortran_COMPILER=gfortran -DHYDROSTATIC=off -DCMAKE_INSTALL_PREFIX=../install",
+                "cmake .. -DBASEDIR=$BASEDIR/Linux"
+                " -DCMAKE_Fortran_COMPILER=gfortran"
+                " -DBUILD_GEOS_GTFV3_INTERFACE=ON"
+                " -DCMAKE_INSTALL_PREFIX=../install",
                 "make -j12 install",
             ],
         )
@@ -109,7 +110,9 @@ class GEOS(TaskBase):
                 "export TEMP=$TMP",
                 "mkdir $TMP",
                 "echo $TMP",
-                "cmake .. -DBASEDIR=$BASEDIR/Linux -DCMAKE_Fortran_COMPILER=gfortran -DCMAKE_INSTALL_PREFIX=../install",
+                "cmake .. -DBASEDIR=$BASEDIR/Linux"
+                " -DCMAKE_Fortran_COMPILER=gfortran"
+                " -DCMAKE_INSTALL_PREFIX=../install",
                 "make -j12 install",
             ],
         )
