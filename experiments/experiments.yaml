@@ -7,13 +7,15 @@ ci-heartbeat:
 
 geos_hs:
   repository:
-    url: https://github.com/GEOS-ESM/GEOSgcm.git
-    tag_or_hash: v11.0.4
+    url: https://github.com/GEOS-ESM/GEOSgcm.git/GEOShs.git
+    tag_or_hash: gcm-v11.0.4
     note: Held-Suarez Gridcomp & GTFV3 in develop
     mepo:
       develop:
         - FVdycoreCubed_GridComp
         - fvdycore
+        - cmake
+        - env
   input:
     directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
   tasks:
