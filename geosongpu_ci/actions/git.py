@@ -25,12 +25,19 @@ def git_prelude(
 
     # Write metadata file
     if do_mepo:
+        if "mepo" in git_config.keys() and "develop" in git_config["mepo"].keys():
+            develop_comp_command = "mepo develop"
+            for comp in git_config["mepo"]["develop"]:
+                develop_comp_command += f" {comp}"
+        else:
+            develop_comp_command = ""
         mepo_status = shell_script(
             name="get_mepo_status",
             modules=["other/mepo"],
             shell_commands=[
                 f"cd {override_repo_name}",
                 "mepo clone",
+                develop_comp_command,
                 "mepo status",
             ],
             temporary=True,

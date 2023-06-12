@@ -6,15 +6,16 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron:  '0 0 * * *'
+  workflow_dispatch:
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  run-discover-ondemand:
+  GEOS_Held-Suarez :
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
       experiment_name:   geos_hs
       experiment_action: Validation
-      geosongpu_ci_ref: main
+      geosongpu_ci_ref: ${{ github.ref_name }}
