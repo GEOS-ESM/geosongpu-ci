@@ -18,6 +18,7 @@ def _run_action(
     metadata: Dict[str, Any],
     physics_name: str,
     input_data_name: Optional[str] = None,
+    compiler: str = "nvfortran",
 ):
     if not input_data_name:
         input_data_name = physics_name
@@ -31,6 +32,13 @@ def _run_action(
         do_mepo=False,
     )
 
+    if compiler == "gfortran":
+        cpu_flags = "-g -O3 -fPIC -ffree-line-length-0"
+    elif compiler == "nvfortran":
+        cpu_flags = "-O3 -Mflushz -Mfunc32 -Kieee"
+    else:
+        raise RuntimeError(f"Compiler {compiler} not implemented.")
+
     # Build
     shell_script(
         name="build",
@@ -42,7 +50,7 @@ def _run_action(
             "export TMPDIR=$TMP",
             "export TEMP=$TMP",
             "mkdir $TMP",
-            f'FFLAGS="-O3 -Mflushz -Mfunc32 -Kieee" {one_gpu_srun("build.out")} make',
+            f'FFLAGS="{cpu_flags}" {one_gpu_srun("build.out")} make',
             "cp TEST_MOIST TEST_MOIST_SERIAL",
             "make clean",
             f"{one_gpu_srun('build.out')} make",
@@ -246,6 +254,7 @@ class OACCBuoyancy(TaskBase):
             env=env,
             metadata=metadata,
             physics_name=self.name,
+            compiler="gfortran",
         )
 
     def check(
