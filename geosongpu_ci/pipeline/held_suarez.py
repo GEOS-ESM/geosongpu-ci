@@ -51,7 +51,8 @@ class HeldSuarez(TaskBase):
             shell_commands=[
                 "#!/usr/bin/env sh",
                 "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
-                'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID, pinned to GPU: $CUDA_VISIBLE_DEVICES"',
+                'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
+                ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
                 "$*",
             ],
             make_executable=True,
@@ -63,7 +64,8 @@ class HeldSuarez(TaskBase):
             shell_commands=[
                 "#!/usr/bin/env sh",
                 "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
-                'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID, pinned to GPU: $CUDA_VISIBLE_DEVICES"',
+                'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
+                ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
                 "$*",
             ],
             make_executable=True,
@@ -73,15 +75,20 @@ class HeldSuarez(TaskBase):
         # TODO: cache build to not BuildAndRun all the time
         # TODO: mepo hash as a combination of all the hashes
 
+        executable_name = "GEOSHs.x"
+
         # Run
-        geos_fvdycore_comp = f"{geos_install_path}/../src/Components/@GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
+        geos_fvdycore_comp = (
+            f"{geos_install_path}/../src/Components/@GEOSgcm_GridComp/"
+            "GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
+        )
         shell_script(
             name="setenv",
             shell_commands=[
-                'echo "Copy execurable GEOSgcm.x"',
+                f'echo "Copy execurable {executable_name}"',
                 "",
-                f"cp {geos_install_path}/bin/GEOSgcm.x {geos}/experiment/1x6",
-                f"cp {geos_install_path}/bin/GEOSgcm.x {geos}/experiment/3x24",
+                f"cp {geos_install_path}/bin/{executable_name} {geos}/experiment/1x6",
+                f"cp {geos_install_path}/bin/{executable_name} {geos}/experiment/3x24",
                 "",
                 'echo "Loading env (g5modules & pyenv)"',
                 f"source {geos_install_path}/../@env/g5_modules.sh",
@@ -115,7 +122,7 @@ class HeldSuarez(TaskBase):
                 "     --sockets-per-node=2 --mem-per-gpu=40G  \\",
                 "     --time=1:00:00 \\",
                 "     --output=log.validation.%t.out \\",
-                "     ./gpu-wrapper-slurm.sh ./GEOSgcm.x",
+                f"     ./gpu-wrapper-slurm.sh ./{executable_name}",
             ],
             execute=False,
         )
@@ -135,7 +142,7 @@ class HeldSuarez(TaskBase):
                 "     --ntasks-per-socket=24 --sockets-per-node=2 \\",
                 "     --time=1:00:00 \\",
                 "     --output=log.fortran.%t.out \\",
-                "     ./gpu-wrapper-slurm.sh ./GEOSgcm.x",
+                f"     ./gpu-wrapper-slurm.sh ./{executable_name}",
             ],
             execute=False,
         )
