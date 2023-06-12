@@ -14,8 +14,6 @@ geos_hs:
       develop:
         - FVdycoreCubed_GridComp
         - fvdycore
-        - cmake
-        - env
   input:
     directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
   tasks:
