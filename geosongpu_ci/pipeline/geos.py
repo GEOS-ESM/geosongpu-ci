@@ -5,6 +5,7 @@ from geosongpu_ci.utils.shell import shell_script
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.git import git_prelude
+from geosongpu_ci.actions.discover import one_gpu_srun
 
 
 def _epilogue(env: Environment):
@@ -94,7 +95,15 @@ class GEOS(TaskBase):
             do_mepo=True,
         )
 
-        # Build GEOS
+        # Build GEOS with GTFV3 interface
+        cmake_cmd = "cmake .."
+        cmake_cmd += " -DBASEDIR=$BASEDIR/Linux"
+        cmake_cmd += " -DCMAKE_Fortran_COMPILER=gfortran"
+        cmake_cmd += " -DBUILD_GEOS_GTFV3_INTERFACE=ON"
+        cmake_cmd += " -DCMAKE_INSTALL_PREFIX=../install"
+        build_cmd = (
+            f"{one_gpu_srun(log='build.out', time='00:30:00')} make -j12 install"
+        )
         shell_script(
             name="build_geos",
             modules=[],
@@ -110,10 +119,8 @@ class GEOS(TaskBase):
                 "export TEMP=$TMP",
                 "mkdir $TMP",
                 "echo $TMP",
-                "cmake .. -DBASEDIR=$BASEDIR/Linux"
-                " -DCMAKE_Fortran_COMPILER=gfortran"
-                " -DCMAKE_INSTALL_PREFIX=../install",
-                "make -j12 install",
+                cmake_cmd,
+                build_cmd,
             ],
         )
 
