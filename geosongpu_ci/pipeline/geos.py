@@ -43,7 +43,7 @@ class GEOS_NO_HYDROSTATIC(TaskBase):
             name="build_geos",
             modules=[],
             env_to_source=[
-                "geos/@env/g5_modules.sh",
+                f"{env.CI_WORKSPACE}/geos/@env/g5_modules.sh",
             ],
             shell_commands=[
                 "cd geos",
@@ -99,7 +99,7 @@ class GEOS(TaskBase):
             name="build_geos",
             modules=[],
             env_to_source=[
-                "geos/@env/g5_modules.sh",
+                f"{env.CI_WORKSPACE}/geos/@env/g5_modules.sh",
             ],
             shell_commands=[
                 "cd geos",
