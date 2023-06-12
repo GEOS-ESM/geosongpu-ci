@@ -5,6 +5,7 @@ from geosongpu_ci.utils.shell import shell_script
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.git import git_prelude
+from geosongpu_ci.actions.discover import one_gpu_srun
 from geosongpu_ci.utils.ci_exception import CICheckException
 import os
 
@@ -17,6 +18,7 @@ def _run_action(
     metadata: Dict[str, Any],
     physics_name: str,
     input_data_name: Optional[str] = None,
+    compiler: str = "nvfortran",
 ):
     if not input_data_name:
         input_data_name = physics_name
@@ -30,6 +32,13 @@ def _run_action(
         do_mepo=False,
     )
 
+    if compiler == "gfortran":
+        cpu_flags = "-g -O3 -fPIC -ffree-line-length-0"
+    elif compiler == "nvfortran":
+        cpu_flags = "-O3 -Mflushz -Mfunc32 -Kieee"
+    else:
+        raise RuntimeError(f"Compiler {compiler} not implemented.")
+
     # Build
     shell_script(
         name="build",
@@ -41,8 +50,11 @@ def _run_action(
             "export TMPDIR=$TMP",
             "export TEMP=$TMP",
             "mkdir $TMP",
-            "srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100"
-            " --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 make",
+            f'FFLAGS="{cpu_flags}" {one_gpu_srun("build.out")} make',
+            "cp TEST_MOIST TEST_MOIST_SERIAL",
+            "make clean",
+            f"{one_gpu_srun('build.out')} make",
+            "cp TEST_MOIST TEST_MOIST_OACC",
         ],
     )
 
@@ -59,12 +71,15 @@ def _run_action(
 
     scripts = []
     for i in range(0, 5):
-        scripts.append(
-            "srun -A j1013 -C rome --qos=4n_a100 --partition=gpu_a100"
-            f" --mem-per-gpu=40G --gres=gpu:1 --time=00:10:00 "
-            f" ./{physics_name}/TEST_MOIST ./c180_data/{input_data_name} {i}"
-            f" >| oacc_out.{physics_name}.{i}.log\n"
+        exe_cmd = one_gpu_srun(f"out.serial.{physics_name}.{i}.log")
+        exe_cmd += (
+            f" ./{physics_name}/TEST_MOIST_SERIAL ./c180_data/{input_data_name} {i}\n"
         )
+        exe_cmd += one_gpu_srun(f"out.oacc.{physics_name}.{i}.log")
+        exe_cmd += (
+            f" ./{physics_name}/TEST_MOIST_OACC ./c180_data/{input_data_name} {i}\n"
+        )
+        scripts.append(exe_cmd)
 
     # Run and store in oacc_run.log for mining later
     shell_script(
@@ -83,23 +98,14 @@ def _check(
     env: Environment,
     physics_name: str,
 ):
-    for i in range(0, 5):
-        log_name = f"oacc_out.{physics_name}.{i}.log"
-        file_exists = os.path.isfile(log_name)
-        if not file_exists:
-            raise CICheckException(
-                "Physics standalone: ",
-                f"{log_name} doesn't exists.",
-            )
-
+    def _parse_log(filepath: str) -> Dict[Any, Any]:
         # Expected format
         #  #CI#VAR|xxxx#KEY|yyyy
         # with xxxx the varname
         # and the KEY / yyyy a key, value data to check
         # with KEY = [NEW, DIFF, REF]
-
         results = {}
-        with open(log_name) as f:
+        with open(filepath) as f:
             line = f.readline()
             while line != "":
                 # Look for CI encoding prefix
@@ -113,21 +119,37 @@ def _check(
                     verb, value = sections[1].split("|")
                     results[varname][verb] = float(value)
                 line = f.readline()
+        return results
+
+    for i in range(0, 5):
+        oacc_log_name = f"out.oacc.{physics_name}.{i}.log"
+        serial_log_name = f"out.serial.{physics_name}.{i}.log"
+        file_exists = os.path.isfile(oacc_log_name) and os.path.isfile(serial_log_name)
+        if not file_exists:
+            raise CICheckException(
+                "Physics standalone: ",
+                f"{oacc_log_name} or {serial_log_name} doesn't exists.",
+            )
+
+        oacc_results = _parse_log(oacc_log_name)
+        serial_results = _parse_log(serial_log_name)
 
         print("Physics standalone checks variable against a 0.01% of the reference.")
-        print("Raw results (pre-check):")
-        print(results)
+        print("Raw results for OACC (pre-check):")
+        print(oacc_results)
 
         threshold_tenth_of_a_percent = 0.01 / 100
-        for varname, values in results.items():
-            threshold = abs(threshold_tenth_of_a_percent * values["REF"])
-            if abs(values["DIFF"]) > threshold:
+        for varname in serial_results.keys():
+            serial_value = serial_results[varname]["NEW"]
+            oacc_value = oacc_results[varname]["NEW"]
+            threshold = abs(threshold_tenth_of_a_percent * serial_value)
+            diff = abs(oacc_value - serial_value)
+            if diff > threshold:
                 raise CICheckException(
                     f"Physics standalone variable {varname} fails:\n"
-                    f"-        diff: {values['DIFF']}\n"
+                    f"-      serial: {serial_value}\n"
+                    f"-        oacc: {oacc_value}\n"
                     f"-   threshold: {threshold}\n"
-                    f"-         new: {values['NEW']}\n"
-                    f"-   reference: {values['REF']}"
                 )
 
     return True
@@ -232,6 +254,7 @@ class OACCBuoyancy(TaskBase):
             env=env,
             metadata=metadata,
             physics_name=self.name,
+            compiler="gfortran",
         )
 
     def check(
