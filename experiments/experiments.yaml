@@ -8,7 +8,7 @@ ci-heartbeat:
 geos_hs:
   repository:
     url: https://github.com/GEOS-ESM/GEOShs.git
-    tag_or_hash: gcm-v11.0.4
+    tag_or_hash: dsl/develop
     note: Held-Suarez Gridcomp & GTFV3 in develop
     mepo:
       develop:
@@ -19,7 +19,7 @@ geos_hs:
   input:
     directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
   tasks:
-    - GEOS_NO_HYDROSTATIC
+    - GEOS
     - HeldSuarez
 
 physics_standalone_radcoup:
