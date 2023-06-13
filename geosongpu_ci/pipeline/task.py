@@ -8,15 +8,15 @@ from abc import ABC, abstractmethod
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.utils.environment import Environment
 import datetime
-import yaml
 
 
 class TaskBase(ABC):
     """Assume we are in CI_WORKSPACE - ready to execute"""
 
-    def __init__(self) -> None:
+    def __init__(self, skip_metadata=False) -> None:
         super().__init__()
         self.metadata = {}
+        self.skip_metadata = skip_metadata
 
     def _prelude(
         self,
@@ -51,7 +51,8 @@ class TaskBase(ABC):
             env=env,
             metadata=self.metadata,
         )
-        self._dump_metadata()
+        if not self.skip_metadata:
+            self._dump_metadata()
 
     @abstractmethod
     def run_action(
@@ -122,5 +123,5 @@ def dispatch(
             artifact_directory,
             env,
         )
-        if check == False:
+        if not check:
             raise RuntimeError(f"Check for {task} failed for {experiment_action}")
