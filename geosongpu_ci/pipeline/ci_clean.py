@@ -19,6 +19,7 @@ class CIClean(TaskBase):
         env: Environment,
         metadata: Dict[str, Any],
     ):
+        super().__init__(skip_metadata=True)
         work_dir = abspath(f"{env.CI_WORKSPACE}/../")
         shutil.rmtree(f"{work_dir}", ignore_errors=False, onerror=None)
         mkdir(f"{work_dir}")
