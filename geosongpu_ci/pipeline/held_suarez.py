@@ -75,7 +75,7 @@ class HeldSuarez(TaskBase):
         # TODO: cache build to not BuildAndRun all the time
         # TODO: mepo hash as a combination of all the hashes
 
-        executable_name = "GEOSHs.x"
+        executable_name = "GEOShs.x"
 
         # Run
         geos_fvdycore_comp = (
