@@ -88,86 +88,18 @@ class GEOS(TaskBase):
         return _check(env)
 
 
-def copy_input_from_project(config: Dict[str, Any], geos_dir: str, layout: str):
+def copy_input_from_project(config: Dict[str, Any], geos_dir: str, layout: str) -> str:
     # Copy input
     input_config = config["input"]
+    experiment_dir = f"{geos_dir}/experiment/l{layout}"
     shell_script(
         name="copy_input",
         modules=[],
         shell_commands=[
             f"cd {geos_dir}",
             f"mkdir -p {geos_dir}/experiment/l{layout}",
-            f"cd {geos_dir}/experiment/l{layout}",
+            f"cd {experiment_dir}",
             f"cp {input_config['directory']}/l{layout}/* .",
         ],
     )
-
-
-def make_gpu_wrapper_script(geos_dir: str, layout: str):
-    shell_script(
-        name=f"{geos_dir}/experiment/l{layout}/gpu-wrapper-slurm",
-        modules=[],
-        shell_commands=[
-            "#!/usr/bin/env sh",
-            "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
-            'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
-            ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
-            "$*",
-        ],
-        make_executable=True,
-        execute=False,
-    )
-
-
-def set_python_environment(geos_install_dir: str, executable_name: str, geos_dir: str):
-    geos_fvdycore_comp = (
-        f"{geos_install_dir}/../src/Components/@GEOSgcm_GridComp/"
-        "GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
-    )
-    shell_script(
-        name="setenv",
-        shell_commands=[
-            f'echo "Copy execurable {executable_name}"',
-            "",
-            f"cp {geos_install_dir}/bin/{executable_name} {geos_dir}/experiment/1x6",
-            "",
-            'echo "Loading env (g5modules & pyenv)"',
-            f"source {geos_install_dir}/../@env/g5_modules.sh",
-            f'VENV_DIR="{geos_fvdycore_comp}/geos-gtfv3/driver/setenv/gtfv3_venv"',
-            f'GTFV3_DIR="{geos_fvdycore_comp}/@gtFV3"',
-            f'GEOS_INSTALL_DIR="{geos_install_dir}"',
-            f"source {geos_fvdycore_comp}/geos-gtfv3/driver/setenv/pyenv.sh",
-        ],
-        execute=False,
-    )
-
-
-def make_srun_script(geos: str, executable_name: str, layout: str) -> str:
-    srun_script_gpu_name = "srun_script_gpu.sh"
-    shell_script(
-        name=srun_script_gpu_name.replace(".sh", ""),
-        env_to_source=[
-            "./setenv.sh",
-        ],
-        shell_commands=[
-            f"cd {geos}/experiment/l{layout}",
-            "",
-            "export FV3_DACEMODE=BuildAndRun",
-            "export PACE_CONSTANTS=GEOS",
-            "export PACE_FLOAT_PRECISION=32",
-            "export PYTHONOPTIMIZE=1",
-            "export PACE_LOGLEVEL=DEBUG",
-            "export GTFV3_BACKEND=dace:gpu",
-            "",
-            "srun -A j1013 -C rome \\",
-            "     --qos=4n_a100 --partition=gpu_a100 \\",
-            "     --nodes=2 --ntasks=6 \\",
-            "     --ntasks-per-node=3 --gpus-per-node=3 \\",
-            "     --sockets-per-node=2 --mem-per-gpu=40G  \\",
-            "     --time=1:00:00 \\",
-            "     --output=log.validation.%t.out \\",
-            f"     ./gpu-wrapper-slurm.sh ./{executable_name}",
-        ],
-        execute=False,
-    )
-    return srun_script_gpu_name
+    return experiment_dir

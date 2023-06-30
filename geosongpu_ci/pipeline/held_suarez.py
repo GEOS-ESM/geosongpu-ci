@@ -2,13 +2,8 @@ from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
-from geosongpu_ci.pipeline.geos import (
-    make_gpu_wrapper_script,
-    copy_input_from_project,
-    set_python_environment,
-    make_srun_script,
-)
-from geosongpu_ci.utils.shell import execute_shell_script
+from geosongpu_ci.pipeline.geos import copy_input_from_project
+from geosongpu_ci.utils.shell import shell_script, execute_shell_script
 from typing import Dict, Any
 import shutil
 import os
@@ -20,6 +15,76 @@ def _replace_in_file(url: str, text_to_replace: str, new_text: str):
         data = data.replace(text_to_replace, new_text)
     with open(url, "w") as f:
         f.write(data)
+
+
+def _make_gpu_wrapper_script(geos_dir: str, layout: str):
+    shell_script(
+        name=f"{geos_dir}/experiment/l{layout}/gpu-wrapper-slurm",
+        modules=[],
+        shell_commands=[
+            "#!/usr/bin/env sh",
+            "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
+            'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
+            ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
+            "$*",
+        ],
+        make_executable=True,
+        execute=False,
+    )
+
+
+def _set_python_environment(geos_install_dir: str, executable_name: str, geos_dir: str):
+    geos_fvdycore_comp = (
+        f"{geos_install_dir}/../src/Components/@GEOSgcm_GridComp/"
+        "GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
+    )
+    shell_script(
+        name="setenv",
+        shell_commands=[
+            f'echo "Copy execurable {executable_name}"',
+            "",
+            f"cp {geos_install_dir}/bin/{executable_name} {geos_dir}/experiment/1x6",
+            "",
+            'echo "Loading env (g5modules & pyenv)"',
+            f"source {geos_install_dir}/../@env/g5_modules.sh",
+            f'VENV_DIR="{geos_fvdycore_comp}/geos-gtfv3/driver/setenv/gtfv3_venv"',
+            f'GTFV3_DIR="{geos_fvdycore_comp}/@gtFV3"',
+            f'GEOS_INSTALL_DIR="{geos_install_dir}"',
+            f"source {geos_fvdycore_comp}/geos-gtfv3/driver/setenv/pyenv.sh",
+        ],
+        execute=False,
+    )
+
+
+def _make_srun_script(geos: str, executable_name: str, layout: str) -> str:
+    srun_script_gpu_name = "srun_script_gpu.sh"
+    shell_script(
+        name=srun_script_gpu_name.replace(".sh", ""),
+        env_to_source=[
+            "./setenv.sh",
+        ],
+        shell_commands=[
+            f"cd {geos}/experiment/l{layout}",
+            "",
+            "export FV3_DACEMODE=BuildAndRun",
+            "export PACE_CONSTANTS=GEOS",
+            "export PACE_FLOAT_PRECISION=32",
+            "export PYTHONOPTIMIZE=1",
+            "export PACE_LOGLEVEL=DEBUG",
+            "export GTFV3_BACKEND=dace:gpu",
+            "",
+            "srun -A j1013 -C rome \\",
+            "     --qos=4n_a100 --partition=gpu_a100 \\",
+            "     --nodes=2 --ntasks=6 \\",
+            "     --ntasks-per-node=3 --gpus-per-node=3 \\",
+            "     --sockets-per-node=2 --mem-per-gpu=40G  \\",
+            "     --time=1:00:00 \\",
+            "     --output=log.validation.%t.out \\",
+            f"     ./gpu-wrapper-slurm.sh ./{executable_name}",
+        ],
+        execute=False,
+    )
+    return srun_script_gpu_name
 
 
 @Registry.register
@@ -38,15 +103,15 @@ class HeldSuarez(TaskBase):
 
         copy_input_from_project(config, geos, layout)
 
-        make_gpu_wrapper_script(geos, layout)
+        _make_gpu_wrapper_script(geos, layout)
 
         # TODO: cache build to not BuildAndRun all the time
         # TODO: mepo hash as a combination of all the hashes
 
         executable_name = "GEOShs.x"
-        set_python_environment(geos_install_path, executable_name, geos)
+        _set_python_environment(geos_install_path, executable_name, geos)
 
-        srun_script_gpu_name = make_srun_script(geos, executable_name, layout)
+        srun_script_gpu_name = _make_srun_script(geos, executable_name, layout)
 
         # TODO: Fortran route equivalent to 1x6 on GPU
 
