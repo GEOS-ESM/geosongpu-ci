@@ -12,12 +12,13 @@ geos_hs:
     note: Held-Suarez Gridcomp & GTFV3 in develop
     mepo:
       develop:
+        - GEOSgcm_GridComp
         - FVdycoreCubed_GridComp
         - fvdycore
         - env
         - cmake
   input:
-    directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/C180-L91
+    directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C180-L91
   tasks:
     - GEOS
     - HeldSuarez
