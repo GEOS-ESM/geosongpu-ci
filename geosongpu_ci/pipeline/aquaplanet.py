@@ -23,7 +23,7 @@ def _replace_in_file(url: str, text_to_replace: str, new_text: str):
 
 
 @Registry.register
-class HeldSuarez(TaskBase):
+class Aquaplanet(TaskBase):
     def run_action(
         self,
         config: Dict[str, Any],
@@ -43,7 +43,7 @@ class HeldSuarez(TaskBase):
         # TODO: cache build to not BuildAndRun all the time
         # TODO: mepo hash as a combination of all the hashes
 
-        executable_name = "GEOShs.x"
+        executable_name = "GEOSgcm.x"
         set_python_environment(geos_install_path, executable_name, geos)
 
         srun_script_gpu_name = make_srun_script(geos, executable_name, layout)
