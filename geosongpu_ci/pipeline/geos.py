@@ -99,7 +99,7 @@ def copy_input_from_project(config: Dict[str, Any], geos_dir: str, layout: str) 
             f"cd {geos_dir}",
             f"mkdir -p {geos_dir}/experiment/l{layout}",
             f"cd {experiment_dir}",
-            f"cp {input_config['directory']}/l{layout}/* .",
+            f"cp -r {input_config['directory']}/l{layout}/* .",
         ],
     )
     return experiment_dir

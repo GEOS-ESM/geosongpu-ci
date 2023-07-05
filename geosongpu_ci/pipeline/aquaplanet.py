@@ -2,6 +2,7 @@ from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
+from geosongpu_ci.actions.slurm import wait_for_sbatch
 from geosongpu_ci.pipeline.geos import copy_input_from_project
 from geosongpu_ci.utils.shell import shell_script
 from typing import Dict, Any
@@ -35,9 +36,14 @@ class Aquaplanet(TaskBase):
             text_to_replace="setenv GEOSBASE TO_BE_REPLACED",
             new_text=f"setenv GEOSBASE {geos}",
         )
+        _replace_in_file(
+            url=f"{experiment_dir}/gcm_run.j",
+            text_to_replace="setenv EXPDIR TO_BE_REPLACED",
+            new_text=f"setenv EXPDIR {experiment_dir}",
+        )
 
         run_script_gpu_name = "run_script_gpu.sh"
-        shell_script(
+        sbatch_result = shell_script(
             name=run_script_gpu_name.replace(".sh", ""),
             env_to_source=[],
             shell_commands=[
@@ -45,6 +51,7 @@ class Aquaplanet(TaskBase):
                 "sbatch gcm_run.j",
             ],
         )
+        wait_for_sbatch(sbatch_result.split(" ")[-1].strip().replace("\n", ""))
 
     def check(
         self,

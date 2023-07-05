@@ -28,7 +28,8 @@ geos_aq:
     url: https://github.com/GEOS-ESM/GEOSgcm.git
     tag_or_hash: gcm-v11.0.4.2
     note: Aquaplanet v11.0.4.2
-    directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C180-L91
+  input:
+    directory: /discover/nobackup/projects/geosongpu/geos_data/aquaplanet/gcm-11.0.4.2/C180-L72/
   tasks:
     - GEOS
     - Aquaplanet
