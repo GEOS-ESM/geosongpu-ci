@@ -1,7 +1,9 @@
 import subprocess
+from time import sleep
 
 
 def wait_for_sbatch(job_id: str):
+    sleep(5)  # wait 5 seconds for SLURM to enter prolog
     running = True
     while running:
         sacct_result = subprocess.run(

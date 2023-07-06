@@ -51,7 +51,8 @@ class Aquaplanet(TaskBase):
                 "sbatch gcm_run.j",
             ],
         )
-        wait_for_sbatch(sbatch_result.split(" ")[-1].strip().replace("\n", ""))
+        job_id = sbatch_result.split(" ")[-1].strip().replace("\n", "")
+        wait_for_sbatch(job_id)
 
     def check(
         self,
