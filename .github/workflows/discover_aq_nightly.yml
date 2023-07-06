@@ -1,6 +1,6 @@
 # Discover's CI check
 
-name: Discover Nightly GEOS Held-Suarez Validation
+name: Discover Nightly GEOS Aquaplanet Validation
 
 on:
   schedule:
