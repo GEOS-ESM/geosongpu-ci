@@ -20,6 +20,10 @@ def _check(env: Environment) -> bool:
     return env.exists("GEOS_INSTALL")
 
 
+GEOS_HS_KEY = "geos_hs"
+GEOS_AQ_KEY = "geos_aq"
+
+
 @Registry.register
 class GEOS(TaskBase):
     def run_action(
@@ -45,6 +49,9 @@ class GEOS(TaskBase):
         cmake_cmd += " -DCMAKE_Fortran_COMPILER=gfortran"
         cmake_cmd += " -DBUILD_GEOS_GTFV3_INTERFACE=ON"
         cmake_cmd += " -DCMAKE_INSTALL_PREFIX=../install"
+        if experiment_name == GEOS_AQ_KEY:
+            cmake_cmd += " -DAQUAPLANET=ON"
+
         build_cmd = (
             f"{one_gpu_srun(log='build.out', time='00:30:00')} make -j12 install"
         )
@@ -79,3 +86,20 @@ class GEOS(TaskBase):
         env: Environment,
     ) -> bool:
         return _check(env)
+
+
+def copy_input_from_project(config: Dict[str, Any], geos_dir: str, layout: str) -> str:
+    # Copy input
+    input_config = config["input"]
+    experiment_dir = f"{geos_dir}/experiment/l{layout}"
+    shell_script(
+        name="copy_input",
+        modules=[],
+        shell_commands=[
+            f"cd {geos_dir}",
+            f"mkdir -p {geos_dir}/experiment/l{layout}",
+            f"cd {experiment_dir}",
+            f"cp -r {input_config['directory']}/l{layout}/* .",
+        ],
+    )
+    return experiment_dir
