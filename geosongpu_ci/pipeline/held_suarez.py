@@ -43,7 +43,7 @@ def _set_python_environment(geos_install_dir: str, executable_name: str, geos_di
         shell_commands=[
             f'echo "Copy execurable {executable_name}"',
             "",
-            f"cp {geos_install_dir}/bin/{executable_name} {geos_dir}/experiment/1x6",
+            f"cp {geos_install_dir}/bin/{executable_name} {geos_dir}/experiment/l1x1",
             "",
             'echo "Loading env (g5modules & pyenv)"',
             f"source {geos_install_dir}/../@env/g5_modules.sh",
