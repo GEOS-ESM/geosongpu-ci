@@ -33,6 +33,8 @@ class CIClean(TaskBase):
         artifact_base_directory: str,
         env: Environment,
     ) -> bool:
+        shutil.rmtree(artifact_base_directory)
+        mkdir(artifact_base_directory)
         return True
 
 
