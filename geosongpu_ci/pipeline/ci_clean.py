@@ -33,8 +33,9 @@ class CIClean(TaskBase):
         artifact_base_directory: str,
         env: Environment,
     ) -> bool:
-        shutil.rmtree(f"{artifact_base_directory}/..")
-        mkdir(f"{artifact_base_directory}/..")
+        artifact_dir = abspath(f"{env.CI_WORKSPACE}/../")
+        shutil.rmtree(artifact_dir, ignore_errors=False, onerror=None)
+        mkdir(artifact_dir)
         return True
 
 
