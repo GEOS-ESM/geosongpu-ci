@@ -11,6 +11,7 @@ on:
           - ci-heartbeat
           - ci-clean
           - ci-cancel-slurm
+          - ci-info
           - geos_hs
           - geos_aq
           - physics_standalone_radcoup
