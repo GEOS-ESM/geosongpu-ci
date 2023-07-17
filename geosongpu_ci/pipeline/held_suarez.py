@@ -58,13 +58,14 @@ def _set_python_environment(geos_install_dir: str, executable_name: str, geos_di
 
 def _make_srun_script(geos: str, executable_name: str, layout: str) -> str:
     srun_script_gpu_name = "srun_script_gpu.sh"
+    exp_directory = f"{geos}/experiment/l{layout}"
     shell_script(
         name=srun_script_gpu_name.replace(".sh", ""),
         env_to_source=[
             "./setenv.sh",
         ],
         shell_commands=[
-            f"cd {geos}/experiment/l{layout}",
+            f"cd {exp_directory}",
             "",
             "export FV3_DACEMODE=BuildAndRun",
             "export PACE_CONSTANTS=GEOS",
@@ -72,6 +73,7 @@ def _make_srun_script(geos: str, executable_name: str, layout: str) -> str:
             "export PYTHONOPTIMIZE=1",
             "export PACE_LOGLEVEL=DEBUG",
             "export GTFV3_BACKEND=dace:gpu",
+            f"export CUPY_CACHE_DIR={exp_directory}/.cupy",
             "",
             "srun -A j1013 -C rome \\",
             "     --qos=4n_a100 --partition=gpu_a100 \\",
