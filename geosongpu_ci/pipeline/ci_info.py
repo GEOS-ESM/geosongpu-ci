@@ -17,7 +17,8 @@ class CIInfo(TaskBase):
         metadata: Dict[str, Any],
     ):
         super().__init__(skip_metadata=True)
-        shell_script(name="showquota", shell_commands=["showquota"])
+        r = shell_script(name="showquota", shell_commands=["showquota"])
+        print(r)
 
     def check(
         self,
