@@ -4,6 +4,7 @@ from geosongpu_ci.pipeline import (
     held_suarez,
     aquaplanet,
     ci_clean,
+    ci_info,
     wip,
     physics_standalone,
 )
