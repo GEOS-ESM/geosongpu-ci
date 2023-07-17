@@ -48,6 +48,7 @@ class Aquaplanet(TaskBase):
             env_to_source=[],
             shell_commands=[
                 f"cd {experiment_dir}",
+                f"export CUPY_CACHE_DIR={experiment_dir}/.cupy",
                 "sbatch gcm_run.j",
             ],
         )
