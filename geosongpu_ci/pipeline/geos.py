@@ -53,7 +53,7 @@ class GEOS(TaskBase):
             cmake_cmd += " -DAQUAPLANET=ON"
 
         build_cmd = (
-            f"{one_gpu_srun(log='build.out', time='00:30:00')} make -j12 install"
+            f"{one_gpu_srun(log='build.out', time='01:30:00')} make -j12 install"
         )
         shell_script(
             name="build_geos",
