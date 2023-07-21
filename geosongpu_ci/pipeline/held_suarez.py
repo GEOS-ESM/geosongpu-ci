@@ -123,7 +123,7 @@ class HeldSuarez(TaskBase):
 
         if action == PipelineAction.Benchmark or action == PipelineAction.All:
             # TODO: benchmark
-            pass
+            return
             # Execute gtFV3
             _replace_in_file(
                 srun_script_gpu_name,
