@@ -41,7 +41,7 @@ class CIClean(TaskBase):
 
 @Registry.register
 class SlurmCancelJob(TaskBase):
-    def run(
+    def run_action(
         self,
         config: Dict[str, Any],
         experiment_name: str,
