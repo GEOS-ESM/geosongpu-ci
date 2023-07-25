@@ -18,7 +18,11 @@ geos_hs:
         - env
         - cmake
   input:
-    directory: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C180-L91
+    C180-L72: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C180-L72
+    C180-L91: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C180-L91
+    C180-L137: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C180-L137
+    C360-L72: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C360-L72
+    C360-L91: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C360-L91
   tasks:
     - GEOS
     - HeldSuarez
