@@ -169,6 +169,8 @@ SLURM_One_Half_Nodes_CPU = SlurmConfiguration(
 
 GTFV3_DaCeGPU_Orchestrated_32bit = GTFV3Config()
 
+VALIDATION_RESOLUTION = "C180-L72"
+
 
 @Registry.register
 class HeldSuarez(TaskBase):
@@ -187,13 +189,11 @@ class HeldSuarez(TaskBase):
 
         # # # Validation # # #
         if action == PipelineAction.Validation or action == PipelineAction.All:
-            # Validation on C180-L72 data
             # Get experiment directory ready
-            resolution = "C180-L72"
             experiment_dir = _copy_input_from_project(
-                input_directory=config["input"][resolution],
+                input_directory=config["input"][VALIDATION_RESOLUTION],
                 geos_directory=geos,
-                resolution=resolution,
+                resolution=VALIDATION_RESOLUTION,
             )
             _setup_env_scripts(
                 experiment_dir=experiment_dir,
@@ -229,7 +229,7 @@ class HeldSuarez(TaskBase):
         if action == PipelineAction.Benchmark or action == PipelineAction.All:
             # We run a range of resolution. C180-L72 might already be ran
             for resolution in ["C180-L72", "C180-L91", "C180-L137"]:
-                if resolution == "C180-L72" and action == PipelineAction.All:
+                if resolution == VALIDATION_RESOLUTION and action == PipelineAction.All:
                     # In case validation ran already, we have the experiment dir
                     # and the cache ready to run
                     experiment_dir = f"{geos}/experiment/{resolution}"
@@ -333,13 +333,15 @@ class HeldSuarez(TaskBase):
 
         # Logs
         if action == PipelineAction.Validation or action == PipelineAction.All:
-            logs = glob.glob(f"{geos_experiment_path}/C180-L72/validation.*")
+            logs = glob.glob(
+                f"{geos_experiment_path}/{VALIDATION_RESOLUTION}/validation.*"
+            )
             for log in logs:
                 shutil.copy(log, artifact_directory)
 
         if action == PipelineAction.Benchmark or action == PipelineAction.All:
             for resolution in ["C180-L72", "C180-L91", "C180-L137"]:
-                logs = glob.glob(f"{geos_experiment_path}/{resolution}/validation.*")
+                logs = glob.glob(f"{geos_experiment_path}/{resolution}/benchmark.*")
                 for log in logs:
                     shutil.copy(log, artifact_directory)
 
