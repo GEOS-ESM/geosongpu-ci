@@ -34,7 +34,7 @@ class SlurmConfiguration:
             f" {gpu_line} "
             f" --time={self.time} "
             f" --output={self.output} "
-            f" {wrapper} {executable_name}",
+            f" {wrapper} {executable_name}"
         )
 
 

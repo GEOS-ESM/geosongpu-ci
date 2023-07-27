@@ -18,13 +18,14 @@ setuptools.setup(
     python_requires=">=3",
     install_requires=[
         "pyyaml",
+        "click",
     ],
     data_files=[
-        ('./geosongpu/experiments', ['./experiments/experiments.yaml']),
+        ("./geosongpu/experiments", ["./experiments/experiments.yaml"]),
     ],
     entry_points={
         "console_scripts": [
-            "geosongpu_dispatch = geosongpu_ci.dispatch:main",
+            "geosongpu_dispatch = geosongpu_ci.dispatch:cli_dispatch",
         ],
     },
 )

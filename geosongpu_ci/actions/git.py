@@ -32,7 +32,7 @@ def git_prelude(
         else:
             develop_comp_command = ""
         mepo_status = shell_script(
-            name="get_mepo_status",
+            name="mepo_clone_and_status",
             modules=["other/mepo"],
             shell_commands=[
                 f"cd {override_repo_name}",

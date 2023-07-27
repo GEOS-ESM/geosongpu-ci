@@ -3,8 +3,9 @@ from typing import Dict
 
 
 class Environment:
-    def __init__(self) -> None:
+    def __init__(self, setup_only: bool) -> None:
         self.vault: Dict[str, str] = {}
+        self.setup_only = setup_only
 
     def _get_from_osenv(self, key: str) -> str:
         if key not in self.vault.keys():
