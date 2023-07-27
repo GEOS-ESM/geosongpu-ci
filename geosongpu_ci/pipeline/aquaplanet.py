@@ -26,8 +26,7 @@ class Aquaplanet(TaskBase):
         env: Environment,
         metadata: Dict[str, Any],
     ):
-        geos_install_path = env.get("GEOS_INSTALL")
-        geos = f"{geos_install_path}/.."
+        geos = env.get("GEOS_BASE_DIRECTORY")
         layout = "1x1"
 
         experiment_dir = copy_input_from_project(config, geos, layout)
