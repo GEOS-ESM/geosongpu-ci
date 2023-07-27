@@ -1,7 +1,7 @@
 from geosongpu_ci.utils.environment import Environment
 from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
-from geosongpu_ci.utils.shell import shell_script
+from geosongpu_ci.utils.shell import shell_script, execute_shell_script, Script
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.git import git_prelude
@@ -11,17 +11,48 @@ from geosongpu_ci.actions.discover import one_gpu_srun
 def _epilogue(env: Environment):
     # Export GEOS_INSTALL for future scripts
     env.set(
-        "GEOS_INSTALL",
+        "GEOS_INSTALL_DIRECTORY",
         f"{env.CI_WORKSPACE}/geos/install",
+    )
+    env.set(
+        "GEOS_BASE_DIRECTORY",
+        f"{env.CI_WORKSPACE}/geos/",
     )
 
 
 def _check(env: Environment) -> bool:
-    return env.exists("GEOS_INSTALL")
+    return env.exists("GEOS_INSTALL_DIRECTORY") and env.exists("GEOS_BASE_DIRECTORY")
 
 
 GEOS_HS_KEY = "geos_hs"
 GEOS_AQ_KEY = "geos_aq"
+
+
+def set_python_environment(
+    geos_directory: str,
+    geos_install_dir: str,
+    working_directory: str = ".",
+) -> str:
+    geos_fvdycore_comp = (
+        f"{geos_directory}/src/Components/@GEOSgcm_GridComp/"
+        "GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
+    )
+
+    set_env = Script("setenv", working_directory)
+    shell_script(
+        name=set_env.name,
+        working_directory=set_env.working_directory,
+        shell_commands=[
+            'echo "Loading env (g5modules & pyenv)"',
+            f"source {geos_directory}/@env/g5_modules.sh",
+            f'VENV_DIR="{geos_fvdycore_comp}/geos-gtfv3/driver/setenv/gtfv3_venv"',
+            f'GTFV3_DIR="{geos_fvdycore_comp}/@gtFV3"',
+            f'GEOS_INSTALL_DIR="{geos_install_dir}"',
+            f"source {geos_fvdycore_comp}/geos-gtfv3/driver/setenv/pyenv.sh",
+        ],
+        execute=False,
+    )
+    return set_env
 
 
 @Registry.register
@@ -49,17 +80,24 @@ class GEOS(TaskBase):
         cmake_cmd += " -DCMAKE_Fortran_COMPILER=gfortran"
         cmake_cmd += " -DBUILD_GEOS_GTFV3_INTERFACE=ON"
         cmake_cmd += " -DCMAKE_INSTALL_PREFIX=../install"
+        cmake_cmd += " -DPython3_EXECUTABLE=`which python3`"
         if experiment_name == GEOS_AQ_KEY:
             cmake_cmd += " -DAQUAPLANET=ON"
 
-        build_cmd = (
-            f"{one_gpu_srun(log='build.out', time='01:30:00')} make -j12 install"
+        set_env_script = set_python_environment(
+            geos_directory=f"{env.CI_WORKSPACE}/geos",
+            geos_install_dir=f"{env.CI_WORKSPACE}/geos/install",
         )
+
+        build_cmd = (
+            f"{one_gpu_srun(log='build.out', time='01:30:00')} make -j48 install"
+        )
+        script = Script("build_geos")
         shell_script(
-            name="build_geos",
+            name=script.name,
             modules=[],
             env_to_source=[
-                f"{env.CI_WORKSPACE}/geos/@env/g5_modules.sh",
+                set_env_script,
             ],
             shell_commands=[
                 "cd geos",
@@ -73,7 +111,12 @@ class GEOS(TaskBase):
                 cmake_cmd,
                 build_cmd,
             ],
+            execute=False,
         )
+        if not env.setup_only:
+            execute_shell_script(script)
+        else:
+            print(f"= = = Skipping {script}")
 
         _epilogue(env)
 
