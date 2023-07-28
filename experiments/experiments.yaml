@@ -112,6 +112,10 @@ ci-cancel-slurm:
   tasks:
     - SlurmCancelJob
 
+ci-info:
+  tasks:
+    - CIInfo
+
 wip:
   tasks:
     - WIP
