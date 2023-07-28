@@ -49,6 +49,7 @@ class GEOS(TaskBase):
         cmake_cmd += " -DCMAKE_Fortran_COMPILER=gfortran"
         cmake_cmd += " -DBUILD_GEOS_GTFV3_INTERFACE=ON"
         cmake_cmd += " -DCMAKE_INSTALL_PREFIX=../install"
+        cmake_cmd += " -DPython3_EXECUTABLE=`which python3`"
         if experiment_name == GEOS_AQ_KEY:
             cmake_cmd += " -DAQUAPLANET=ON"
 
