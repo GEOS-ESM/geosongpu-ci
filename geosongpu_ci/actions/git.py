@@ -32,7 +32,6 @@ def git_prelude(
         modules.append("other/mepo")
         git_commands.extend(
             [
-                f"cd {override_repo_name}",
                 "mepo clone",
                 develop_comp_command,
             ]
