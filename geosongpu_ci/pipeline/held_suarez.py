@@ -82,7 +82,7 @@ class GTFV3Config:
     PACE_LOGLEVEL: str = "DEBUG"
     GTFV3_BACKEND: str = "dace:gpu"
 
-    def bash(self) -> str:
+    def sh(self) -> str:
         return (
             f"export FV3_DACEMODE={self.FV3_DACEMODE}\n"
             f"export PACE_CONSTANTS={self.PACE_CONSTANTS}\n"
@@ -98,6 +98,9 @@ def _copy_input_to_experiment_directory(
     resolution: str,
     experiment_name: Optional[str] = None,
 ) -> str:
+    """Copy the input directory into the experiment direcotry
+    and trigger the "reset.sh" to get data clean and ready to execute.
+    """
     if experiment_name:
         experiment_dir = f"{geos_directory}/experiment/{experiment_name}"
     else:
@@ -110,6 +113,7 @@ def _copy_input_to_experiment_directory(
             f"mkdir -p {experiment_dir}",
             f"cd {experiment_dir}",
             f"cp -r {input_directory}/* .",
+            "./reset.sh",
         ],
     )
     return experiment_dir
@@ -136,7 +140,7 @@ def _make_srun_script(
         shell_commands=[
             f"cd {experiment_directory}",
             "",
-            f"{gtfv3_config.bash()}",
+            f"{gtfv3_config.sh()}",
             "export PYTHONOPTIMIZE=1",
             f"export CUPY_CACHE_DIR={experiment_directory}/.cupy",
             "",
