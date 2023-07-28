@@ -107,7 +107,6 @@ class GEOS(TaskBase):
                 cmake_cmd,
                 build_cmd,
             ],
-            execute=False,
         )
         if not env.setup_only:
             script.execute(script)
