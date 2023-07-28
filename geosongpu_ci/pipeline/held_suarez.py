@@ -5,6 +5,7 @@ from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.slurm import SlurmConfiguration
 from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.pipeline.geos import set_python_environment
+from geosongpu_ci.pipeline.gtfv3_config import GTFV3Config
 from geosongpu_ci.utils.progress import Progress
 from typing import Dict, Any, Optional
 import shutil
@@ -14,6 +15,10 @@ import glob
 
 
 class PrologScripts:
+    """Scripts to setup and run an experiment
+
+    Those are meant to be run and/or included in all runs"""
+
     def __init__(
         self,
         experiment_directory: str,
@@ -64,24 +69,6 @@ class PrologScripts:
                 "",
                 f"cp {geos_install_path}/bin/{executable_name} {experiment_directory}",
             ],
-        )
-
-
-@dataclasses.dataclass
-class GTFV3Config:
-    FV3_DACEMODE: str = "BuildAndRun"
-    PACE_CONSTANTS: str = "GEOS"
-    PACE_FLOAT_PRECISION: int = 32
-    PACE_LOGLEVEL: str = "DEBUG"
-    GTFV3_BACKEND: str = "dace:gpu"
-
-    def sh(self) -> str:
-        return (
-            f"export FV3_DACEMODE={self.FV3_DACEMODE}\n"
-            f"export PACE_CONSTANTS={self.PACE_CONSTANTS}\n"
-            f"export PACE_FLOAT_PRECISION={self.PACE_FLOAT_PRECISION}\n"
-            f"export PACE_LOGLEVEL={self.PACE_LOGLEVEL}\n"
-            f"export GTFV3_BACKEND={self.GTFV3_BACKEND}\n"
         )
 
 
@@ -144,28 +131,17 @@ def _make_srun_script(
     return srun_script_script
 
 
-SLURM_One_Half_Nodes_GPU = SlurmConfiguration(
-    nodes=2,
-    ntasks=6,
-    ntasks_per_node=3,
-    sockets_per_node=2,
-    gpus_per_node=3,
-    mem_per_gpu="40G",
-)
-SLURM_One_Half_Nodes_CPU = SlurmConfiguration(
-    nodes=2,
-    ntasks=72,
-    ntasks_per_node=48,
-    sockets_per_node=2,
-)
-
-GTFV3_DaCeGPU_Orchestrated_32bit = GTFV3Config()
-
 VALIDATION_RESOLUTION = "C180-L72"
 
 
 @Registry.register
 class HeldSuarez(TaskBase):
+    """GEOS with Held-Suarez physics.
+
+    Depends on the GEOS task to be run first.
+    Proposes C180-LXX benchmarking and basic build worthiness validation.
+    """
+
     def run_action(
         self,
         config: Dict[str, Any],
@@ -183,7 +159,6 @@ class HeldSuarez(TaskBase):
             or env.experiment_action == PipelineAction.All
         ):
             # Get experiment directory ready
-            print(f"> > > Validation @ {VALIDATION_RESOLUTION}")
             experiment_dir = _copy_input_to_experiment_directory(
                 input_directory=config["input"][VALIDATION_RESOLUTION],
                 geos_directory=geos,
@@ -197,13 +172,13 @@ class HeldSuarez(TaskBase):
             )
 
             # Run 1 timestep for cache build
-            slurm_config = dataclasses.replace(SLURM_One_Half_Nodes_GPU)
+            slurm_config = SlurmConfiguration.one_half_nodes_GPU()
             slurm_config.output = "validation.cache.dacegpu.%t.out"
             srun_script = _make_srun_script(
                 executable_name=executable_name,
                 experiment_directory=experiment_dir,
                 slurm_config=slurm_config,
-                gtfv3_config=GTFV3_DaCeGPU_Orchestrated_32bit,
+                gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
                 prolog_scripts=prolog_scripts,
             )
             ShellScript(
@@ -230,10 +205,9 @@ class HeldSuarez(TaskBase):
         ):
             # We run a range of resolution. C180-L72 might already be ran
             for resolution in ["C180-L72", "C180-L91", "C180-L137"]:
-                print(f"> > > Benchmark @ {resolution}")
-                if (
-                    resolution == VALIDATION_RESOLUTION
-                    and env.experiment_action == PipelineAction.All
+                if resolution == VALIDATION_RESOLUTION and (
+                    env.experiment_action == PipelineAction.Validation
+                    or env.experiment_action == PipelineAction.All
                 ):
                     # In case validation ran already, we have the experiment dir
                     # and the cache ready to run
@@ -259,13 +233,13 @@ class HeldSuarez(TaskBase):
                     )
 
                     # Run 1 timestep for cache build
-                    slurm_config = dataclasses.replace(SLURM_One_Half_Nodes_GPU)
+                    slurm_config = SlurmConfiguration.one_half_nodes_GPU()
                     slurm_config.output = "benchmark.cache.dacegpu.%t.out"
                     srun_script = _make_srun_script(
                         executable_name=executable_name,
                         experiment_directory=experiment_dir,
                         slurm_config=slurm_config,
-                        gtfv3_config=GTFV3_DaCeGPU_Orchestrated_32bit,
+                        gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
                         prolog_scripts=prolog_scripts,
                     )
                     ShellScript(
@@ -285,9 +259,9 @@ class HeldSuarez(TaskBase):
                         Progress.log(f"= = = Skipping {srun_script.name} = = =")
 
                 # Run 1 day
-                slurm_config = dataclasses.replace(SLURM_One_Half_Nodes_GPU)
+                slurm_config = SlurmConfiguration.one_half_nodes_GPU()
                 slurm_config.output = "benchmark.1day.dacegpu.%t.out"
-                gtfv3_config = dataclasses.replace(GTFV3_DaCeGPU_Orchestrated_32bit)
+                gtfv3_config = dataclasses.replace(GTFV3Config.dace_gpu_32_bit_BAR())
                 gtfv3_config.FV3_DACEMODE = "Run"
                 srun_script = _make_srun_script(
                     executable_name=executable_name,
@@ -313,17 +287,17 @@ class HeldSuarez(TaskBase):
                     Progress.log(f"= = = Skipping {srun_script.name} = = =")
 
                 # Execute Fortran
-                slurm_config = dataclasses.replace(SLURM_One_Half_Nodes_CPU)
+                slurm_config = SlurmConfiguration.one_half_Nodes_CPU()
                 slurm_config.output = "benchmark.1day.fortran.%t.out"
                 srun_script = _make_srun_script(
                     executable_name=executable_name,
                     experiment_directory=experiment_dir,
-                    slurm_config=SLURM_One_Half_Nodes_CPU,
+                    slurm_config=slurm_config,
                     gtfv3_config=gtfv3_config,
                     prolog_scripts=prolog_scripts,
                 )
                 ShellScript(
-                    name="setup_config_1day_1node_gtfv3",
+                    name="setup_config_1day_1node_fortran",
                     working_directory=experiment_dir,
                 ).write(
                     shell_commands=[
