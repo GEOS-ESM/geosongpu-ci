@@ -1,7 +1,7 @@
 from geosongpu_ci.utils.environment import Environment
 from typing import Dict, Any, Optional
 from geosongpu_ci.pipeline.task import TaskBase
-from geosongpu_ci.utils.shell import shell_script
+from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.git import git_prelude
@@ -40,8 +40,7 @@ def _run_action(
         raise RuntimeError(f"Compiler {compiler} not implemented.")
 
     # Build
-    shell_script(
-        name="build",
+    ShellScript(name="build").write(
         modules=["comp/nvhpc/22.3"],
         env_to_source=[],
         shell_commands=[
@@ -56,18 +55,17 @@ def _run_action(
             f"{one_gpu_srun('build.out')} make",
             "cp TEST_MOIST TEST_MOIST_OACC",
         ],
-    )
+    ).execute()
 
     # Prepare input
-    shell_script(
-        name=f"prepare_input_{physics_name}",
+    ShellScript(name=f"prepare_input_{physics_name}").write(
         modules=[],
         env_to_source=[],
         shell_commands=[
             "mkdir c180_data",
             f"ln -s {config['input']['directory']} c180_data/{input_data_name}",
         ],
-    )
+    ).execute()
 
     scripts = []
     for i in range(0, 5):
@@ -82,12 +80,11 @@ def _run_action(
         scripts.append(exe_cmd)
 
     # Run and store in oacc_run.log for mining later
-    shell_script(
-        name=f"srun_{physics_name}",
+    ShellScript(name=f"srun_{physics_name}").write(
         modules=[],
         env_to_source=[],
         shell_commands=scripts,
-    )
+    ).execute()
 
 
 def _check(

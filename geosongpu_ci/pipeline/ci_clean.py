@@ -6,7 +6,7 @@ from geosongpu_ci.actions.pipeline import PipelineAction
 import shutil
 from os.path import abspath
 from os import mkdir
-from geosongpu_ci.utils.shell import shell_script
+from geosongpu_ci.utils.shell import ShellScript
 
 
 @Registry.register
@@ -50,12 +50,7 @@ class SlurmCancelJob(TaskBase):
         metadata: Dict[str, Any],
     ):
         # Build GEOS
-        shell_script(
-            name="cancel_slurm_jobs",
-            modules=[],
-            env_to_source=[],
-            shell_commands=["scancel -u gmao_ci"],
-        )
+        ShellScript("cancel_slurm_jobs").write(["scancel -u gmao_ci"]).execute()
 
     def check(
         self,

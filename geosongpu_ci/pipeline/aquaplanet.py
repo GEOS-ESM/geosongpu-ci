@@ -4,7 +4,7 @@ from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.slurm import wait_for_sbatch
 from geosongpu_ci.pipeline.geos import copy_input_from_project
-from geosongpu_ci.utils.shell import shell_script
+from geosongpu_ci.utils.shell import ShellScript
 from typing import Dict, Any
 
 
@@ -41,16 +41,18 @@ class Aquaplanet(TaskBase):
             new_text=f"setenv EXPDIR {experiment_dir}",
         )
 
-        run_script_gpu_name = "run_script_gpu.sh"
-        sbatch_result = shell_script(
-            name=run_script_gpu_name.replace(".sh", ""),
-            env_to_source=[],
-            shell_commands=[
-                f"cd {experiment_dir}",
-                f"export CUPY_CACHE_DIR={experiment_dir}/.cupy",
-                "sbatch gcm_run.j",
-            ],
+        sbatch_result = (
+            ShellScript("run_script_gpu")
+            .write(
+                shell_commands=[
+                    f"cd {experiment_dir}",
+                    f"export CUPY_CACHE_DIR={experiment_dir}/.cupy",
+                    "sbatch gcm_run.j",
+                ]
+            )
+            .execute()
         )
+
         job_id = sbatch_result.split(" ")[-1].strip().replace("\n", "")
         wait_for_sbatch(job_id)
 

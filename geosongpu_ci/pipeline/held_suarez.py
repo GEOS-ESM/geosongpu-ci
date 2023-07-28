@@ -3,7 +3,7 @@ from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.slurm import SlurmConfiguration
-from geosongpu_ci.utils.shell import shell_script, execute_shell_script, Script
+from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.pipeline.geos import set_python_environment
 from typing import Dict, Any, Optional
 import shutil
@@ -20,18 +20,10 @@ class PrologScripts:
         geos_directory: str,
         geos_install_path: str,
     ):
-        self.gpu_wrapper = Script(
-            "gpu-wrapper-slurm",
-            working_directory=experiment_directory,
-        )
         self._make_gpu_wrapper_script()
         self.set_env = set_python_environment(
             geos_directory=geos_directory,
             geos_install_dir=geos_install_path,
-            working_directory=experiment_directory,
-        )
-        self.copy_executable = Script(
-            "copy_executable",
             working_directory=experiment_directory,
         )
         self._copy_executable_script(
@@ -40,10 +32,11 @@ class PrologScripts:
             geos_install_path,
         )
 
-    def _make_gpu_wrapper_script(self):
-        shell_script(
-            name=self.gpu_wrapper.name,
-            working_directory=self.gpu_wrapper.working_directory,
+    def _make_gpu_wrapper_script(self, experiment_directory: str) -> None:
+        self.gpu_wrapper = ShellScript(
+            "gpu-wrapper-slurm",
+            working_directory=experiment_directory,
+        ).write(
             modules=[],
             shell_commands=[
                 "#!/usr/bin/env sh",
@@ -52,8 +45,6 @@ class PrologScripts:
                 ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
                 "$*",
             ],
-            make_executable=True,
-            execute=False,
         )
 
     def _copy_executable_script(
@@ -61,16 +52,17 @@ class PrologScripts:
         executable_name: str,
         experiment_directory: str,
         geos_install_path: str,
-    ):
-        shell_script(
-            name=self.copy_executable.name,
-            working_directory=self.copy_executable.working_directory,
+    ) -> None:
+        self.copy_executable = ShellScript(
+            "copy_executable",
+            working_directory=experiment_directory,
+        )
+        self.copy_executable.write(
             shell_commands=[
                 f'echo "Copy executable {executable_name}"',
                 "",
                 f"cp {geos_install_path}/bin/{executable_name} {experiment_directory}",
             ],
-            execute=False,
         )
 
 
@@ -105,8 +97,7 @@ def _copy_input_to_experiment_directory(
         experiment_dir = f"{geos_directory}/experiment/{experiment_name}"
     else:
         experiment_dir = f"{geos_directory}/experiment/{resolution}"
-    shell_script(
-        name=f"copy_input_{resolution}",
+    ShellScript(f"copy_input_{resolution}").write(
         modules=[],
         shell_commands=[
             f"cd {geos_directory}",
@@ -115,7 +106,7 @@ def _copy_input_to_experiment_directory(
             f"cp -r {input_directory}/* .",
             "./reset.sh",
         ],
-    )
+    ).execute()
     return experiment_dir
 
 
@@ -125,20 +116,18 @@ def _make_srun_script(
     slurm_config: SlurmConfiguration,
     gtfv3_config: GTFV3Config,
     prolog_scripts: PrologScripts,
-) -> str:
-    srun_script_script = Script(
+) -> ShellScript:
+    srun_script_script = ShellScript(
         f"srun_{slurm_config.ntasks}tasks",
         working_directory=experiment_directory,
-    )
-    shell_script(
-        name=srun_script_script.name,
-        working_directory=srun_script_script.working_directory,
+    ).write(
         env_to_source=[
             prolog_scripts.set_env,
             prolog_scripts.copy_executable,
         ],
         shell_commands=[
             f"cd {experiment_directory}",
+            "./reset.sh",
             "",
             f"{gtfv3_config.sh()}",
             "export PYTHONOPTIMIZE=1",
@@ -146,7 +135,6 @@ def _make_srun_script(
             "",
             f"{slurm_config.srun_bash(prolog_scripts.gpu_wrapper.sh, executable_name)}",
         ],
-        execute=False,
     )
     return srun_script_script
 
@@ -212,18 +200,19 @@ class HeldSuarez(TaskBase):
                 gtfv3_config=GTFV3_DaCeGPU_Orchestrated_32bit,
                 prolog_scripts=prolog_scripts,
             )
-            shell_script(
+            ShellScript(
                 name="setup_config_1ts_1node_gtfv3",
                 working_directory=experiment_dir,
+            ).write(
                 shell_commands=[
                     f"cd {experiment_dir}",
                     "cp -f AgcmSimple.rc.1x6.gtfv3 AgcmSimple.rc",
                     "cp -f input.nml.1x1 input.nml",
                     "cp -f CAP.rc.1ts CAP.rc",
                 ],
-            )
+            ).execute()
             if not env.setup_only:
-                execute_shell_script(srun_script)
+                srun_script.execute()
 
             # TODO: more to be done to actually check on the results rather then
             # just "can run".
@@ -267,18 +256,19 @@ class HeldSuarez(TaskBase):
                         gtfv3_config=GTFV3_DaCeGPU_Orchestrated_32bit,
                         prolog_scripts=prolog_scripts,
                     )
-                    shell_script(
+                    ShellScript(
                         name="setup_config_1ts_1node_gtfv3",
                         working_directory=experiment_dir,
+                    ).write(
                         shell_commands=[
                             f"cd {experiment_dir}",
                             "cp -f AgcmSimple.rc.1x6.gtfv3 AgcmSimple.rc",
                             "cp -f input.nml.1x1 input.nml",
                             "cp -f CAP.rc.1ts CAP.rc",
                         ],
-                    )
+                    ).execute()
                     if not env.setup_only:
-                        execute_shell_script(srun_script)
+                        srun_script.execute()
                     else:
                         print(f"= = = Skipping {srun_script.name}")
 
@@ -294,18 +284,19 @@ class HeldSuarez(TaskBase):
                     gtfv3_config=gtfv3_config,
                     prolog_scripts=prolog_scripts,
                 )
-                shell_script(
+                ShellScript(
                     name="setup_config_1day_1node_gtfv3",
                     working_directory=experiment_dir,
+                ).write(
                     shell_commands=[
                         f"cd {experiment_dir}",
                         "cp -f AgcmSimple.rc.1x6.gtfv3 AgcmSimple.rc",
                         "cp -f input.nml.1x1 input.nml",
                         "cp -f CAP.rc.1day CAP.rc",
                     ],
-                )
+                ).execute()
                 if not env.setup_only:
-                    execute_shell_script(srun_script)
+                    srun_script.execute()
                 else:
                     print(f"= = = Skipping {srun_script.name}")
 
@@ -319,18 +310,19 @@ class HeldSuarez(TaskBase):
                     gtfv3_config=gtfv3_config,
                     prolog_scripts=prolog_scripts,
                 )
-                shell_script(
+                ShellScript(
                     name="setup_config_1day_1node_gtfv3",
                     working_directory=experiment_dir,
+                ).write(
                     shell_commands=[
                         f"cd {experiment_dir}",
                         "cp -f AgcmSimple.rc.3x24.fortran AgcmSimple.rc",
                         "cp -f input.nml.3x4 input.nml",
                         "cp -f CAP.rc.1day CAP.rc",
                     ],
-                )
+                ).execute()
                 if not env.setup_only:
-                    execute_shell_script(srun_script)
+                    srun_script.execute()
                 else:
                     print(f"= = = Skipping {srun_script.name}")
 

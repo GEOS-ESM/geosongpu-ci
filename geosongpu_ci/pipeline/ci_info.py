@@ -3,7 +3,7 @@ from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.actions.pipeline import PipelineAction
-from geosongpu_ci.utils.shell import shell_script
+from geosongpu_ci.utils.shell import ShellScript
 
 
 @Registry.register
@@ -17,7 +17,7 @@ class CIInfo(TaskBase):
         metadata: Dict[str, Any],
     ):
         super().__init__(skip_metadata=True)
-        r = shell_script(name="showquota", shell_commands=["showquota"])
+        r = ShellScript("showquota").write(["showquota"]).execute()
         print(r)
 
     def check(

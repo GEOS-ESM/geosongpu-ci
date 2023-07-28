@@ -1,7 +1,7 @@
 from geosongpu_ci.utils.environment import Environment
 from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
-from geosongpu_ci.utils.shell import shell_script, execute_shell_script, Script
+from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.git import git_prelude
@@ -32,16 +32,14 @@ def set_python_environment(
     geos_directory: str,
     geos_install_dir: str,
     working_directory: str = ".",
-) -> str:
+) -> ShellScript:
     geos_fvdycore_comp = (
         f"{geos_directory}/src/Components/@GEOSgcm_GridComp/"
         "GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
     )
 
-    set_env = Script("setenv", working_directory)
-    shell_script(
-        name=set_env.name,
-        working_directory=set_env.working_directory,
+    set_env = ShellScript("setenv", working_directory)
+    set_env.write(
         shell_commands=[
             'echo "Loading env (g5modules & pyenv)"',
             f"source {geos_directory}/@env/g5_modules.sh",
@@ -50,7 +48,6 @@ def set_python_environment(
             f'GEOS_INSTALL_DIR="{geos_install_dir}"',
             f"source {geos_fvdycore_comp}/geos-gtfv3/driver/setenv/pyenv.sh",
         ],
-        execute=False,
     )
     return set_env
 
@@ -92,9 +89,8 @@ class GEOS(TaskBase):
         build_cmd = (
             f"{one_gpu_srun(log='build.out', time='01:30:00')} make -j48 install"
         )
-        script = Script("build_geos")
-        shell_script(
-            name=script.name,
+        script = ShellScript("build_geos")
+        script.write(
             modules=[],
             env_to_source=[
                 set_env_script,
@@ -114,7 +110,7 @@ class GEOS(TaskBase):
             execute=False,
         )
         if not env.setup_only:
-            execute_shell_script(script)
+            script.execute(script)
         else:
             print(f"= = = Skipping {script}")
 
@@ -135,14 +131,12 @@ def copy_input_from_project(config: Dict[str, Any], geos_dir: str, layout: str) 
     # Copy input
     input_config = config["input"]
     experiment_dir = f"{geos_dir}/experiment/l{layout}"
-    shell_script(
-        name="copy_input",
-        modules=[],
+    ShellScript("copy_input").write(
         shell_commands=[
             f"cd {geos_dir}",
             f"mkdir -p {geos_dir}/experiment/l{layout}",
             f"cd {experiment_dir}",
             f"cp -r {input_config['directory']}/l{layout}/* .",
         ],
-    )
+    ).execute()
     return experiment_dir
