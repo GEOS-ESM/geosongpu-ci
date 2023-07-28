@@ -14,7 +14,10 @@ from geosongpu_ci.actions.pipeline import PipelineAction
 )
 def cli_dispatch(name: str, action: str, artifact: str, setup_only: bool):
     """Dispatch the _NAME_ experiment (as recorded in experiments.yaml)
-    with the _ACTION_ (from  Validation, Benchmark or All)"""
+    with the _ACTION_ (from  Validation, Benchmark or All).
+
+    Environement variable:\n
+        CI_WORKSPACE: dispatch sets all work in this directory."""
     dispatch(name, PipelineAction[action], artifact, setup_only)
 
 

@@ -19,7 +19,11 @@ The package install a `geosongpu_dispatch`
 Usage: geosongpu_dispatch [OPTIONS] NAME ACTION
 
   Dispatch the _NAME_ experiment (as recorded in experiments.yaml) with the
-  _ACTION_ (from  Validation, Benchmark or All)
+  _ACTION_ (from  Validation, Benchmark or All).
+
+  Environement variable:
+
+      CI_WORKSPACE: dispatch sets all work in this directory.
 
 Options:
   --artifact TEXT  Artifact directory for results storage
