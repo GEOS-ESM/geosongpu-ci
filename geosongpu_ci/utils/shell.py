@@ -2,6 +2,7 @@ import subprocess
 from typing import Any, Optional, List
 import os
 import stat
+from geosongpu_ci.utils.progress import Progress
 
 
 class ShellScript:
@@ -33,8 +34,8 @@ class ShellScript:
             code += "\n"
         # Environment to source in prolog
         for env in env_to_source or []:
-            if isinstance(env, code):
-                code += f"source {env.sh}\n"
+            if isinstance(env, ShellScript):
+                code += f"source {env.path}\n"
             else:
                 code += f"source {env}\n"
                 code += "\n"
@@ -63,11 +64,12 @@ class ShellScript:
         os.chmod(self.path, st.st_mode | stat.S_IEXEC)
 
     def _execute_shell_script(self) -> str:
-        print(f"> > > Executing {self.path}")
-        _make_executable(self.path)
-        return run_subprocess(
-            self.path,
-        )
+        with Progress(self.name):
+            _make_executable(self.path)
+            result = run_subprocess(
+                self.path,
+            )
+        return result
 
 
 def run_subprocess(command: str, print_log: bool = True) -> str:

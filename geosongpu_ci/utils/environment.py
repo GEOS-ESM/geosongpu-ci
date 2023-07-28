@@ -1,11 +1,24 @@
 import os
 from typing import Dict
+from geosongpu_ci.actions.pipeline import PipelineAction
 
 
 class Environment:
-    def __init__(self, setup_only: bool) -> None:
+    """Transparently store cli options, evironement variable and any
+    variables the tasks exchange between them"""
+
+    def __init__(
+        self,
+        experience_name: str,
+        experiment_action: PipelineAction,
+        artifact_directory: str,
+        setup_only: bool,
+    ) -> None:
         self.vault: Dict[str, str] = {}
         self.setup_only = setup_only
+        self.experiment_name = experience_name
+        self.experiment_action = experiment_action
+        self.artifact_directory = artifact_directory
 
     def _get_from_osenv(self, key: str) -> str:
         if key not in self.vault.keys():

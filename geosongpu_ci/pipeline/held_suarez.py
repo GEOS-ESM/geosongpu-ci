@@ -5,6 +5,7 @@ from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.slurm import SlurmConfiguration
 from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.pipeline.geos import set_python_environment
+from geosongpu_ci.utils.progress import Progress
 from typing import Dict, Any, Optional
 import shutil
 import os
@@ -20,7 +21,7 @@ class PrologScripts:
         geos_directory: str,
         geos_install_path: str,
     ):
-        self._make_gpu_wrapper_script()
+        self._make_gpu_wrapper_script(experiment_directory=experiment_directory)
         self.set_env = set_python_environment(
             geos_directory=geos_directory,
             geos_install_dir=geos_install_path,
@@ -117,23 +118,27 @@ def _make_srun_script(
     gtfv3_config: GTFV3Config,
     prolog_scripts: PrologScripts,
 ) -> ShellScript:
+    srun_cmd = slurm_config.srun_bash(
+        wrapper=prolog_scripts.gpu_wrapper.path,
+        executable_name=executable_name,
+    )
     srun_script_script = ShellScript(
         f"srun_{slurm_config.ntasks}tasks",
         working_directory=experiment_directory,
     ).write(
         env_to_source=[
             prolog_scripts.set_env,
-            prolog_scripts.copy_executable,
         ],
         shell_commands=[
             f"cd {experiment_directory}",
             "./reset.sh",
+            f"source {prolog_scripts.copy_executable.path}",
             "",
             f"{gtfv3_config.sh()}",
             "export PYTHONOPTIMIZE=1",
             f"export CUPY_CACHE_DIR={experiment_directory}/.cupy",
             "",
-            f"{slurm_config.srun_bash(prolog_scripts.gpu_wrapper.sh, executable_name)}",
+            f"{srun_cmd}",
         ],
     )
     return srun_script_script
@@ -164,8 +169,6 @@ class HeldSuarez(TaskBase):
     def run_action(
         self,
         config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
         env: Environment,
         metadata: Dict[str, Any],
     ):
@@ -175,7 +178,10 @@ class HeldSuarez(TaskBase):
         executable_name = "./GEOShs.x"
 
         # # # Validation # # #
-        if action == PipelineAction.Validation or action == PipelineAction.All:
+        if (
+            env.experiment_action == PipelineAction.Validation
+            or env.experiment_action == PipelineAction.All
+        ):
             # Get experiment directory ready
             print(f"> > > Validation @ {VALIDATION_RESOLUTION}")
             experiment_dir = _copy_input_to_experiment_directory(
@@ -218,11 +224,17 @@ class HeldSuarez(TaskBase):
             # just "can run".
 
         # # # Benchmark # # #
-        if action == PipelineAction.Benchmark or action == PipelineAction.All:
+        if (
+            env.experiment_action == PipelineAction.Benchmark
+            or env.experiment_action == PipelineAction.All
+        ):
             # We run a range of resolution. C180-L72 might already be ran
             for resolution in ["C180-L72", "C180-L91", "C180-L137"]:
                 print(f"> > > Benchmark @ {resolution}")
-                if resolution == VALIDATION_RESOLUTION and action == PipelineAction.All:
+                if (
+                    resolution == VALIDATION_RESOLUTION
+                    and env.experiment_action == PipelineAction.All
+                ):
                     # In case validation ran already, we have the experiment dir
                     # and the cache ready to run
                     experiment_dir = f"{geos}/experiment/{resolution}"
@@ -270,7 +282,7 @@ class HeldSuarez(TaskBase):
                     if not env.setup_only:
                         srun_script.execute()
                     else:
-                        print(f"= = = Skipping {srun_script.name}")
+                        Progress.log(f"= = = Skipping {srun_script.name} = = =")
 
                 # Run 1 day
                 slurm_config = dataclasses.replace(SLURM_One_Half_Nodes_GPU)
@@ -298,7 +310,7 @@ class HeldSuarez(TaskBase):
                 if not env.setup_only:
                     srun_script.execute()
                 else:
-                    print(f"= = = Skipping {srun_script.name}")
+                    Progress.log(f"= = = Skipping {srun_script.name} = = =")
 
                 # Execute Fortran
                 slurm_config = dataclasses.replace(SLURM_One_Half_Nodes_CPU)
@@ -324,20 +336,17 @@ class HeldSuarez(TaskBase):
                 if not env.setup_only:
                     srun_script.execute()
                 else:
-                    print(f"= = = Skipping {srun_script.name}")
+                    Progress.log(f"= = = Skipping {srun_script.name} = = =")
 
     def check(
         self,
         config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
-        artifact_base_directory: str,
         env: Environment,
     ) -> bool:
         # Setup
         geos_path = env.get("GEOS_BASE_DIRECTORY")
         geos_experiment_path = f"{geos_path}/../experiment"
-        artifact_directory = f"{artifact_base_directory}/held_suarez/"
+        artifact_directory = f"{env.artifact_directory}/held_suarez/"
         os.mkdir(artifact_directory)
 
         # Metadata
@@ -349,14 +358,20 @@ class HeldSuarez(TaskBase):
         shutil.copy("ci_metadata", artifact_directory)
 
         # Logs
-        if action == PipelineAction.Validation or action == PipelineAction.All:
+        if (
+            env.experiment_action == PipelineAction.Validation
+            or env.experiment_action == PipelineAction.All
+        ):
             logs = glob.glob(
                 f"{geos_experiment_path}/{VALIDATION_RESOLUTION}/validation.*"
             )
             for log in logs:
                 shutil.copy(log, artifact_directory)
 
-        if action == PipelineAction.Benchmark or action == PipelineAction.All:
+        if (
+            env.experiment_action == PipelineAction.Benchmark
+            or env.experiment_action == PipelineAction.All
+        ):
             for resolution in ["C180-L72", "C180-L91", "C180-L137"]:
                 logs = glob.glob(f"{geos_experiment_path}/{resolution}/benchmark.*")
                 for log in logs:

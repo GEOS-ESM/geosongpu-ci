@@ -3,9 +3,9 @@ from typing import Dict, Any
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.utils.registry import Registry
-from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.git import git_prelude
 from geosongpu_ci.actions.discover import one_gpu_srun
+from geosongpu_ci.utils.progress import Progress
 
 
 def _epilogue(env: Environment):
@@ -57,15 +57,13 @@ class GEOS(TaskBase):
     def run_action(
         self,
         config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
         env: Environment,
         metadata: Dict[str, Any],
     ):
         git_prelude(
             config,
-            experiment_name,
-            action,
+            env.experiment_name,
+            env.experiment_action,
             metadata,
             override_repo_name="geos",
             do_mepo=True,
@@ -78,7 +76,7 @@ class GEOS(TaskBase):
         cmake_cmd += " -DBUILD_GEOS_GTFV3_INTERFACE=ON"
         cmake_cmd += " -DCMAKE_INSTALL_PREFIX=../install"
         cmake_cmd += " -DPython3_EXECUTABLE=`which python3`"
-        if experiment_name == GEOS_AQ_KEY:
+        if env.experiment_name == GEOS_AQ_KEY:
             cmake_cmd += " -DAQUAPLANET=ON"
 
         set_env_script = set_python_environment(
@@ -111,16 +109,13 @@ class GEOS(TaskBase):
         if not env.setup_only:
             script.execute(script)
         else:
-            print(f"= = = Skipping {script}")
+            Progress.log(f"= = = Skipping {script.name} = = =")
 
         _epilogue(env)
 
     def check(
         self,
         config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
-        artifact_directory: str,
         env: Environment,
     ) -> bool:
         return _check(env)
