@@ -17,6 +17,7 @@ geos_hs:
         - fvdycore
         - env
         - cmake
+        - gtfv3
   input:
     C180-L72: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C180-L72
     C180-L91: /discover/nobackup/projects/geosongpu/geos_data/held_suarez/gcm-11.0.4.1/C180-L91
