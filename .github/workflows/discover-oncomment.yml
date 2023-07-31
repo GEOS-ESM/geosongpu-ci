@@ -16,6 +16,7 @@ jobs:
     outputs:
       experiment-name: ${{ steps.extractor.outputs.EXP_NAME }}
       experiment-action: ${{ steps.extractor.outputs.EXP_ACTION }}
+      branch: ${{ steps.get-branch.outputs.branch }}
     steps:
       - name: Extract command
         id: extractor
@@ -28,8 +29,12 @@ jobs:
           echo "EXP_NAME=${EXP_NAME_DIRTY%% *}" >> "$GITHUB_OUTPUT"
           EXP_ACTION_DIRTY=${BODY#*experiment-action=}
           echo "EXP_ACTION=${EXP_ACTION_DIRTY%% *}" >> "$GITHUB_OUTPUT"
-      - uses: xt0rted/pull-request-comment-branch@v2
-        id: comment-branch
+      - id: 'get-branch'
+        run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
+        env:
+          REPO: ${{ github.repository }}
+          PR_NO: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   respond-to-query-as-comment:
     needs: [check-valid-comment]
@@ -52,7 +57,7 @@ jobs:
     with:
       experiment_name:   ${{ needs.check-valid-comment.outputs.experiment-name }}
       experiment_action: ${{ needs.check-valid-comment.outputs.experiment-action }}
-      geosongpu_ci_ref:  ${{ needs.check-valid-comment.steps.comment-branch.outputs.head_ref }}
+      geosongpu_ci_ref:  ${{ needs.check-valid-comment.outputs.branch }}
 
   comment-results:
     needs: [run-discover-ondemand, check-valid-comment]
