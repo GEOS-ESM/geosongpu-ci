@@ -19,6 +19,7 @@ setuptools.setup(
     install_requires=[
         "pyyaml",
         "click",
+        "numpy",
     ],
     data_files=[
         ("./geosongpu/experiments", ["./experiments/experiments.yaml"]),

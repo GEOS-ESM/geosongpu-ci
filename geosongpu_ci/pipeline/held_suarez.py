@@ -8,7 +8,8 @@ from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.pipeline.geos import set_python_environment
 from geosongpu_ci.pipeline.gtfv3_config import GTFV3Config
 from geosongpu_ci.utils.progress import Progress
-from geosongpu_ci.tools.benchmark import parse_geos_log, report
+from geosongpu_ci.tools.benchmark.geos_log_parser import parse_geos_log
+from geosongpu_ci.tools.benchmark.report import report
 from typing import Dict, Any, Optional
 import shutil
 import os
@@ -361,10 +362,13 @@ class HeldSuarez(TaskBase):
                 bench_raw_data = []
                 for log in logs:
                     shutil.copy(log, benchmark_artifact)
-                    if ".0.out" in log:
+                    # Grab all rank 0 that are not caching runs
+                    if ".0.out" in log and "cache" not in log:
                         bench_raw_data.append(parse_geos_log(log))
                 benchmark_report = report(bench_raw_data)
                 print(benchmark_report)
+                with open(f"{benchmark_artifact}/report_benchmark.out", "w") as f:
+                    f.write(str(benchmark_report))
 
         return True
 

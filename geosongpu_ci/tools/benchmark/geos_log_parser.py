@@ -1,4 +1,4 @@
-from geosongpu_ci.tools.benchmark import BenchmarkRawData
+from geosongpu_ci.tools.benchmark.raw_data import BenchmarkRawData
 from typing import Iterable, Optional
 import re
 
@@ -50,11 +50,12 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         benchmark.backend = "fortran"
     else:
         backend_pattern = "backend: "
-        benchmark.backend = (
-            _grep(filename, backend_pattern, exclude_pattern=True)[0]
-            .strip()
-            .replace("\n", "")
-        )
+        grepped = _grep(filename, backend_pattern, exclude_pattern=True)
+        if grepped == []:
+            benchmark.backend = "gtfv3 (details failed to parse)"
+        else:
+            backend = grepped[0].strip().replace("\n", "")
+            benchmark.backend = f"gtfv3: ({backend})"
 
     # Get timings of FV
     if is_gtfv3:
@@ -118,9 +119,10 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
                 end_pattern=superdyn_profiler_exit,
             )
         )
-        benchmark.fv_gridcomp_detailed_profiling.append(
-            (shortname, measures[4], parent)
-        )
+        if measures != []:
+            benchmark.fv_gridcomp_detailed_profiling.append(
+                (shortname, measures[4], parent)
+            )
 
     # Model throughput
     gloabl_profiler_entry = "profiler: Model Throughput"
