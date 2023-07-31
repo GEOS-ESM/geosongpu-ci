@@ -88,6 +88,15 @@ def _find_experiments() -> str:
     raise RuntimeError("Cannot find experiments.yaml")
 
 
+def get_config(experiment_name: str) -> Dict[str, Any]:
+    experiment_path = _find_experiments()
+    with open(experiment_path) as f:
+        configurations = yaml.safe_load(f)
+    if experiment_name not in configurations.keys():
+        raise RuntimeError(f"Experiment {experiment_name} is unknown")
+    return configurations[experiment_name]
+
+
 def dispatch(
     experiment_name: str,
     experiment_action: PipelineAction,
@@ -95,12 +104,7 @@ def dispatch(
     setup_only: bool = False,
 ):
     # Get config
-    experiment_path = _find_experiments()
-    with open(experiment_path) as f:
-        configurations = yaml.safe_load(f)
-    if experiment_name not in configurations.keys():
-        raise RuntimeError(f"Experiment {experiment_name} is unknown")
-    config = configurations[experiment_name]
+    config = get_config(experiment_name)
 
     # Build environment
     env = Environment(

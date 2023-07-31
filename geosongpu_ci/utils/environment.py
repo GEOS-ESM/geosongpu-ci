@@ -20,11 +20,6 @@ class Environment:
         self.experiment_action = experiment_action
         self.artifact_directory = artifact_directory
 
-    def _get_from_osenv(self, key: str) -> str:
-        if key not in self.vault.keys():
-            self.vault[key] = os.getenv(key, "")
-        return self.vault[key]
-
     def set(self, key: str, value: str):
         self.vault[key] = value
 
@@ -32,8 +27,10 @@ class Environment:
         return key in self.vault.keys()
 
     def get(self, key: str) -> str:
+        if key not in self.vault.keys():
+            self.vault[key] = os.getenv(key, "")
         return self.vault[key]
 
     @property
     def CI_WORKSPACE(self):
-        return self._get_from_osenv("CI_WORKSPACE")
+        return self.get("CI_WORKSPACE")

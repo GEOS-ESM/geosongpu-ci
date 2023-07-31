@@ -1,4 +1,5 @@
-from geosongpu_ci.pipeline.task import TaskBase
+import click
+from geosongpu_ci.pipeline.task import TaskBase, get_config
 from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
@@ -7,6 +8,7 @@ from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.pipeline.geos import set_python_environment
 from geosongpu_ci.pipeline.gtfv3_config import GTFV3Config
 from geosongpu_ci.utils.progress import Progress
+from geosongpu_ci.tools.benchmark import parse_geos_log, report
 from typing import Dict, Any, Optional
 import shutil
 import os
@@ -319,19 +321,22 @@ class HeldSuarez(TaskBase):
     ) -> bool:
         # Setup
         geos_path = env.get("GEOS_BASE_DIRECTORY")
-        geos_experiment_path = f"{geos_path}/../experiment"
+        geos_experiment_path = f"{geos_path}/experiment"
         artifact_directory = f"{env.artifact_directory}/held_suarez/"
-        os.mkdir(artifact_directory)
+        os.makedirs(artifact_directory, exist_ok=True)
 
         # Metadata
-        file_exists = os.path.isfile("ci_metadata")
+        ci_metadata_rpath = f"{geos_path}/../ci_metadata"
+        file_exists = os.path.isfile(ci_metadata_rpath)
         if not file_exists:
             raise RuntimeError(
-                "Held-Suarez run didn't write ci_metadata. Coding or Permission error."
+                "Held-Suarez run didn't write ci_metadata at "
+                f"{geos_experiment_path}/{VALIDATION_RESOLUTION}. "
+                "Coding or Permission error."
             )
-        shutil.copy("ci_metadata", artifact_directory)
+        shutil.copy(ci_metadata_rpath, artifact_directory)
 
-        # Logs
+        # Validation artefact save
         if (
             env.experiment_action == PipelineAction.Validation
             or env.experiment_action == PipelineAction.All
@@ -339,16 +344,80 @@ class HeldSuarez(TaskBase):
             logs = glob.glob(
                 f"{geos_experiment_path}/{VALIDATION_RESOLUTION}/validation.*"
             )
+            validation_artifact = f"{artifact_directory}/Validation/"
+            os.makedirs(validation_artifact, exist_ok=True)
             for log in logs:
-                shutil.copy(log, artifact_directory)
+                shutil.copy(log, validation_artifact)
 
+        # Benchmark artifact save & analysis
         if (
             env.experiment_action == PipelineAction.Benchmark
             or env.experiment_action == PipelineAction.All
         ):
             for resolution in ["C180-L72", "C180-L91", "C180-L137"]:
                 logs = glob.glob(f"{geos_experiment_path}/{resolution}/benchmark.*")
+                benchmark_artifact = f"{artifact_directory}/Benchmark/{resolution}"
+                os.makedirs(benchmark_artifact, exist_ok=True)
+                bench_raw_data = []
                 for log in logs:
-                    shutil.copy(log, artifact_directory)
+                    shutil.copy(log, benchmark_artifact)
+                    if ".0.out" in log:
+                        bench_raw_data.append(parse_geos_log(log))
+                benchmark_report = report(bench_raw_data)
+                print(benchmark_report)
 
         return True
+
+
+CLI_STEP_OPTIONS = ["all", "run", "check"]
+
+
+@click.command()
+@click.argument("step")
+@click.argument("geos_base_directory")
+@click.option("--action", default="Validation")
+@click.option("--artifact", default=".", help="Artifact directory for results storage")
+@click.option(
+    "--setup_only",
+    is_flag=True,
+    help="Setup the experiment but skip any long running jobs (build, run...)",
+)
+def cli(
+    step: str, geos_base_directory: str, action: str, artifact: str, setup_only: bool
+):
+    # Validation step
+    if step not in ["all", "run", "check"]:
+        raise click.BadArgumentUsage(
+            f"step needs to be from {CLI_STEP_OPTIONS} (given: {step})"
+        )
+
+    print(
+        "Running HeldSuarez:\n"
+        f"        step: {step}\n"
+        f"      action: {action}\n"
+        f"    artifact: {artifact}\n"
+        f"  setup only: {setup_only}"
+    )
+
+    # Rebuild the basics
+    experience_name = "geos_hs"
+    task = Registry.registry["HeldSuarez"]()
+    config = get_config(experience_name)
+    env = Environment(
+        experience_name=experience_name,
+        experiment_action=PipelineAction[action],
+        artifact_directory=artifact,
+        setup_only=setup_only,
+    )
+    env.set("GEOS_BASE_DIRECTORY", geos_base_directory)
+
+    if step == "all" or step == "run":
+        task.run(config, env)
+    elif step == "all" or step == "check":
+        task.check(config, env)
+    else:
+        RuntimeError(f"Coding error. Step {step} unknown on HS cli")
+
+
+if __name__ == "__main__":
+    cli()
