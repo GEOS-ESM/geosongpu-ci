@@ -51,21 +51,6 @@ jobs:
               body: 'Discover experiment started ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
             });
 
-  respond-to-query-as-comment:
-    needs: [check-valid-comment]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Acknowledge
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'Discover experiment started ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
-            });
-
   run-discover-ondemand:
     needs: check-valid-comment
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
