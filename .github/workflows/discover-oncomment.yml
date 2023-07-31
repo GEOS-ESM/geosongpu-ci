@@ -60,6 +60,7 @@ jobs:
       geosongpu_ci_ref:  ${{ needs.check-valid-comment.outputs.branch }}
 
   comment-results:
+    if: always()
     needs: [run-discover-ondemand, check-valid-comment]
     runs-on: ubuntu-latest
     steps:
