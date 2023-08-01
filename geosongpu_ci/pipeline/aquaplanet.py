@@ -2,7 +2,6 @@ import click
 from geosongpu_ci.pipeline.task import TaskBase, get_config
 from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.utils.registry import Registry
-from geosongpu_ci.actions.slurm import wait_for_sbatch
 from geosongpu_ci.pipeline.geos import copy_input_to_experiment_directory
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.utils.shell import ShellScript
