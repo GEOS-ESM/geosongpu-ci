@@ -10,26 +10,48 @@ defaults:
     shell: bash
 
 jobs:
-  check-valid-comment:
+  bot:
     runs-on: ubuntu-latest
     if: ${{ github.event.issue.pull_request }}
     outputs:
-      experiment-name: ${{ steps.extractor.outputs.EXP_NAME }}
-      experiment-action: ${{ steps.extractor.outputs.EXP_ACTION }}
+      experiment-name: ${{ steps.experience.outputs.name }}
+      experiment-action: ${{ steps.experience.outputs.action }}
       branch: ${{ steps.get-branch.outputs.branch }}
     steps:
-      - name: Extract command
-        id: extractor
-        if: contains(github.event.comment.body, '/discover-ci')
+      - name: Bot help
+        id: check
+        if: contains(github.event.comment.body, '/bot help')
+        shell: bash
+        run: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: 'Bot commands:\n  /bot experience --name=[per experiment.yaml] --action=[All, Validation, Benchmark]',
+          });
+          gh run cancel ${{ github.run_id }}
+          gh run watch ${{ github.run_id }}
+      - name: Bot experience
+        id: experience
+        if: contains(github.event.comment.body, '/bot experience')
         shell: bash
         run: |
           echo Launching Discover CI: ${{github.event.comment.body}}
           BODY="${{github.event.comment.body}}"
-          EXP_NAME_DIRTY=${BODY#*experiment-name=}
-          echo "EXP_NAME=${EXP_NAME_DIRTY%% *}" >> "$GITHUB_OUTPUT"
-          EXP_ACTION_DIRTY=${BODY#*experiment-action=}
-          echo "EXP_ACTION=${EXP_ACTION_DIRTY%% *}" >> "$GITHUB_OUTPUT"
-      - id: 'get-branch'
+          EXP_NAME_DIRTY=${BODY#*--name=}
+          EXP_NAME=${EXP_NAME_DIRTY%% *}
+          echo "name=${EXP_NAME}" >> "$GITHUB_OUTPUT"
+          EXP_ACTION_DIRTY=${BODY#*--action=}
+          EXP_ACTION=${EXP_ACTION_DIRTY%% *}
+          echo "action=${EXP_ACTION}" >> "$GITHUB_OUTPUT"
+          github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Discover experiment started 🚀\n Parameters: ${EXP_NAME} ${EXP_ACTION}\m Url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
+            });
+      - name: Extract branch
+        id: 'get-branch'
         run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
         env:
           REPO: ${{ github.repository }}
@@ -37,31 +59,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   respond-to-query-as-comment:
-    needs: [check-valid-comment]
+    needs: [bot]
     runs-on: ubuntu-latest
     steps:
       - name: Acknowledge
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'Discover experiment started ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
-            });
+            
 
   run-discover-ondemand:
-    needs: check-valid-comment
+    needs: bot
     uses: GEOS-ESM/CI-workflows/.github/workflows/geosongpu-ondemand.yml@project/geosongpu
     with:
-      experiment_name:   ${{ needs.check-valid-comment.outputs.experiment-name }}
-      experiment_action: ${{ needs.check-valid-comment.outputs.experiment-action }}
-      geosongpu_ci_ref:  ${{ needs.check-valid-comment.outputs.branch }}
+      experiment_name:   ${{ needs.bot.outputs.experiment-name }}
+      experiment_action: ${{ needs.bot.outputs.experiment-action }}
+      geosongpu_ci_ref:  ${{ needs.bot.outputs.branch }}
 
   comment-results:
     if: always()
-    needs: [run-discover-ondemand, check-valid-comment]
+    needs: [run-discover-ondemand, bot]
     runs-on: ubuntu-latest
     steps:
       - name: Message success
@@ -73,7 +90,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }} succeeded! ✅',
+              body: '✅ Successful discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}',
             });
       - name: Message failure
         if: ${{ needs.run-discover-ondemand.result != 'success' }}
@@ -84,5 +101,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Discover experiment ${{ needs.check-valid-comment.outputs.experiment-name }}/${{ needs.check-valid-comment.outputs.experiment-action }} failed! ❌',
+              body: '❌ Failed discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}',
             });
