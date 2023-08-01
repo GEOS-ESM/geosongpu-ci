@@ -23,9 +23,12 @@ jobs:
         if: contains(github.event.comment.body, '/bot help')
         shell: bash
         run: |
-          gh pr comment ${{ github.event.issue.pull_request.url }} --body "Bot commands:\n  /bot experience --name=[per experiment.yaml] --action=[All, Validation, Benchmark]"
+          gh pr comment $PR_NO --body "Bot commands:\n  /bot experience --name=[per experiment.yaml] --action=[All, Validation, Benchmark]"
           gh run cancel ${{ github.run_id }}
           gh run watch ${{ github.run_id }}
+        env:
+          PR_NO: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bot experience
         id: experience
         if: contains(github.event.comment.body, '/bot experience')
