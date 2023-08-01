@@ -20,27 +20,30 @@ class Heartbeat(TaskBase):
     def check(
         self,
         config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
-        artifact_base_directory: str,
         env: Environment,
     ) -> bool:
         if env.CI_WORKSPACE == "":
             raise RuntimeError("Environment error: CI_WORKSPACE is not set.")
         print(f"CI_WORKSPACE: {env.CI_WORKSPACE}")
 
-        if action == PipelineAction.All or action == PipelineAction.Validation:
+        if (
+            env.experiment_action == PipelineAction.All
+            or env.experiment_action == PipelineAction.Validation
+        ):
             file_exists = os.path.isfile("ci_metadata")
             if not file_exists:
                 raise RuntimeError(
                     "Heartbeat.run didn't write ci_metadata. "
                     "Coding or Permission error."
                 )
-            artifact_directory = f"{artifact_base_directory}/ci-heartbeat/"
+            artifact_directory = f"{env.artifact_directory}/ci-heartbeat/"
             os.mkdir(artifact_directory)
             shutil.copy("ci_metadata", artifact_directory)
-            print(f"Heartbeart w/ {action} expect success & artifact saved.")
+            print(
+                f"Heartbeart w/ {env.experiment_action} "
+                "expect success & artifact saved."
+            )
             return True
         else:
-            print(f"Heartbeart w/ {action} expect failure")
+            print(f"Heartbeart w/ {env.experiment_action} expect failure")
             return False
