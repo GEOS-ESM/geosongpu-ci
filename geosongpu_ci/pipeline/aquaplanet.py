@@ -85,7 +85,6 @@ class Aquaplanet(TaskBase):
                 input_directory=config["input"][VALIDATION_RESOLUTION],
                 geos_directory=geos,
                 resolution=VALIDATION_RESOLUTION,
-                trigger_reset=True,
             )
 
             # Modify all gcm_run.j.X with directory information
