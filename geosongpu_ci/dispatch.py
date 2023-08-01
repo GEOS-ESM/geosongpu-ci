@@ -1,17 +1,25 @@
+import click
 from geosongpu_ci.pipeline.task import dispatch
 from geosongpu_ci.actions.pipeline import PipelineAction
 
 
-def main():
-    """
-    Expected:
-        arg[1]: experiment name as listed in the experiments.yaml
-        arg[2]: experiment action from PipelineAction
-        arg[3]: artifact directory for LT storage
-    """
-    import sys
+@click.command()
+@click.argument("name")
+@click.argument("action")
+@click.option("--artifact", default=".", help="Artifact directory for results storage")
+@click.option(
+    "--setup_only",
+    is_flag=True,
+    help="Setup the experiment but skip any long running jobs (build, run...)",
+)
+def cli_dispatch(name: str, action: str, artifact: str, setup_only: bool):
+    """Dispatch the _NAME_ experiment (as recorded in experiments.yaml)
+    with the _ACTION_ (from  Validation, Benchmark or All).
 
-    experiment_name = sys.argv[1]
-    experiment_action = PipelineAction[sys.argv[2]]
-    artifact_directory = sys.argv[3]
-    dispatch(experiment_name, experiment_action, artifact_directory)
+    Environement variable:\n
+        CI_WORKSPACE: dispatch sets all work in this directory."""
+    dispatch(name, PipelineAction[action], artifact, setup_only)
+
+
+if __name__ == "__main__":
+    cli_dispatch()

@@ -8,3 +8,26 @@
 | NCCS Discover GEOS Aquaplanet Validation   | [![Discover Nightly GEOS Aquaplanet Validation](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_aq_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_aq_nightly.yml) |
 
 On-premise CI for the GPU ports of GEOS. Includes validation & benchmark worfklows.
+
+## Current capacities
+
+Experiments are listed in `experiments/experiments.yaml`
+
+The package install a `geosongpu_dispatch`
+
+```
+Usage: geosongpu_dispatch [OPTIONS] NAME ACTION
+
+  Dispatch the _NAME_ experiment (as recorded in experiments.yaml) with the
+  _ACTION_ (from  Validation, Benchmark or All).
+
+  Environement variable:
+
+      CI_WORKSPACE: dispatch sets all work in this directory.
+
+Options:
+  --artifact TEXT  Artifact directory for results storage
+  --setup_only     Setup the experiment but skip any long running jobs (build,
+                   run...)
+  --help           Show this message and exit.
+```

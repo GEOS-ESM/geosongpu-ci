@@ -7,6 +7,7 @@ import yaml
 from abc import ABC, abstractmethod
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.utils.environment import Environment
+from geosongpu_ci.utils.progress import Progress
 import datetime
 
 
@@ -35,19 +36,15 @@ class TaskBase(ABC):
     def run(
         self,
         config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
         env: Environment,
     ):
         self._prelude(
             config=config,
-            experiment_name=experiment_name,
-            action=action,
+            experiment_name=env.experiment_name,
+            action=env.experiment_action,
         )
         self.run_action(
             config=config,
-            experiment_name=experiment_name,
-            action=action,
             env=env,
             metadata=self.metadata,
         )
@@ -68,9 +65,6 @@ class TaskBase(ABC):
     def check(
         self,
         config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
-        artifact_directory: str,
         env: Environment,
     ) -> bool:
         ...
@@ -94,34 +88,49 @@ def _find_experiments() -> str:
     raise RuntimeError("Cannot find experiments.yaml")
 
 
-def dispatch(
-    experiment_name: str,
-    experiment_action: PipelineAction,
-    artifact_directory: str,
-):
-    # Get config
+def get_config(experiment_name: str) -> Dict[str, Any]:
     experiment_path = _find_experiments()
     with open(experiment_path) as f:
         configurations = yaml.safe_load(f)
     if experiment_name not in configurations.keys():
         raise RuntimeError(f"Experiment {experiment_name} is unknown")
-    config = configurations[experiment_name]
+    return configurations[experiment_name]
+
+
+def dispatch(
+    experiment_name: str,
+    experiment_action: PipelineAction,
+    artifact_directory: str,
+    setup_only: bool = False,
+):
+    # Get config
+    config = get_config(experiment_name)
 
     # Build environment
-    env = Environment()
+    env = Environment(
+        experience_name=experiment_name,
+        experiment_action=experiment_action,
+        artifact_directory=artifact_directory,
+        setup_only=setup_only,
+    )
 
     # Run pipeline
-    for task in config["tasks"]:
-        t = Registry.registry[task]()
-        print(f"> > > {task}.run for {experiment_action}")
-        t.run(config, experiment_name, experiment_action, env)
-        print(f"> > > {task}.check for {experiment_action}")
-        check = t.check(
-            config,
-            experiment_name,
-            experiment_action,
-            artifact_directory,
-            env,
-        )
-        if not check:
-            raise RuntimeError(f"Check for {task} failed for {experiment_action}")
+    with Progress(f"Pipeline for experiment {experiment_name}"):
+        for task in config["tasks"]:
+            t = Registry.registry[task]()
+            with Progress(f"{task}.run for {experiment_action}"):
+                t.run(config, env)
+            if not setup_only:
+                with Progress(f"{task}.check for {experiment_action}"):
+                    check = t.check(
+                        config,
+                        env,
+                    )
+                    if not check:
+                        raise RuntimeError(
+                            f"Check for {task} failed for {experiment_action}"
+                        )
+            else:
+                Progress.log(
+                    f"= = = Skipping {task}.check for {experiment_action} = = ="
+                )

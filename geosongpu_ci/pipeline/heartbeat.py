@@ -3,10 +3,8 @@ from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.actions.pipeline import PipelineAction
-import datetime
 import os
 import shutil
-import yaml
 
 
 @Registry.register
@@ -14,8 +12,6 @@ class Heartbeat(TaskBase):
     def run_action(
         self,
         config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
         env: Environment,
         metadata: Dict[str, Any],
     ):
@@ -37,7 +33,8 @@ class Heartbeat(TaskBase):
             file_exists = os.path.isfile("ci_metadata")
             if not file_exists:
                 raise RuntimeError(
-                    "Heartbeat.run didn't write ci_metadata. Coding or Permission error."
+                    "Heartbeat.run didn't write ci_metadata. "
+                    "Coding or Permission error."
                 )
             artifact_directory = f"{artifact_base_directory}/ci-heartbeat/"
             os.mkdir(artifact_directory)

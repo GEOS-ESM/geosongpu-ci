@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from geosongpu_ci.utils.shell import shell_script
+from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.actions.pipeline import PipelineAction
 
 
@@ -12,18 +12,16 @@ def git_prelude(
     do_mepo: bool = True,
 ) -> Dict[str, Any]:
     git_config = config["repository"]
+    modules = []
 
-    shell_script(
-        name="setup_repository",
-        modules=["other/mepo"],
-        shell_commands=[
-            f"git clone {git_config['url']} {override_repo_name}",
-            f"cd {override_repo_name}",
-            f"git checkout {git_config['tag_or_hash']}",
-        ],
-    )
+    # Basic git commands to clone/checkout the repository
+    git_commands = [
+        f"git clone {git_config['url']} {override_repo_name}",
+        f"cd {override_repo_name}",
+        f"git checkout {git_config['tag_or_hash']}",
+    ]
 
-    # Write metadata file
+    # Add the mepo commands to be triggered in the repository
     if do_mepo:
         if "mepo" in git_config.keys() and "develop" in git_config["mepo"].keys():
             develop_comp_command = "mepo develop"
@@ -31,15 +29,16 @@ def git_prelude(
                 develop_comp_command += f" {comp}"
         else:
             develop_comp_command = ""
-        mepo_status = shell_script(
-            name="get_mepo_status",
-            modules=["other/mepo"],
-            shell_commands=[
-                f"cd {override_repo_name}",
+        modules.append("other/mepo")
+        git_commands.extend(
+            [
                 "mepo clone",
                 develop_comp_command,
-                "mepo status",
-            ],
-            temporary=True,
+            ]
         )
-        metadata["mepo_status"] = mepo_status
+
+    # Setup script
+    ShellScript(f"checkout_repository_{experiment_name}").write(
+        modules=modules,
+        shell_commands=git_commands,
+    ).execute()
