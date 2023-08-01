@@ -65,17 +65,3 @@ class SlurmConfiguration:
             ntasks_per_node=48,
             sockets_per_node=2,
         )
-
-
-def wait_for_sbatch(job_id: str):
-    sleep(60)  # wait 60 seconds for SLURM to enter prolog
-    running = True
-    while running:
-        sacct_result = subprocess.run(
-            ["sacct", "-j", job_id, "-o", "state"], stdout=subprocess.PIPE
-        ).stdout.decode("utf-8")
-        running = False
-        for state in sacct_result.split("\n"):
-            if "RUNNING" in state.strip or "PENDING" in state:
-                running = True
-                break

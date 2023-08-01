@@ -47,19 +47,13 @@ def _simulate(
         text_to_replace="setenv FV3_DACEMODE BuildAndRun",
         new_text=f"setenv FV3_DACEMODE {fv3_dacemode}",
     )
-    sbatch_result = (
-        ShellScript("run_script_gpu")
-        .write(
-            shell_commands=[
-                f"cd {experiment_directory}",
-                f"export CUPY_CACHE_DIR={experiment_directory}/.cupy",
-                "sbatch gcm_run.j",
-            ]
-        )
-        .execute()
-    )
-    job_id = sbatch_result.split(" ")[-1].strip().replace("\n", "")
-    wait_for_sbatch(job_id)
+    ShellScript("run_sbatch_gpu").write(
+        shell_commands=[
+            f"cd {experiment_directory}",
+            f"export CUPY_CACHE_DIR={experiment_directory}/.cupy",
+            "sbatch gcm_run.j",
+        ]
+    ).execute(sbatch=True)
 
 
 VALIDATION_RESOLUTION = "C180-L72"
@@ -88,7 +82,7 @@ class Aquaplanet(TaskBase):
             )
 
             # Modify all gcm_run.j.X with directory information
-            gcm_runs = glob.glob(f"{experiment_dir}/{resolution}/gcm_run.j.*")
+            gcm_runs = glob.glob(f"{experiment_dir}/gcm_run.j.*")
             for gcm_run in gcm_runs:
                 _replace_in_file(
                     url=gcm_run,
