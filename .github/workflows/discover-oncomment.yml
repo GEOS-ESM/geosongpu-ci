@@ -18,14 +18,27 @@ jobs:
       experiment-action: ${{ steps.experience.outputs.action }}
       branch: ${{ steps.get-branch.outputs.branch }}
     steps:
+      - name: Cancel job if needed
+        id: conditional-cancel
+        if: "!contains(github.event.comment.body, '/bot')"
+        shell: bash
+        run: |
+          gh run --repo $REPO cancel ${{ github.run_id }}
+          gh run --repo $REPO watch ${{ github.run_id }}
+        env:
+          REPO: ${{ github.repository }}
+          PR_NO: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bot help
         id: check
         if: contains(github.event.comment.body, '/bot help')
         shell: bash
         run: |
           gh pr comment $PR_NO --repo $REPO --body 'Bot commands:
+            
             /bot help
               : Print this message
+            
             /bot experience --name=[per experiment.yaml] --action=[All, Validation, Benchmark]
               : Triggers a geosongpu_dispatch command with given parameters'
           gh run --repo $REPO cancel ${{ github.run_id }}
@@ -47,10 +60,10 @@ jobs:
           EXP_ACTION_DIRTY=${BODY#*--action=}
           EXP_ACTION=${EXP_ACTION_DIRTY%% *}
           echo "action=${EXP_ACTION}" >> "$GITHUB_OUTPUT"
-          gh pr comment $PR_NO --repo $REPO --body 'Discover experiment started 🚀
+          gh pr comment $PR_NO --repo $REPO --body 'Discover experiment started 🚀:
+            
             Parameters: ${EXP_NAME} ${EXP_ACTION}
             Url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
-
       - name: Extract branch
         id: 'get-branch'
         run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
@@ -87,20 +100,19 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ Successful discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}',
-            });
+            gh pr comment $PR_NO --repo $REPO --body '✅ Successful discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}'
+        env:
+          REPO: ${{ github.repository }}
+          PR_NO: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Message failure
         if: ${{ needs.run-discover-ondemand.result != 'success' }}
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ Failed discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}',
-            });
+            gh pr comment $PR_NO --repo $REPO --body '❌ Failed discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}'
+        env:
+          REPO: ${{ github.repository }}
+          PR_NO: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
