@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Cancel job if needed
         id: conditional-cancel
-        if: "!contains(github.event.comment.body, '/bot')"
+        if: !contains(github.event.comment.body, '/bot')
         shell: bash
         run: |
           gh run --repo $REPO cancel ${{ github.run_id }}
@@ -64,6 +64,10 @@ jobs:
             
             Parameters: ${EXP_NAME} ${EXP_ACTION}
             Url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        env:
+          REPO: ${{ github.repository }}
+          PR_NO: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract branch
         id: 'get-branch'
         run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
