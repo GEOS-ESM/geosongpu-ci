@@ -24,8 +24,8 @@ jobs:
         shell: bash
         run: |
           gh pr comment $PR_NO --repo $REPO --body "Bot commands:\n  /bot experience --name=[per experiment.yaml] --action=[All, Validation, Benchmark]"
-          gh run cancel ${{ github.run_id }}
-          gh run watch ${{ github.run_id }}
+          gh run --repo $REPO cancel ${{ github.run_id }}
+          gh run --repo $REPO watch ${{ github.run_id }}
         env:
           REPO: ${{ github.repository }}
           PR_NO: ${{ github.event.issue.number }}
