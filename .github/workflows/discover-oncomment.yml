@@ -23,12 +23,7 @@ jobs:
         if: contains(github.event.comment.body, '/bot help')
         shell: bash
         run: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: 'Bot commands:\n  /bot experience --name=[per experiment.yaml] --action=[All, Validation, Benchmark]',
-          });
+          gh post commnt ${{ github.event.issue.pull_request.url }} --body "Bot commands:\n  /bot experience --name=[per experiment.yaml] --action=[All, Validation, Benchmark]"
           gh run cancel ${{ github.run_id }}
           gh run watch ${{ github.run_id }}
       - name: Bot experience
@@ -77,7 +72,7 @@ jobs:
       geosongpu_ci_ref:  ${{ needs.bot.outputs.branch }}
 
   comment-results:
-    if: always()
+    if: success() || failure()
     needs: [run-discover-ondemand, bot]
     runs-on: ubuntu-latest
     steps:
