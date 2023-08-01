@@ -5,12 +5,15 @@ from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.actions.slurm import SlurmConfiguration
 from geosongpu_ci.utils.shell import ShellScript
-from geosongpu_ci.pipeline.geos import set_python_environment
+from geosongpu_ci.pipeline.geos import (
+    set_python_environment,
+    copy_input_to_experiment_directory,
+)
 from geosongpu_ci.pipeline.gtfv3_config import GTFV3Config
 from geosongpu_ci.utils.progress import Progress
 from geosongpu_ci.tools.benchmark.geos_log_parser import parse_geos_log
 from geosongpu_ci.tools.benchmark.report import report
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import shutil
 import os
 import dataclasses
@@ -75,32 +78,6 @@ class PrologScripts:
         )
 
 
-def _copy_input_to_experiment_directory(
-    input_directory: str,
-    geos_directory: str,
-    resolution: str,
-    experiment_name: Optional[str] = None,
-) -> str:
-    """Copy the input directory into the experiment direcotry
-    and trigger the "reset.sh" to get data clean and ready to execute.
-    """
-    if experiment_name:
-        experiment_dir = f"{geos_directory}/experiment/{experiment_name}"
-    else:
-        experiment_dir = f"{geos_directory}/experiment/{resolution}"
-    ShellScript(f"copy_input_{resolution}").write(
-        modules=[],
-        shell_commands=[
-            f"cd {geos_directory}",
-            f"mkdir -p {experiment_dir}",
-            f"cd {experiment_dir}",
-            f"cp -r {input_directory}/* .",
-            "./reset.sh",
-        ],
-    ).execute()
-    return experiment_dir
-
-
 def _make_srun_script(
     executable_name: str,
     experiment_directory: str,
@@ -162,10 +139,11 @@ class HeldSuarez(TaskBase):
             or env.experiment_action == PipelineAction.All
         ):
             # Get experiment directory ready
-            experiment_dir = _copy_input_to_experiment_directory(
+            experiment_dir = copy_input_to_experiment_directory(
                 input_directory=config["input"][VALIDATION_RESOLUTION],
                 geos_directory=geos,
                 resolution=VALIDATION_RESOLUTION,
+                trigger_reset=True,
             )
             prolog_scripts = PrologScripts(
                 experiment_directory=experiment_dir,
@@ -208,9 +186,9 @@ class HeldSuarez(TaskBase):
         ):
             # We run a range of resolution. C180-L72 might already be ran
             for resolution in ["C180-L72", "C180-L91", "C180-L137"]:
-                if resolution == VALIDATION_RESOLUTION and (
-                    env.experiment_action == PipelineAction.Validation
-                    or env.experiment_action == PipelineAction.All
+                if (
+                    resolution == VALIDATION_RESOLUTION
+                    and env.experiment_action == PipelineAction.All
                 ):
                     # In case validation ran already, we have the experiment dir
                     # and the cache ready to run
@@ -223,10 +201,11 @@ class HeldSuarez(TaskBase):
                     )
                 else:
                     # Get experiment directory ready
-                    experiment_dir = _copy_input_to_experiment_directory(
+                    experiment_dir = copy_input_to_experiment_directory(
                         input_directory=config["input"][resolution],
                         geos_directory=geos,
                         resolution=resolution,
+                        trigger_reset=True,
                     )
                     prolog_scripts = PrologScripts(
                         experiment_directory=experiment_dir,

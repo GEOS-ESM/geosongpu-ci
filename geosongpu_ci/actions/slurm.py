@@ -68,14 +68,14 @@ class SlurmConfiguration:
 
 
 def wait_for_sbatch(job_id: str):
-    sleep(5)  # wait 5 seconds for SLURM to enter prolog
+    sleep(60)  # wait 60 seconds for SLURM to enter prolog
     running = True
     while running:
         sacct_result = subprocess.run(
             ["sacct", "-j", job_id, "-o", "state"], stdout=subprocess.PIPE
         ).stdout.decode("utf-8")
         running = False
-        for state in sacct_result.split("\n")[2:]:
-            if state.strip() in ["RUNNING", "PENDING"]:
+        for state in sacct_result.split("\n"):
+            if "RUNNING" in state.strip or "PENDING" in state:
                 running = True
                 break

@@ -1,5 +1,5 @@
 from geosongpu_ci.utils.environment import Environment
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.utils.registry import Registry
@@ -33,6 +33,7 @@ def set_python_environment(
     geos_install_dir: str,
     working_directory: str = ".",
 ) -> ShellScript:
+    """Set a python environment using FVDycore GridComp auto-env script"""
     geos_fvdycore_comp = (
         f"{geos_directory}/src/Components/@GEOSgcm_GridComp/"
         "GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
@@ -50,6 +51,40 @@ def set_python_environment(
         ],
     )
     return set_env
+
+
+def copy_input_to_experiment_directory(
+    input_directory: str,
+    geos_directory: str,
+    resolution: str,
+    experiment_name: Optional[str] = None,
+    trigger_reset: bool = False,
+) -> str:
+    """Copy the input directory into the experiment directory.
+
+    Optionally, trigger the "reset.sh" to get data clean and ready to execute.
+    """
+    if experiment_name:
+        experiment_dir = f"{geos_directory}/experiment/{experiment_name}"
+    else:
+        experiment_dir = f"{geos_directory}/experiment/{resolution}"
+
+    if trigger_reset:
+        reset_cmd = "./reset.sh"
+    else:
+        reset_cmd = ""
+
+    ShellScript(f"copy_input_{resolution}").write(
+        modules=[],
+        shell_commands=[
+            f"cd {geos_directory}",
+            f"mkdir -p {experiment_dir}",
+            f"cd {experiment_dir}",
+            f"cp -r {input_directory}/* .",
+            reset_cmd,
+        ],
+    ).execute()
+    return experiment_dir
 
 
 @Registry.register
@@ -119,18 +154,3 @@ class GEOS(TaskBase):
         env: Environment,
     ) -> bool:
         return _check(env)
-
-
-def copy_input_from_project(config: Dict[str, Any], geos_dir: str, layout: str) -> str:
-    # Copy input
-    input_config = config["input"]
-    experiment_dir = f"{geos_dir}/experiment/l{layout}"
-    ShellScript("copy_input").write(
-        shell_commands=[
-            f"cd {geos_dir}",
-            f"mkdir -p {geos_dir}/experiment/l{layout}",
-            f"cd {experiment_dir}",
-            f"cp -r {input_config['directory']}/l{layout}/* .",
-        ],
-    ).execute()
-    return experiment_dir

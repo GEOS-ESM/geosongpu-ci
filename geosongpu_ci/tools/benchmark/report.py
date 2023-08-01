@@ -70,9 +70,15 @@ REPORT_ENERGY_KEY = "Energy"
 
 def _comparison_in_X(value_A: float, value_B: float, label: str) -> str:
     if value_A > value_B:
-        return f"{label}: 1.00x - {(value_A/value_B):.2f}x\n"
+        return (
+            f"{label}: 1.00x ({value_A:.2f}s) - "
+            f"{(value_A/value_B):.2f}x ({value_B:.2f}s)\n"
+        )
     else:
-        return f"{label}: {(value_B/value_A):.2f}x -  1.00x\n"
+        return (
+            f"{label}: {(value_B/value_A):.2f}x ({value_A:.2f}s) -  "
+            f"1.00x ({value_B:.2f}s)\n"
+        )
 
 
 def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
@@ -93,12 +99,12 @@ def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
     report.setup = (
         "Experiment: \n"
         f"  Resolution: C{grid_resolution[0]}-L{grid_resolution[2]}\n"
-        "     Layouts:\n"
+        "   Layouts:\n"
     )
 
     for bench_data in raw_data:
         report.setup += (
-            f"       - {bench_data.backend}:"
+            f"    - {bench_data.backend}:"
             f"{bench_data.node_setup[0]}x{bench_data.node_setup[1]}"
             f", {bench_data.node_setup[2]} ranks\n"
         )
