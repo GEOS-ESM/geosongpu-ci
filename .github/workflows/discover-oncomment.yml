@@ -62,7 +62,7 @@ jobs:
           echo "action=$EXP_ACTION" >> "$GITHUB_OUTPUT"
           gh pr comment $PR_NO --repo $REPO --body 'Discover experiment started 🚀:
 
-            Parameters: $EXP_NAME $EXP_ACTION
+            Parameters: '"$EXP_NAME"' '"$EXP_ACTION"'
             Url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
         env:
           REPO: ${{ github.repository }}
