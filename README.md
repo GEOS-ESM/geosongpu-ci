@@ -31,3 +31,10 @@ Options:
                    run...)
   --help           Show this message and exit.
 ```
+
+
+## CI
+
+The workflows are either automated (nightly, weekly) or on-demand via the Actions tab.
+
+Another way of triggering workflow is to use the `/bot` command within PR comments.
