@@ -87,26 +87,25 @@ jobs:
       geosongpu_ci_ref:  ${{ needs.bot.outputs.branch }}
 
   comment-results:
-    if: success() || failure()
+    #Run the job everytime _but_ when upstream has been cancelled
+    if: success() || failure() 
     needs: [run-discover-ondemand, bot]
     runs-on: ubuntu-latest
     steps:
       - name: Message success
         if: ${{ needs.run-discover-ondemand.result == 'success' }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            gh pr comment $PR_NO --repo $REPO --body '✅ Successful discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}'
+        shell: bash
+        run: |
+          gh pr comment $PR_NO --repo $REPO --body '✅ Successful discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}'
         env:
           REPO: ${{ github.repository }}
           PR_NO: ${{ github.event.issue.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Message failure
         if: ${{ needs.run-discover-ondemand.result != 'success' }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            gh pr comment $PR_NO --repo $REPO --body '❌ Failed discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}'
+        shell: bash
+        run: |
+          gh pr comment $PR_NO --repo $REPO --body '✅ Successful discover experiment ${{ needs.bot.outputs.experiment-name }} @ ${{ needs.bot.outputs.experiment-action }}'
         env:
           REPO: ${{ github.repository }}
           PR_NO: ${{ github.event.issue.number }}
