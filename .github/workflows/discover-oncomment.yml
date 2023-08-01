@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Cancel job if needed
         id: conditional-cancel
-        if: !"contains(github.event.comment.body, '/bot')"
+        if: "!contains(github.event.comment.body, '/bot')"
         shell: bash
         run: |
           gh run --repo $REPO cancel ${{ github.run_id }}
