@@ -56,13 +56,13 @@ jobs:
           BODY="${{github.event.comment.body}}"
           EXP_NAME_DIRTY=${BODY#*--name=}
           EXP_NAME=${EXP_NAME_DIRTY%% *}
-          echo "name=${EXP_NAME}" >> "$GITHUB_OUTPUT"
+          echo "name=$EXP_NAME" >> "$GITHUB_OUTPUT"
           EXP_ACTION_DIRTY=${BODY#*--action=}
           EXP_ACTION=${EXP_ACTION_DIRTY%% *}
-          echo "action=${EXP_ACTION}" >> "$GITHUB_OUTPUT"
+          echo "action=$EXP_ACTION" >> "$GITHUB_OUTPUT"
           gh pr comment $PR_NO --repo $REPO --body 'Discover experiment started 🚀:
             
-            Parameters: ${EXP_NAME} ${EXP_ACTION}
+            Parameters: $EXP_NAME $EXP_ACTION
             Url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
         env:
           REPO: ${{ github.repository }}
