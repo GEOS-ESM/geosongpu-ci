@@ -352,9 +352,6 @@ class HeldSuarez(TaskBase):
         return True
 
 
-CLI_STEP_OPTIONS = ["all", "run", "check"]
-
-
 @click.command()
 @click.argument("step")
 @click.argument("geos_base_directory")
@@ -369,9 +366,9 @@ def cli(
     step: str, geos_base_directory: str, action: str, artifact: str, setup_only: bool
 ):
     # Validation step
-    if step not in ["all", "run", "check"]:
+    if step not in TaskBase.step_options():
         raise click.BadArgumentUsage(
-            f"step needs to be from {CLI_STEP_OPTIONS} (given: {step})"
+            f"step needs to be from {TaskBase.step_options()} (given: {step})"
         )
 
     print(

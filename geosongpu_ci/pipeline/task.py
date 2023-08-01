@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Iterable
 from geosongpu_ci.actions.pipeline import PipelineAction
 import sys
 import site
@@ -68,6 +68,10 @@ class TaskBase(ABC):
         env: Environment,
     ) -> bool:
         ...
+
+    @staticmethod
+    def step_options() -> Iterable[str]:
+        return ["all", "run", "check"]
 
 
 def _find_experiments() -> str:

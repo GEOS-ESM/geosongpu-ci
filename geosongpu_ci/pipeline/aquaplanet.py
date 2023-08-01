@@ -1,4 +1,5 @@
-from geosongpu_ci.pipeline.task import TaskBase
+import click
+from geosongpu_ci.pipeline.task import TaskBase, get_config
 from geosongpu_ci.utils.environment import Environment
 from geosongpu_ci.utils.registry import Registry
 from geosongpu_ci.actions.slurm import wait_for_sbatch
@@ -234,3 +235,54 @@ class Aquaplanet(TaskBase):
                     f.write(str(benchmark_report))
 
         return True
+
+
+@click.command()
+@click.argument("step")
+@click.argument("geos_base_directory")
+@click.option("--action", default="Validation")
+@click.option("--artifact", default=".", help="Artifact directory for results storage")
+@click.option(
+    "--setup_only",
+    is_flag=True,
+    help="Setup the experiment but skip any long running jobs (build, run...)",
+)
+def cli(
+    step: str, geos_base_directory: str, action: str, artifact: str, setup_only: bool
+):
+    # Validation step
+    if step not in TaskBase.step_options():
+        raise click.BadArgumentUsage(
+            f"step needs to be from {TaskBase.step_options()} (given: {step})"
+        )
+
+    print(
+        "Running Aquaplanet:\n"
+        f"        step: {step}\n"
+        f"      action: {action}\n"
+        f"    artifact: {artifact}\n"
+        f"  setup only: {setup_only}"
+    )
+
+    # Rebuild the basics
+    experience_name = "geos_aq"
+    task = Registry.registry["Aquaplanet"]()
+    config = get_config(experience_name)
+    env = Environment(
+        experience_name=experience_name,
+        experiment_action=PipelineAction[action],
+        artifact_directory=artifact,
+        setup_only=setup_only,
+    )
+    env.set("GEOS_BASE_DIRECTORY", geos_base_directory)
+
+    if step == "all" or step == "run":
+        task.run(config, env)
+    elif step == "all" or step == "check":
+        task.check(config, env)
+    else:
+        RuntimeError(f"Coding error. Step {step} unknown on AQ cli")
+
+
+if __name__ == "__main__":
+    cli()
