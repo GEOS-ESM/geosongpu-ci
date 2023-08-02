@@ -122,6 +122,93 @@ class HeldSuarez(TaskBase):
     Proposes C180-LXX benchmarking and basic build worthiness validation.
     """
 
+    executable_name = "./GEOShs.x"
+
+    def _setup_1ts_1node_gtfv3(self, experiment_directory: str) -> ShellScript:
+        return ShellScript(
+            name="setup_config_1ts_1node_gtfv3",
+            working_directory=experiment_directory,
+        ).write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                "cp -f AgcmSimple.rc.1x6.gtfv3 AgcmSimple.rc",
+                "cp -f input.nml.1x1 input.nml",
+                "cp -f CAP.rc.1ts CAP.rc",
+            ],
+        )
+
+    def _setup_1day_1node_gtfv3(self, experiment_directory: str) -> ShellScript:
+        return ShellScript(
+            name="_setup_config_1day_1node_gtfv3",
+            working_directory=experiment_directory,
+        ).write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                "cp -f AgcmSimple.rc.1x6.gtfv3 AgcmSimple.rc",
+                "cp -f input.nml.1x1 input.nml",
+                "cp -f CAP.rc.1day CAP.rc",
+            ],
+        )
+
+    def _setup_1day_1node_fortran(self, experiment_directory: str) -> ShellScript:
+        return ShellScript(
+            name="setup_config_1day_1node_fortran",
+            working_directory=experiment_directory,
+        ).write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                "cp -f AgcmSimple.rc.3x24.fortran AgcmSimple.rc",
+                "cp -f input.nml.3x4 input.nml",
+                "cp -f CAP.rc.1day CAP.rc",
+            ],
+        )
+
+    def prepare_experiment(
+        self,
+        input_directory: str,
+        resolution: str,
+        geos_directory: str,
+        geos_install_directory: str,
+        executable_name: str,
+    ) -> str:
+        experiment_dir = copy_input_to_experiment_directory(
+            input_directory=input_directory,
+            geos_directory=geos_directory,
+            resolution=resolution,
+            trigger_reset=True,
+        )
+        prolog_scripts = PrologScripts(
+            experiment_directory=experiment_dir,
+            executable_name=executable_name,
+            geos_directory=geos_directory,
+            geos_install_path=geos_install_directory,
+        )
+        return experiment_dir, prolog_scripts
+
+    def simulate(
+        self,
+        experiment_directory: str,
+        executable_name: str,
+        prolog_scripts: PrologScripts,
+        slurm_config: SlurmConfiguration,
+        gtfv3_config: GTFV3Config,
+        setup_script: ShellScript,
+        setup_only: bool = False,
+    ):
+        srun_script = _make_srun_script(
+            executable_name=executable_name,
+            experiment_directory=experiment_directory,
+            slurm_config=slurm_config,
+            gtfv3_config=gtfv3_config,
+            prolog_scripts=prolog_scripts,
+        )
+
+        setup_script.execute()
+        if not setup_only:
+            srun_script.execute()
+        else:
+            Progress.log(f"= = = Skipping {srun_script.name} = = =")
+
     def run_action(
         self,
         config: Dict[str, Any],
@@ -129,55 +216,40 @@ class HeldSuarez(TaskBase):
         metadata: Dict[str, Any],
     ):
         # Setup
-        geos_install_path = env.get("GEOS_INSTALL_DIRECTORY")
+        geos_install_directory = env.get("GEOS_INSTALL_DIRECTORY")
         geos = env.get("GEOS_BASE_DIRECTORY")
-        executable_name = "./GEOShs.x"
+        validation_experiment_directory = None
+        validation_prolog_script = None
 
         # # # Validation # # #
         if (
             env.experiment_action == PipelineAction.Validation
             or env.experiment_action == PipelineAction.All
         ):
-            # Get experiment directory ready
-            experiment_dir = copy_input_to_experiment_directory(
+            experiment_directory, prolog_scripts = self.prepare_experiment(
                 input_directory=config["input"][VALIDATION_RESOLUTION],
-                geos_directory=geos,
                 resolution=VALIDATION_RESOLUTION,
-                trigger_reset=True,
-            )
-            prolog_scripts = PrologScripts(
-                experiment_directory=experiment_dir,
-                executable_name=executable_name,
                 geos_directory=geos,
-                geos_install_path=geos_install_path,
+                geos_install_directory=geos_install_directory,
+                executable_name=self.executable_name,
             )
 
             # Run 1 timestep for cache build
-            slurm_config = SlurmConfiguration.one_half_nodes_GPU()
-            slurm_config.output = "validation.cache.dacegpu.%t.out"
-            srun_script = _make_srun_script(
-                executable_name=executable_name,
-                experiment_directory=experiment_dir,
-                slurm_config=slurm_config,
-                gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
+            self.simulate(
+                experiment_directory=experiment_directory,
+                executable_name=self.executable_name,
                 prolog_scripts=prolog_scripts,
+                slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+                    output="validation.cache.dacegpu.%t.out"
+                ),
+                gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
+                setup_script=self._setup_1ts_1node_gtfv3(experiment_directory),
+                setup_only=env.setup_only,
             )
-            ShellScript(
-                name="setup_config_1ts_1node_gtfv3",
-                working_directory=experiment_dir,
-            ).write(
-                shell_commands=[
-                    f"cd {experiment_dir}",
-                    "cp -f AgcmSimple.rc.1x6.gtfv3 AgcmSimple.rc",
-                    "cp -f input.nml.1x1 input.nml",
-                    "cp -f CAP.rc.1ts CAP.rc",
-                ],
-            ).execute()
-            if not env.setup_only:
-                srun_script.execute()
 
-            # TODO: more to be done to actually check on the results rather then
-            # just "can run".
+            # Cache for benchmark
+            validation_experiment_directory = experiment_directory
+            validation_prolog_script = prolog_scripts
 
         # # # Benchmark # # #
         if (
@@ -192,107 +264,55 @@ class HeldSuarez(TaskBase):
                 ):
                     # In case validation ran already, we have the experiment dir
                     # and the cache ready to run
-                    experiment_dir = f"{geos}/experiment/{resolution}"
-                    prolog_scripts = PrologScripts(
-                        experiment_directory=experiment_dir,
-                        executable_name=executable_name,
-                        geos_directory=geos,
-                        geos_install_path=geos_install_path,
-                    )
+                    experiment_dir = validation_experiment_directory
+                    prolog_scripts = validation_prolog_script
                 else:
-                    # Get experiment directory ready
-                    experiment_dir = copy_input_to_experiment_directory(
+                    experiment_dir, prolog_scripts = self.prepare_experiment(
                         input_directory=config["input"][resolution],
-                        geos_directory=geos,
                         resolution=resolution,
-                        trigger_reset=True,
-                    )
-                    prolog_scripts = PrologScripts(
-                        experiment_directory=experiment_dir,
-                        executable_name=executable_name,
                         geos_directory=geos,
-                        geos_install_path=geos_install_path,
+                        geos_install_directory=geos_install_directory,
+                        executable_name=self.executable_name,
                     )
 
                     # Run 1 timestep for cache build
-                    slurm_config = SlurmConfiguration.one_half_nodes_GPU()
-                    slurm_config.output = "benchmark.cache.dacegpu.%t.out"
-                    srun_script = _make_srun_script(
-                        executable_name=executable_name,
-                        experiment_directory=experiment_dir,
-                        slurm_config=slurm_config,
-                        gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
+                    self.simulate(
+                        experiment_directory=experiment_directory,
+                        executable_name=self.executable_name,
                         prolog_scripts=prolog_scripts,
+                        slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+                            output="benchmark.cache.dacegpu.%t.out"
+                        ),
+                        gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
+                        setup_script=self._setup_1ts_1node_gtfv3(experiment_directory),
+                        setup_only=env.setup_only,
                     )
-                    ShellScript(
-                        name="setup_config_1ts_1node_gtfv3",
-                        working_directory=experiment_dir,
-                    ).write(
-                        shell_commands=[
-                            f"cd {experiment_dir}",
-                            "cp -f AgcmSimple.rc.1x6.gtfv3 AgcmSimple.rc",
-                            "cp -f input.nml.1x1 input.nml",
-                            "cp -f CAP.rc.1ts CAP.rc",
-                        ],
-                    ).execute()
-                    if not env.setup_only:
-                        srun_script.execute()
-                    else:
-                        Progress.log(f"= = = Skipping {srun_script.name} = = =")
 
-                # Run 1 day
-                slurm_config = SlurmConfiguration.one_half_nodes_GPU()
-                slurm_config.output = "benchmark.1day.dacegpu.%t.out"
-                gtfv3_config = dataclasses.replace(GTFV3Config.dace_gpu_32_bit_BAR())
-                gtfv3_config.FV3_DACEMODE = "Run"
-                srun_script = _make_srun_script(
-                    executable_name=executable_name,
-                    experiment_directory=experiment_dir,
-                    slurm_config=slurm_config,
-                    gtfv3_config=gtfv3_config,
+                # Run 1 day gtfv3
+                self.simulate(
+                    experiment_directory=experiment_directory,
+                    executable_name=self.executable_name,
                     prolog_scripts=prolog_scripts,
+                    slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+                        output="benchmark.1day.dacegpu.%t.out"
+                    ),
+                    gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
+                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),
+                    setup_only=env.setup_only,
                 )
-                ShellScript(
-                    name="setup_config_1day_1node_gtfv3",
-                    working_directory=experiment_dir,
-                ).write(
-                    shell_commands=[
-                        f"cd {experiment_dir}",
-                        "cp -f AgcmSimple.rc.1x6.gtfv3 AgcmSimple.rc",
-                        "cp -f input.nml.1x1 input.nml",
-                        "cp -f CAP.rc.1day CAP.rc",
-                    ],
-                ).execute()
-                if not env.setup_only:
-                    srun_script.execute()
-                else:
-                    Progress.log(f"= = = Skipping {srun_script.name} = = =")
 
-                # Execute Fortran
-                slurm_config = SlurmConfiguration.one_half_Nodes_CPU()
-                slurm_config.output = "benchmark.1day.fortran.%t.out"
-                srun_script = _make_srun_script(
-                    executable_name=executable_name,
-                    experiment_directory=experiment_dir,
-                    slurm_config=slurm_config,
-                    gtfv3_config=gtfv3_config,
+                # Run 1 day Fortran
+                self.simulate(
+                    experiment_directory=experiment_directory,
+                    executable_name=self.executable_name,
                     prolog_scripts=prolog_scripts,
+                    slurm_config=SlurmConfiguration.one_half_Nodes_CPU(
+                        output="benchmark.1day.dacegpu.%t.out"
+                    ),
+                    gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
+                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),
+                    setup_only=env.setup_only,
                 )
-                ShellScript(
-                    name="setup_config_1day_1node_fortran",
-                    working_directory=experiment_dir,
-                ).write(
-                    shell_commands=[
-                        f"cd {experiment_dir}",
-                        "cp -f AgcmSimple.rc.3x24.fortran AgcmSimple.rc",
-                        "cp -f input.nml.3x4 input.nml",
-                        "cp -f CAP.rc.1day CAP.rc",
-                    ],
-                ).execute()
-                if not env.setup_only:
-                    srun_script.execute()
-                else:
-                    Progress.log(f"= = = Skipping {srun_script.name} = = =")
 
     def check(
         self,
@@ -352,9 +372,16 @@ class HeldSuarez(TaskBase):
         return True
 
 
-@click.command()
-@click.argument("step")
+@click.group()
 @click.argument("geos_base_directory")
+@click.pass_context
+def cli(ctx, geos_base_directory):
+    ctx.ensure_object(dict)
+    ctx.obj["geos_base_directory"] = geos_base_directory
+
+
+@cli.command()
+@click.argument("step")
 @click.option("--action", default="Validation")
 @click.option("--artifact", default=".", help="Artifact directory for results storage")
 @click.option(
@@ -362,9 +389,10 @@ class HeldSuarez(TaskBase):
     is_flag=True,
     help="Setup the experiment but skip any long running jobs (build, run...)",
 )
-def cli(
-    step: str, geos_base_directory: str, action: str, artifact: str, setup_only: bool
-):
+@click.pass_context
+def pipe(ctx, step: str, action: str, artifact: str, setup_only: bool):
+    geos_base_directory = ctx.obj["geos_base_directory"]
+
     # Validation step
     if step not in TaskBase.step_options():
         raise click.BadArgumentUsage(
@@ -397,6 +425,92 @@ def cli(
         task.check(config, env)
     else:
         RuntimeError(f"Coding error. Step {step} unknown on HS cli")
+
+
+@cli.command()
+@click.argument("resolution")
+@click.option(
+    "--setup_only",
+    is_flag=True,
+    help="Setup the experiment but skip any long running jobs (build, run...)",
+)
+@click.pass_context
+def benchmark(
+    ctx,
+    resolution: str,
+    setup_only: bool,
+):
+    geos_base_directory = ctx.obj["geos_base_directory"]
+    geos_install_directory = f"{geos_base_directory}/install"
+
+    # Rebuild the basics
+    experience_name = "geos_hs"
+    HS = HeldSuarez()
+    config = get_config(experience_name)
+
+    experiment_directory, prolog_scripts = HS.prepare_experiment(
+        input_directory=config["input"][resolution],
+        resolution=resolution,
+        geos_directory=geos_base_directory,
+        geos_install_directory=geos_install_directory,
+        executable_name=HS.executable_name,
+    )
+
+    print(
+        "Running HeldSuarez benchmark:\n"
+        f"     resolution: {resolution}\n"
+        f"     setup only: {setup_only}\n"
+        f" experiment dir: {experiment_directory}"
+    )
+
+    # Run 1 timestep for cache build
+    HS.simulate(
+        experiment_directory=experiment_directory,
+        executable_name=HS.executable_name,
+        prolog_scripts=prolog_scripts,
+        slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+            output="benchmark.cache.dacegpu.%t.out"
+        ),
+        gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
+        setup_script=HS._setup_1ts_1node_gtfv3(experiment_directory),
+        setup_only=setup_only,
+    )
+    HS.simulate(
+        experiment_directory=experiment_directory,
+        executable_name=HS.executable_name,
+        prolog_scripts=prolog_scripts,
+        slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+            output="benchmark.1day.dacegpu.%t.out"
+        ),
+        gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
+        setup_script=HS._setup_1day_1node_gtfv3(experiment_directory),
+        setup_only=setup_only,
+    )
+    HS.simulate(
+        experiment_directory=experiment_directory,
+        executable_name=HS.executable_name,
+        prolog_scripts=prolog_scripts,
+        slurm_config=SlurmConfiguration.one_half_nodes_CPU(
+            output="benchmark.1day.fortran.%t.out"
+        ),
+        gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
+        setup_script=HS._setup_1day_1node_fortran(experiment_directory),
+        setup_only=setup_only,
+    )
+
+    # Report
+    bench_raw_data = []
+    bench_raw_data.append(
+        parse_geos_log(f"{experiment_directory}/benchmark.1day.dacegpu.0.out")
+    )
+    bench_raw_data.append(
+        parse_geos_log(f"{experiment_directory}/benchmark.1day.fortran.0.out")
+    )
+
+    benchmark_report = report(bench_raw_data)
+    print(benchmark_report)
+    with open("report_benchmark.out", "w") as f:
+        f.write(str(benchmark_report))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -43,23 +44,25 @@ class SlurmConfiguration:
         )
 
     @classmethod
-    def one_half_nodes_GPU(cls) -> "SlurmConfiguration":
+    def one_half_nodes_GPU(cls, output: Optional[str] = None) -> "SlurmConfiguration":
         """1/2 node configuration on Discover with A100 & Rome Epyc"""
-        return SlurmConfiguration(
+        return cls(
             nodes=2,
             ntasks=6,
             ntasks_per_node=3,
             sockets_per_node=2,
             gpus_per_node=3,
             mem_per_gpu="40G",
+            output=output or cls.output,
         )
 
     @classmethod
-    def one_half_Nodes_CPU(cls) -> "SlurmConfiguration":
+    def one_half_Nodes_CPU(cls, output: Optional[str] = None) -> "SlurmConfiguration":
         """1/2 node configuration on Discover with Rome Epyc"""
         return SlurmConfiguration(
             nodes=2,
             ntasks=72,
             ntasks_per_node=48,
             sockets_per_node=2,
+            output=output or cls.output,
         )
