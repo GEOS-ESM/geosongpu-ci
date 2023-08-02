@@ -16,7 +16,6 @@ from geosongpu_ci.tools.benchmark.report import report
 from typing import Dict, Any
 import shutil
 import os
-import dataclasses
 import glob
 
 

@@ -27,10 +27,6 @@ VALIDATION_RESOLUTION = "C180-L72"
 
 @Registry.register
 class Aquaplanet(TaskBase):
-    def __init__(self, skip_metadata=False) -> None:
-        super().__init__(skip_metadata)
-        self._gcm_run_experiment = None
-
     def prepare_experiment(
         self,
         input_directory: str,
@@ -56,7 +52,6 @@ class Aquaplanet(TaskBase):
                 new_text=f"setenv EXPDIR {experiment_directory}",
             )
 
-        self._gcm_run_experiment = experiment_directory
         return experiment_directory
 
     def simulate(
@@ -67,13 +62,6 @@ class Aquaplanet(TaskBase):
         log_pattern: str,
         fv3_dacemode: str,
     ):
-        # Check we have gcm_run prepared correctly
-        if not self._gcm_run_experiment != experiment_directory:
-            raise RuntimeError(
-                f"Aquaplanet setup for experiment {self._gcm_run_experiment} "
-                f" instead of {experiment_directory}. Abort simulation."
-            )
-
         # Execute caching step on 6 GPUs
         ShellScript("temporary_setup").write(
             shell_commands=[
