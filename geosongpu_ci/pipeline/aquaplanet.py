@@ -14,6 +14,7 @@ import shutil
 
 
 def _replace_in_file(url: str, text_to_replace: str, new_text: str):
+    data = None
     with open(url, "r") as f:
         data = f.read()
         data = data.replace(text_to_replace, new_text)
@@ -21,45 +22,84 @@ def _replace_in_file(url: str, text_to_replace: str, new_text: str):
         f.write(data)
 
 
-def _simulate(
-    experiment_directory: str,
-    setup_sh: str,
-    cap_rc: str,
-    log_pattern: str,
-    fv3_dacemode: str,
-):
-    # Execute caching step on 6 GPUs
-    ShellScript("run_script_gpu").write(
-        shell_commands=[
-            f"cd {experiment_directory}",
-            f"./{setup_sh}",
-            f"cp -f {cap_rc} CAP.rc",
-        ]
-    ).execute(remove_after_execution=True)
-    _replace_in_file(
-        url=f"{experiment_directory}/gcm_run.j",
-        text_to_replace="#SBATCH --output=slurm-%j-%%x.out",
-        new_text=log_pattern,
-    )
-    _replace_in_file(
-        url=f"{experiment_directory}/gcm_run.j",
-        text_to_replace="setenv FV3_DACEMODE BuildAndRun",
-        new_text=f"setenv FV3_DACEMODE {fv3_dacemode}",
-    )
-    ShellScript("run_sbatch_gpu").write(
-        shell_commands=[
-            f"cd {experiment_directory}",
-            f"export CUPY_CACHE_DIR={experiment_directory}/.cupy",
-            "sbatch gcm_run.j",
-        ]
-    ).execute(sbatch=True)
-
-
 VALIDATION_RESOLUTION = "C180-L72"
 
 
 @Registry.register
 class Aquaplanet(TaskBase):
+    def __init__(self, skip_metadata=False) -> None:
+        super().__init__(skip_metadata)
+        self._gcm_run_experiment = None
+
+    def prepare_experiment(
+        self,
+        input_directory: str,
+        geos_directory: str,
+    ) -> str:
+        experiment_directory = copy_input_to_experiment_directory(
+            input_directory=input_directory,
+            geos_directory=geos_directory,
+            resolution=VALIDATION_RESOLUTION,
+        )
+
+        # Modify all gcm_run.j.X with directory information
+        gcm_runs = glob.glob(f"{experiment_directory}/gcm_run.j.*")
+        for gcm_run in gcm_runs:
+            _replace_in_file(
+                url=gcm_run,
+                text_to_replace="setenv GEOSBASE TO_BE_REPLACED",
+                new_text=f"setenv GEOSBASE {geos_directory}",
+            )
+            _replace_in_file(
+                url=gcm_run,
+                text_to_replace="setenv EXPDIR TO_BE_REPLACED",
+                new_text=f"setenv EXPDIR {experiment_directory}",
+            )
+
+        self._gcm_run_experiment = experiment_directory
+        return experiment_directory
+
+    def simulate(
+        self,
+        experiment_directory: str,
+        setup_sh: str,
+        cap_rc: str,
+        log_pattern: str,
+        fv3_dacemode: str,
+    ):
+        # Check we have gcm_run prepared correctly
+        if not self._gcm_run_experiment != experiment_directory:
+            raise RuntimeError(
+                f"Aquaplanet setup for experiment {self._gcm_run_experiment} "
+                f" instead of {experiment_directory}. Abort simulation."
+            )
+
+        # Execute caching step on 6 GPUs
+        ShellScript("temporary_setup").write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                f"./{setup_sh}",
+                f"cp -f {cap_rc} CAP.rc",
+            ]
+        ).execute(remove_after_execution=True)
+        _replace_in_file(
+            url=f"{experiment_directory}/gcm_run.j",
+            text_to_replace="#SBATCH --output=slurm-%j-%x.out",
+            new_text=f"#SBATCH --output={log_pattern}",
+        )
+        _replace_in_file(
+            url=f"{experiment_directory}/gcm_run.j",
+            text_to_replace="setenv FV3_DACEMODE BuildAndRun",
+            new_text=f"setenv FV3_DACEMODE {fv3_dacemode}",
+        )
+        ShellScript("run_sbatch_gpu").write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                f"export CUPY_CACHE_DIR={experiment_directory}/.cupy",
+                "sbatch gcm_run.j",
+            ]
+        ).execute(sbatch=True)
+
     def run_action(
         self,
         config: Dict[str, Any],
@@ -67,6 +107,7 @@ class Aquaplanet(TaskBase):
         metadata: Dict[str, Any],
     ):
         geos = env.get("GEOS_BASE_DIRECTORY")
+        validation_experiment_dir = None
 
         if (
             env.experiment_action == PipelineAction.All
@@ -74,28 +115,14 @@ class Aquaplanet(TaskBase):
         ):
             # Prepare experiment directory
             resolution = VALIDATION_RESOLUTION
-            experiment_dir = copy_input_to_experiment_directory(
+            experiment_dir = self.prepare_experiment(
                 input_directory=config["input"][VALIDATION_RESOLUTION],
                 geos_directory=geos,
-                resolution=VALIDATION_RESOLUTION,
             )
-
-            # Modify all gcm_run.j.X with directory information
-            gcm_runs = glob.glob(f"{experiment_dir}/gcm_run.j.*")
-            for gcm_run in gcm_runs:
-                _replace_in_file(
-                    url=gcm_run,
-                    text_to_replace="setenv GEOSBASE TO_BE_REPLACED",
-                    new_text=f"setenv GEOSBASE {geos}",
-                )
-                _replace_in_file(
-                    url=gcm_run,
-                    text_to_replace="setenv EXPDIR TO_BE_REPLACED",
-                    new_text=f"setenv EXPDIR {experiment_dir}",
-                )
+            validation_experiment_dir = experiment_dir
 
             # Execute caching step on 6 GPUs
-            _simulate(
+            self.simulate(
                 experiment_directory=experiment_dir,
                 setup_sh="setup_1.5nodes_gpu.sh",
                 cap_rc="CAP.rc.1ts",
@@ -104,7 +131,7 @@ class Aquaplanet(TaskBase):
             )
 
             # Run for 12h on 6 GPUs
-            _simulate(
+            self.simulate(
                 experiment_directory=experiment_dir,
                 setup_sh="setup_1.5nodes_gpu.sh",
                 cap_rc="CAP.rc.12hours",
@@ -121,30 +148,14 @@ class Aquaplanet(TaskBase):
                 and env.experiment_action == PipelineAction.All
             ):
                 # Experiment directory is already present and backend cached
-                experiment_dir = f"{geos}/experiment/{resolution}"
+                experiment_dir = validation_experiment_dir
             else:
-                # Build experiment directory
-                experiment_dir = copy_input_to_experiment_directory(
+                # Build experiment directory & run cache
+                experiment_dir = self.prepare_experiment(
                     input_directory=config["input"][VALIDATION_RESOLUTION],
                     geos_directory=geos,
-                    resolution=VALIDATION_RESOLUTION,
                 )
-
-                # Modify all gcm_run.j.X with directory information
-                gcm_runs = glob.glob(f"{experiment_dir}/{resolution}/gcm_run.j.*")
-                for gcm_run in gcm_runs:
-                    _replace_in_file(
-                        url=gcm_run,
-                        text_to_replace="setenv GEOSBASE TO_BE_REPLACED",
-                        new_text=f"setenv GEOSBASE {geos}",
-                    )
-                    _replace_in_file(
-                        url=gcm_run,
-                        text_to_replace="setenv EXPDIR TO_BE_REPLACED",
-                        new_text=f"setenv EXPDIR {experiment_dir}",
-                    )
-
-                _simulate(
+                self.simulate(
                     experiment_directory=experiment_dir,
                     setup_sh="setup_1.5nodes_gpu.sh",
                     cap_rc="CAP.rc.1ts",
@@ -153,7 +164,7 @@ class Aquaplanet(TaskBase):
                 )
 
             # Execute 1 day run on 6 GPUs
-            _simulate(
+            self.simulate(
                 experiment_directory=experiment_dir,
                 setup_sh="setup_1.5nodes_gpu.sh",
                 cap_rc="CAP.rc.1day",
@@ -162,7 +173,7 @@ class Aquaplanet(TaskBase):
             )
 
             # Execute 1 day run on 72 CPUs (fortran)
-            _simulate(
+            self.simulate(
                 experiment_directory=experiment_dir,
                 setup_sh="setup_1.5nodes_cpu.sh",
                 cap_rc="CAP.rc.1day",

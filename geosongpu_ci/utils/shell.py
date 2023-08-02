@@ -59,9 +59,11 @@ class ShellScript:
         sbatch: bool = False,
     ) -> Any:
         # Execute
-        result = self._execute_shell_script()
-        if sbatch:
-            self._sbatch_wait(result)
+        with Progress(self.name):
+            result = self._execute_shell_script()
+            if sbatch:
+                self._sbatch_wait(result)
+        # Remove if this is not important to keep
         if remove_after_execution:
             os.remove(self.path)
         return result
@@ -86,11 +88,10 @@ class ShellScript:
         os.chmod(self.path, st.st_mode | stat.S_IEXEC)
 
     def _execute_shell_script(self) -> str:
-        with Progress(self.name):
-            _make_executable(self.path)
-            result = run_subprocess(
-                self.path,
-            )
+        _make_executable(self.path)
+        result = run_subprocess(
+            self.path,
+        )
         return result
 
 
