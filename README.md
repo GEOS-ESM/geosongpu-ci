@@ -49,3 +49,10 @@ Bot commands:
 /bot experience --name=[per experiment.yaml] --action=[All, Validation, Benchmark]
 : Triggers a geosongpu_dispatch command with given parameters
 ```
+
+# Documentation
+
+Build with pdoc with
+```
+pdoc -o ./docs geosongpu_ci
+```
