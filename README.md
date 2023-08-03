@@ -31,3 +31,28 @@ Options:
                    run...)
   --help           Show this message and exit.
 ```
+
+
+## CI
+
+The workflows are either automated (nightly, weekly) or on-demand via the Actions tab.
+
+Another way of triggering workflow is to use the `/bot` command within PR comments.
+You can look at the options by commenting `/bot help` on a PR and the bot will respond:
+
+```
+Bot commands:
+
+/bot help
+: Print this message
+
+/bot experience --name=[per experiment.yaml] --action=[All, Validation, Benchmark]
+: Triggers a geosongpu_dispatch command with given parameters
+```
+
+# Documentation
+
+Build with pdoc with
+```
+pdoc -o ./docs geosongpu_ci
+```
