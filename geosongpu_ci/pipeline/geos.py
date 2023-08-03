@@ -104,6 +104,11 @@ class GEOS(TaskBase):
             do_mepo=True,
         )
 
+        set_env_script = set_python_environment(
+            geos_directory=f"{env.CI_WORKSPACE}/geos",
+            geos_install_dir=f"{env.CI_WORKSPACE}/geos/install",
+        )
+
         # Build GEOS with GTFV3 interface
         cmake_cmd = "cmake .."
         cmake_cmd += " -DBASEDIR=$BASEDIR/Linux"
@@ -114,16 +119,7 @@ class GEOS(TaskBase):
         if env.experiment_name == GEOS_AQ_KEY:
             cmake_cmd += " -DAQUAPLANET=ON"
 
-        set_env_script = set_python_environment(
-            geos_directory=f"{env.CI_WORKSPACE}/geos",
-            geos_install_dir=f"{env.CI_WORKSPACE}/geos/install",
-        )
-
-        build_cmd = (
-            f"{one_gpu_srun(log='build.out', time='01:30:00')} make -j48 install"
-        )
-        script = ShellScript("build_geos")
-        script.write(
+        ShellScript("CMake_geos").write(
             modules=[],
             env_to_source=[
                 set_env_script,
@@ -138,13 +134,28 @@ class GEOS(TaskBase):
                 "mkdir $TMP",
                 "echo $TMP",
                 cmake_cmd,
+            ],
+        )
+
+        build_cmd = (
+            f"{one_gpu_srun(log='build.out', time='01:30:00')} make -j48 install"
+        )
+        make_script = ShellScript("make_geos")
+        make_script.write(
+            modules=[],
+            env_to_source=[
+                set_env_script,
+            ],
+            shell_commands=[
+                "cd geos/build",
+                f"export TMP={env.CI_WORKSPACE}/geos/build/tmp",
                 build_cmd,
             ],
         )
         if not env.setup_only:
-            script.execute(script)
+            make_script.execute()
         else:
-            Progress.log(f"= = = Skipping {script.name} = = =")
+            Progress.log(f"= = = Skipping {make_script.name} = = =")
 
         _epilogue(env)
 

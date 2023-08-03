@@ -7,6 +7,7 @@ from geosongpu_ci.actions.pipeline import PipelineAction
 from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.tools.benchmark.geos_log_parser import parse_geos_log
 from geosongpu_ci.tools.benchmark.report import report
+from geosongpu_ci.utils.progress import Progress
 from typing import Dict, Any
 import glob
 import os
@@ -61,32 +62,37 @@ class Aquaplanet(TaskBase):
         cap_rc: str,
         log_pattern: str,
         fv3_dacemode: str,
+        setup_only: bool = False,
     ):
-        # Execute caching step on 6 GPUs
-        ShellScript("temporary_setup").write(
-            shell_commands=[
-                f"cd {experiment_directory}",
-                f"./{setup_sh}",
-                f"cp -f {cap_rc} CAP.rc",
-            ]
-        ).execute(remove_after_execution=True)
-        _replace_in_file(
-            url=f"{experiment_directory}/gcm_run.j",
-            text_to_replace="#SBATCH --output=slurm-%j-%x.out",
-            new_text=f"#SBATCH --output={log_pattern}",
-        )
-        _replace_in_file(
-            url=f"{experiment_directory}/gcm_run.j",
-            text_to_replace="setenv FV3_DACEMODE BuildAndRun",
-            new_text=f"setenv FV3_DACEMODE {fv3_dacemode}",
-        )
-        ShellScript("run_sbatch_gpu").write(
-            shell_commands=[
-                f"cd {experiment_directory}",
-                f"export CUPY_CACHE_DIR={experiment_directory}/.cupy",
-                "sbatch gcm_run.j",
-            ]
-        ).execute(sbatch=True)
+        executor_name = f"{setup_sh.replace('sh', '')}_{cap_rc}.sbatch"
+        executor_name.replace("/", "-")  # sanitize
+        if setup_only:
+            ShellScript("temporary_setup").write(
+                shell_commands=[
+                    f"cd {experiment_directory}",
+                    f"./{setup_sh}",
+                    f"cp -f {cap_rc} CAP.rc",
+                ]
+            ).execute(remove_after_execution=True)
+            _replace_in_file(
+                url=f"{experiment_directory}/gcm_run.j",
+                text_to_replace="#SBATCH --output=slurm-%j-%x.out",
+                new_text=f"#SBATCH --output={log_pattern}",
+            )
+            _replace_in_file(
+                url=f"{experiment_directory}/gcm_run.j",
+                text_to_replace="setenv FV3_DACEMODE BuildAndRun",
+                new_text=f"setenv FV3_DACEMODE {fv3_dacemode}",
+            )
+            ShellScript(executor_name).write(
+                shell_commands=[
+                    f"cd {experiment_directory}",
+                    f"export CUPY_CACHE_DIR={experiment_directory}/.cupy",
+                    "sbatch gcm_run.j",
+                ]
+            ).execute(sbatch=True)
+        else:
+            Progress.log(f"= = = Skipping {executor_name} = = =")
 
     def run_action(
         self,
