@@ -1,8 +1,10 @@
+import click
 import itertools
-from typing import Any, List
+from typing import Any, List, Iterable
 from dataclasses import dataclass, field
 import numpy as np
 from geosongpu_ci.tools.benchmark.raw_data import BenchmarkRawData
+from geosongpu_ci.tools.benchmark.geos_log_parser import parse_geos_log
 
 
 @dataclass
@@ -150,3 +152,17 @@ def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
         report.per_backend_per_metric_comparison.append({REPORT_TIME_KEY: time_report})
 
     return report
+
+
+@click.command()
+@click.argument("geos_logs", nargs=-1)
+def cli(geos_logs: Iterable[str]):
+    benchmark_raw_data = []
+    for log in geos_logs:
+        benchmark_raw_data.append(parse_geos_log(log))
+    r = report(benchmark_raw_data)
+    print(r)
+
+
+if __name__ == "__main__":
+    cli()
