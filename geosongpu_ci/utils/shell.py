@@ -3,6 +3,7 @@ from typing import Any, Optional, List
 import os
 import stat
 from geosongpu_ci.utils.progress import Progress
+from time import sleep
 
 
 class ShellScript:
@@ -52,23 +53,45 @@ class ShellScript:
         self._make_executable()
         return self
 
-    def execute(self, remove_after_execution: bool = False) -> Any:
+    def execute(
+        self,
+        remove_after_execution: bool = False,
+        sbatch: bool = False,
+    ) -> Any:
         # Execute
-        result = self._execute_shell_script()
+        with Progress(self.name):
+            result = self._execute_shell_script()
+            if sbatch:
+                self._sbatch_wait(result)
+        # Remove if this is not important to keep
         if remove_after_execution:
             os.remove(self.path)
         return result
+
+    def _sbatch_wait(self, result_of_sbatch_call: str) -> Any:
+        # TODO: check that result_of_sbatch_call is actually correct
+        job_id = result_of_sbatch_call.split(" ")[-1].strip().replace("\n", "")
+        sleep(30)  # wait 30 seconds for SLURM to enter prolog
+        running = True
+        while running:
+            sacct_result = subprocess.run(
+                ["sacct", "-j", job_id, "-o", "state"], stdout=subprocess.PIPE
+            ).stdout.decode("utf-8")
+            running = False
+            for state in sacct_result.split("\n"):
+                if "RUNNING" in state.strip() or "PENDING" in state.strip():
+                    running = True
+                    break
 
     def _make_executable(self):
         st = os.stat(self.path)
         os.chmod(self.path, st.st_mode | stat.S_IEXEC)
 
     def _execute_shell_script(self) -> str:
-        with Progress(self.name):
-            _make_executable(self.path)
-            result = run_subprocess(
-                self.path,
-            )
+        _make_executable(self.path)
+        result = run_subprocess(
+            self.path,
+        )
         return result
 
 

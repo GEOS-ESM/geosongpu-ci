@@ -1,8 +1,10 @@
+import click
 import itertools
-from typing import Any, List
+from typing import Any, List, Iterable
 from dataclasses import dataclass, field
 import numpy as np
 from geosongpu_ci.tools.benchmark.raw_data import BenchmarkRawData
+from geosongpu_ci.tools.benchmark.geos_log_parser import parse_geos_log
 
 
 @dataclass
@@ -70,9 +72,15 @@ REPORT_ENERGY_KEY = "Energy"
 
 def _comparison_in_X(value_A: float, value_B: float, label: str) -> str:
     if value_A > value_B:
-        return f"{label}: 1.00x - {(value_A/value_B):.2f}x\n"
+        return (
+            f"{label}: 1.00x ({value_A:.2f}s) - "
+            f"{(value_A/value_B):.2f}x ({value_B:.2f}s)\n"
+        )
     else:
-        return f"{label}: {(value_B/value_A):.2f}x -  1.00x\n"
+        return (
+            f"{label}: {(value_B/value_A):.2f}x ({value_A:.2f}s) -  "
+            f"1.00x ({value_B:.2f}s)\n"
+        )
 
 
 def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
@@ -93,12 +101,12 @@ def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
     report.setup = (
         "Experiment: \n"
         f"  Resolution: C{grid_resolution[0]}-L{grid_resolution[2]}\n"
-        "     Layouts:\n"
+        "   Layouts:\n"
     )
 
     for bench_data in raw_data:
         report.setup += (
-            f"       - {bench_data.backend}:"
+            f"    - {bench_data.backend}:"
             f"{bench_data.node_setup[0]}x{bench_data.node_setup[1]}"
             f", {bench_data.node_setup[2]} ranks\n"
         )
@@ -144,3 +152,17 @@ def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
         report.per_backend_per_metric_comparison.append({REPORT_TIME_KEY: time_report})
 
     return report
+
+
+@click.command()
+@click.argument("geos_logs", nargs=-1)
+def cli(geos_logs: Iterable[str]):
+    benchmark_raw_data = []
+    for log in geos_logs:
+        benchmark_raw_data.append(parse_geos_log(log))
+    r = report(benchmark_raw_data)
+    print(r)
+
+
+if __name__ == "__main__":
+    cli()

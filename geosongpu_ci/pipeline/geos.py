@@ -1,5 +1,5 @@
 from geosongpu_ci.utils.environment import Environment
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from geosongpu_ci.pipeline.task import TaskBase
 from geosongpu_ci.utils.shell import ShellScript
 from geosongpu_ci.utils.registry import Registry
@@ -33,6 +33,7 @@ def set_python_environment(
     geos_install_dir: str,
     working_directory: str = ".",
 ) -> ShellScript:
+    """Set a python environment using FVDycore GridComp auto-env script"""
     geos_fvdycore_comp = (
         f"{geos_directory}/src/Components/@GEOSgcm_GridComp/"
         "GEOSagcm_GridComp/GEOSsuperdyn_GridComp/@FVdycoreCubed_GridComp"
@@ -52,6 +53,40 @@ def set_python_environment(
     return set_env
 
 
+def copy_input_to_experiment_directory(
+    input_directory: str,
+    geos_directory: str,
+    resolution: str,
+    experiment_name: Optional[str] = None,
+    trigger_reset: bool = False,
+) -> str:
+    """Copy the input directory into the experiment directory.
+
+    Optionally, trigger the "reset.sh" to get data clean and ready to execute.
+    """
+    if experiment_name:
+        experiment_dir = f"{geos_directory}/experiment/{experiment_name}"
+    else:
+        experiment_dir = f"{geos_directory}/experiment/{resolution}"
+
+    if trigger_reset:
+        reset_cmd = "./reset.sh"
+    else:
+        reset_cmd = ""
+
+    ShellScript(f"copy_input_{resolution}").write(
+        modules=[],
+        shell_commands=[
+            f"cd {geos_directory}",
+            f"mkdir -p {experiment_dir}",
+            f"cd {experiment_dir}",
+            f"cp -r {input_directory}/* .",
+            reset_cmd,
+        ],
+    ).execute()
+    return experiment_dir
+
+
 @Registry.register
 class GEOS(TaskBase):
     def run_action(
@@ -69,6 +104,11 @@ class GEOS(TaskBase):
             do_mepo=True,
         )
 
+        set_env_script = set_python_environment(
+            geos_directory=f"{env.CI_WORKSPACE}/geos",
+            geos_install_dir=f"{env.CI_WORKSPACE}/geos/install",
+        )
+
         # Build GEOS with GTFV3 interface
         cmake_cmd = "cmake .."
         cmake_cmd += " -DBASEDIR=$BASEDIR/Linux"
@@ -79,16 +119,7 @@ class GEOS(TaskBase):
         if env.experiment_name == GEOS_AQ_KEY:
             cmake_cmd += " -DAQUAPLANET=ON"
 
-        set_env_script = set_python_environment(
-            geos_directory=f"{env.CI_WORKSPACE}/geos",
-            geos_install_dir=f"{env.CI_WORKSPACE}/geos/install",
-        )
-
-        build_cmd = (
-            f"{one_gpu_srun(log='build.out', time='01:30:00')} make -j48 install"
-        )
-        script = ShellScript("build_geos")
-        script.write(
+        ShellScript("CMake_geos").write(
             modules=[],
             env_to_source=[
                 set_env_script,
@@ -103,13 +134,28 @@ class GEOS(TaskBase):
                 "mkdir $TMP",
                 "echo $TMP",
                 cmake_cmd,
+            ],
+        )
+
+        build_cmd = (
+            f"{one_gpu_srun(log='build.out', time='01:30:00')} make -j48 install"
+        )
+        make_script = ShellScript("make_geos")
+        make_script.write(
+            modules=[],
+            env_to_source=[
+                set_env_script,
+            ],
+            shell_commands=[
+                "cd geos/build",
+                f"export TMP={env.CI_WORKSPACE}/geos/build/tmp",
                 build_cmd,
             ],
         )
         if not env.setup_only:
-            script.execute(script)
+            make_script.execute()
         else:
-            Progress.log(f"= = = Skipping {script.name} = = =")
+            Progress.log(f"= = = Skipping {make_script.name} = = =")
 
         _epilogue(env)
 
@@ -119,18 +165,3 @@ class GEOS(TaskBase):
         env: Environment,
     ) -> bool:
         return _check(env)
-
-
-def copy_input_from_project(config: Dict[str, Any], geos_dir: str, layout: str) -> str:
-    # Copy input
-    input_config = config["input"]
-    experiment_dir = f"{geos_dir}/experiment/l{layout}"
-    ShellScript("copy_input").write(
-        shell_commands=[
-            f"cd {geos_dir}",
-            f"mkdir -p {geos_dir}/experiment/l{layout}",
-            f"cd {experiment_dir}",
-            f"cp -r {input_config['directory']}/l{layout}/* .",
-        ],
-    ).execute()
-    return experiment_dir

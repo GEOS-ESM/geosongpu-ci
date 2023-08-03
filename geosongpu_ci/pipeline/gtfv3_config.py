@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -21,5 +22,5 @@ class GTFV3Config:
         )
 
     @classmethod
-    def dace_gpu_32_bit_BAR(cls) -> "GTFV3Config":
-        return GTFV3Config()
+    def dace_gpu_32_bit_BAR(cls, dacemode: Optional[str] = None) -> "GTFV3Config":
+        return cls(FV3_DACEMODE=dacemode or cls.FV3_DACEMODE)
