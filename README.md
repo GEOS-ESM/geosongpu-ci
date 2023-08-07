@@ -56,3 +56,5 @@ Build with pdoc with
 ```
 pdoc -o ./docs geosongpu_ci
 ```
+
+Documentation is available on [Github Pages](https://geos-esm.github.io/geosongpu-ci/geosongpu_ci.html) and will be build automatically at every `main` commit
