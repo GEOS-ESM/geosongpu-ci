@@ -30,7 +30,7 @@ Automatic benchmarking are as follow (legends after table)
 Legend:
 
 * Resolutions:
-  * CXX: resolution of a cubes-phere face
+  * CXX: resolution of a cube-sphere face
   * LXX: number of atmospheric levels
 * Setup:
   * Node-to-node (exclusive GPU): as per machine configuration, using exactly 1 GPU for one cube-sphere face or 0.5 CPU socket.
