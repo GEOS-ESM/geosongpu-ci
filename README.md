@@ -1,21 +1,54 @@
-# GEOS on GPU - Continuous Integration
 
-| Test                    | Status    |
-| ----------------------- | --------- |
-| NCCS Discover Heartbeat                    | [![Discover Nightly Heartbeat](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_heartbeat_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_heartbeat_nightly.yml) |
-| NCCS Discover GEOS Held-Suarez Validation  | [![Discover Nightly GEOS Held-Suarez Validation](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_hs_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_hs_nightly.yml) |
-| NCCS Discover Physics Standalone           | [![Discover Nightly Physics Standalone Validation](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_physics_standalone_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_physics_standalone_nightly.yml) |
-| NCCS Discover GEOS Aquaplanet Validation   | [![Discover Nightly GEOS Aquaplanet Validation](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_aq_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_aq_nightly.yml) |
+# GEOS on GPU - Continuous Integration
 
 On-premise CI for the GPU ports of GEOS. Includes validation & benchmark worfklows.
 
-## Current capacities
+## Validation status
+
+Heartbeat insure the workflow to reach Discover is working.
+Validation capacities in the case of GEOS is stricly building & running the GPU-enabled version.
+Validation capacities for physics compares OACC and original Fortran on.
+
+| Validation                    | Status    |
+| ------------------------------------------ | --------- |
+| NCCS Discover Heartbeat                    | [![💓](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_heartbeat_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_heartbeat_nightly.yml) |
+| NCCS Discover GEOS Held-Suarez Validation  | [![HS](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_hs_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_hs_nightly.yml) |
+| NCCS Discover Physics Standalone           | [![Physics](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_physics_standalone_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_physics_standalone_nightly.yml) |
+| NCCS Discover GEOS Aquaplanet Validation   | [![AQ](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_aq_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_aq_nightly.yml) |
+
+## Benchmarking capacities
+
+Automatic benchmarking are as follow (legends after table)
+
+| Experimentation               | Resolutions |  Layout   | Setup                                    |
+| ----------------------------- | ------------|-----------| ---------------------------------------- |
+| Held-Suarez                   | C180-L72    | 1x1       | Discover @ node-to-node (exclusive GPU)  |
+|                               | C180-L91    | 1x1       | Discover @ node-to-node (exclusive GPU)  |
+|                               | C180-L137   | 1x1       | Discover @ node-to-node (exclusive GPU)  |
+| Aquaplanet                    | C180-L72    | 1x1       | Discover @ node-to-node (exclusive GPU)  |
+
+Legend:
+
+* Resolutions:
+  * CXX: resolution of a cubes-phere face
+  * LXX: number of atmospheric levels
+* Setup:
+  * Node-to-node (exclusive GPU): as per machine configuration, using exactly 1 GPU for one cube-sphere face or 0.5 CPU socket.
+    * On Discover:
+      * GPU: 1 A100 and 1 EPYC 7402 core
+      * CPU: 12 EPYC 7402 core
+  * Node-to-node (sharing GPU): as per machine configuration, sharing 1 GPU for 1 CPU socket worth of ranks.
+    * On Discover (using Nvidia's MPS):
+      * GPU: 1 A100 and 12 EPYC 7402 core
+      * CPU: 12 EPYC 7402 core
+
+## Structure
 
 Experiments are listed in `experiments/experiments.yaml`
 
 The package install a `geosongpu_dispatch`
 
-```
+```text
 Usage: geosongpu_dispatch [OPTIONS] NAME ACTION
 
   Dispatch the _NAME_ experiment (as recorded in experiments.yaml) with the
@@ -32,15 +65,12 @@ Options:
   --help           Show this message and exit.
 ```
 
-
-## CI
-
 The workflows are either automated (nightly, weekly) or on-demand via the Actions tab.
 
 Another way of triggering workflow is to use the `/bot` command within PR comments.
 You can look at the options by commenting `/bot help` on a PR and the bot will respond:
 
-```
+```text
 Bot commands:
 
 /bot help
@@ -53,7 +83,8 @@ Bot commands:
 # Documentation
 
 Build with pdoc with
-```
+
+```python
 pdoc -o ./docs geosongpu_ci
 ```
 
