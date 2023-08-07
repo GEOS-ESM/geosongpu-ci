@@ -18,7 +18,6 @@ from geosongpu_ci.tools.hws.constants import (
     SERV_ORDER_DUMP,
     SERV_ORDER_START,
     SERV_ORDER_STOP,
-    HWS_HWLOAD_FILENAME,
     HWS_DUMP_FORMAT,
     HWS_DUMP_JSON,
     HWS_DUMP_NPZ,
@@ -53,8 +52,8 @@ async def psu_utlz_read(
         cpu_use = psutil.cpu_percent()
         cpu_exe_utl.append(cpu_use)
         # linear regression for power on CPU from utl
-        idle = HWS_HARDWARE_SPECS[HWS_HW_CPU]["IDLE"]
-        tdp = HWS_HARDWARE_SPECS[HWS_HW_CPU]["TDP"]
+        idle = HWS_HARDWARE_SPECS[HWS_HW_CPU]["PSU_IDLE"]
+        tdp = HWS_HARDWARE_SPECS[HWS_HW_CPU]["PSU_TDP"]
         cpu_psu.append(max(cpu_use / 100 * tdp, idle))
         # Sleep the dt
         await asyncio.sleep(record_dt)
@@ -125,11 +124,12 @@ async def main():
             )
             print(f"[NVML SERVER] Recording every {record_dt} seconds")
         elif order["action"] == SERV_ORDER_DUMP:
+            hws_dump_name = order["dump_name"]
             if HWS_DUMP_FORMAT == HWS_DUMP_NPZ:
-                np.savez_compressed(f"./{HWS_HWLOAD_FILENAME}.npz", **hardware_load)
+                np.savez_compressed(f"./{hws_dump_name}.npz", **hardware_load)
             elif HWS_DUMP_FORMAT == HWS_DUMP_JSON:
                 json_data = json.dumps(hardware_load, indent=4)
-                with open(f"{HWS_HWLOAD_FILENAME}.json", "w") as f:
+                with open(f"{hws_dump_name}.json", "w") as f:
                     f.write(json_data)
             else:
                 raise RuntimeWarning(f"Can't dump in unknown format {HWS_DUMP_FORMAT}")

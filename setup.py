@@ -24,6 +24,7 @@ setuptools.setup(
         "pynvml",
         "psutil",
         "matplotlib",
+        "plotly"
     ],
     data_files=[
         ("./geosongpu/experiments", ["./experiments/experiments.yaml"]),

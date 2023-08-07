@@ -4,6 +4,13 @@ import os
 SOCKET_DIRECTORY = "./hwsampler-sockets"
 SOCKET_FILENAME = f"{SOCKET_DIRECTORY}/stats_wrapper"
 
+# Dump
+HWS_DUMP_NAME = "hws_dump"
+HWS_DUMP_NPZ = "npz"
+HWS_DUMP_JSON = "json"
+HWS_DUMP_FORMAT = os.getenv("HWSAMPLER_DUMP_FORMAT", HWS_DUMP_NPZ)
+
+
 # All commands that the serve can process
 SERV_ORDER_START = "START"
 SERV_ORDER_STOP = "STOP"
@@ -25,14 +32,12 @@ CLIENT_CMDS = {
         "dt": 0.01,
     },
     CLIENT_CMD_STOP: {"action": SERV_ORDER_STOP},
-    CLIENT_CMD_DUMP: {"action": SERV_ORDER_DUMP},
+    CLIENT_CMD_DUMP: {
+        "action": SERV_ORDER_DUMP,
+        "dump_name": HWS_DUMP_NAME,
+    },
     CLIENT_CMD_TICK: {"action": SERV_ORDER_TICK},
 }
-
-HWS_HWLOAD_FILENAME = "hwload_dump"
-HWS_DUMP_NPZ = "npz"
-HWS_DUMP_JSON = "json"
-HWS_DUMP_FORMAT = os.getenv("HWSAMPLER_DUMP_FORMAT", HWS_DUMP_NPZ)
 
 # Hardware specs
 LBL_EPYC_7402 = "EPYC 7402"

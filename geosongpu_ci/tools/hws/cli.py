@@ -16,14 +16,16 @@ def server():
 
 
 @cli.command()
-@cli.argument("command")
-def client(command: str):
-    hws_client.cli(command)
+@click.argument("command")
+@click.option("--name", default="hws", help="[dump] Filename for the .npz dump")
+def client(command: str, name: str):
+    hws_client.cli(command, name)
 
 
 @cli.command()
-def graph():
-    hws_graph.cli()
+@click.argument("data_filepath")
+def graph(data_filepath: str):
+    hws_graph.cli(data_filepath)
 
 
 if __name__ == "__main__":

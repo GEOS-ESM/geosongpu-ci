@@ -43,19 +43,44 @@ class PrologScripts:
             geos_install_path,
         )
 
-    def _make_gpu_wrapper_script(self, experiment_directory: str) -> None:
+    def _make_gpu_wrapper_script(
+        self,
+        experiment_directory: str,
+        hardware_sampling: bool = False,
+    ) -> None:
+        script_name = "gpu-wrapper-slurm"
+        pre_execution = []
+        post_execution = []
+        if hardware_sampling:
+            script_name += "-hws"
+            pre_execution.append(
+                "if [ $SLURM_LOCALID -eq 0 ]; then",
+                "    geosongpu_hws server &",
+                "    sleep 20",
+                "    geosongpu_hws client start",
+                "fi",
+            )
+            post_execution.append(
+                "if [ $SLURM_LOCALID -eq 0 ]; then",
+                "    geosongpu_hws client dump",
+                "    geosongpu_hws client stop",
+                "fi",
+            )
+        cuda_device_setup = [
+            "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
+            'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
+            ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
+        ]
+        execution = ["$*"]
         self.gpu_wrapper = ShellScript(
-            "gpu-wrapper-slurm",
+            script_name,
             working_directory=experiment_directory,
         ).write(
             modules=[],
-            shell_commands=[
-                "#!/usr/bin/env sh",
-                "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
-                'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
-                ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
-                "$*",
-            ],
+            shell_commands=cuda_device_setup
+            + pre_execution
+            + execution
+            + post_execution,
         )
 
     def _copy_executable_script(

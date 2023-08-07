@@ -1,20 +1,35 @@
 from matplotlib import pyplot
 import numpy as np
 from geosongpu_ci.tools.hws.constants import (
-    HWS_HWLOAD_FILENAME,
-    HWS_HARDWARE_SPECS,
     HWS_HW_GPU,
+    HWS_HARDWARE_SPECS,
 )
+from typing import Dict, Any
 
 COLOR_VRAM = "C4"
 
 
-def cli(dump_format="npz", dynamic_gpu_load=True):
-    if dump_format != "npz":
-        raise NotImplementedError(f"Format {dump_format} not implemented for graphing")
-    d = np.load(f"{HWS_HWLOAD_FILENAME}.npz")
+def energy_envelop_calculation(cpu_psu_data: np.ndarray, gpu_psu_data: np.ndarray):
+    gpu_kW_envelop = np.trapz(gpu_psu_data / 1000)
+    cpu_kW_envelop = np.trapz(cpu_psu_data / 1000)
+    return gpu_kW_envelop, cpu_kW_envelop
+
+def load_data(
+    data_filepath: str,
+    data_format: str = "npz",
+) -> Dict[str, Any]:
+    if data_format != "npz":
+        raise NotImplementedError(f"Format {data_format} not implemented for graphing")
+    return np.load(data_filepath)
+
+def cli(
+    data_filepath: str,
+    data_format: str = "npz",
+    dynamic_gpu_load: bool = True,
+):
+    d = load_data(data_filepath, data_format)
     n = len(d["cpu_psu"])
-    s = slice(n - 5000, n)
+    s = slice(0, n)
     print(n, s)
     yd = np.arange(len(d["cpu_psu"][s]))
 
@@ -48,9 +63,12 @@ def cli(dump_format="npz", dynamic_gpu_load=True):
     ax2.tick_params(axis="y", labelcolor="C4")
     ax2.set_ylim(0, HWS_HARDWARE_SPECS[HWS_HW_GPU]["MAX_VRAM"])
 
-    fig.savefig("Hardware_Load")
+    fig.savefig(data_filepath.replace(f".{data_format}", ""))
 
+    gpu_kW_envelop, cpu_kW_envelop = energy_envelop_calculation(
+        d["cpu_psu"][s], d["gpu_psu"][s]
+    )
     print(
-        f" Overall GPU W usage:{np.trapz(d['gpu_psu'][s]/1000):.0f} kW\n",
-        f"Overall CPU W usage:{np.trapz(d['cpu_psu'][s]/1000):.0f} kW",
+        f"Overall CPU W usage:{cpu_kW_envelop:.0f} kW\n",
+        f"Overall GPU W usage:{gpu_kW_envelop:.0f} kW",
     )
