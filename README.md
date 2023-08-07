@@ -33,11 +33,11 @@ Legend:
   * CXX: resolution of a cube-sphere face
   * LXX: number of atmospheric levels
 * Setup:
-  * Node-to-node (exclusive GPU): as per machine configuration, using exactly 1 GPU for one cube-sphere face or 0.5 CPU socket.
+  * Node-to-node (exclusive GPU): as per machine configuration, using exactly 1 GPU for one cube-sphere and the machine equivalent CPU socket.
     * On Discover:
       * GPU: 1 A100 and 1 EPYC 7402 core
       * CPU: 12 EPYC 7402 core
-  * Node-to-node (sharing GPU): as per machine configuration, sharing 1 GPU for 1 CPU socket worth of ranks.
+  * Node-to-node (sharing GPU): as per machine configuration, sharing 1 GPU for the machine equivalent CPU socket worth of ranks.
     * On Discover (using Nvidia's MPS):
       * GPU: 1 A100 and 12 EPYC 7402 core
       * CPU: 12 EPYC 7402 core
