@@ -14,3 +14,15 @@ class BenchmarkRawData:
         default_factory=list
     )
     hws_data: Dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def backend_sanitized(self):
+        """Generate a filname-safe backend name"""
+
+        return (
+            self.backend.replace("(", "")
+            .replace(": ", "-")
+            .replace(":", "-")
+            .replace(" ", "-")
+            .replace(")", "-")
+        )

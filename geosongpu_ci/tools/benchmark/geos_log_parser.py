@@ -60,7 +60,7 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
             benchmark.backend = "gtfv3 (details failed to parse)"
         else:
             backend = grepped[0].strip().replace("\n", "")
-            benchmark.backend = f"gtfv3: ({backend})"
+            benchmark.backend = f"gtfv3_{backend})"
 
     # Get timings of FV
     if is_gtfv3:
