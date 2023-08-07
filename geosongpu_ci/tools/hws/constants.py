@@ -1,8 +1,8 @@
 import os
 
 # Socket details
-SOCKET_DIRECTORY = "./hwsampler-sockets"
-SOCKET_FILENAME = f"{SOCKET_DIRECTORY}/stats_wrapper"
+SOCKET_DIRECTORY = "./sockets-runtime"
+SOCKET_FILENAME = f"{SOCKET_DIRECTORY}/hws"
 
 # Dump
 HWS_DUMP_NAME = "hws_dump"
