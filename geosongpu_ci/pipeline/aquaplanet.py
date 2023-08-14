@@ -184,7 +184,7 @@ class Aquaplanet(TaskBase):
         # Setup
         geos_path = env.get("GEOS_BASE_DIRECTORY")
         geos_experiment_path = f"{geos_path}/experiment"
-        artifact_directory = f"{env.artifact_directory}/held_suarez/"
+        artifact_directory = f"{env.artifact_directory}/Aquaplanet/"
         os.makedirs(artifact_directory, exist_ok=True)
 
         # Metadata

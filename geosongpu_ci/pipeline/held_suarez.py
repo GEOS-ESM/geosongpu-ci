@@ -269,7 +269,7 @@ class HeldSuarez(TaskBase):
                 experiment_directory=experiment_directory,
                 executable_name=self.executable_name,
                 prolog_scripts=prolog_scripts,
-                slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+                slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
                     output="validation.cache.dacegpu.%t.out"
                 ),
                 gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
@@ -287,7 +287,7 @@ class HeldSuarez(TaskBase):
             or env.experiment_action == PipelineAction.All
         ):
             # We run a range of resolution. C180-L72 might already be ran
-            for resolution in ["C180-L72", "C180-L91", "C180-L137"]:
+            for resolution in ["C180-L72", "C180-L137", "C360-L72"]:
                 if (
                     resolution == VALIDATION_RESOLUTION
                     and env.experiment_action == PipelineAction.All
@@ -310,7 +310,7 @@ class HeldSuarez(TaskBase):
                         experiment_directory=experiment_directory,
                         executable_name=self.executable_name,
                         prolog_scripts=prolog_scripts,
-                        slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+                        slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
                             output="benchmark.cache.dacegpu.%t.out"
                         ),
                         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
@@ -323,7 +323,7 @@ class HeldSuarez(TaskBase):
                     experiment_directory=experiment_directory,  # type: ignore
                     executable_name=self.executable_name,
                     prolog_scripts=prolog_scripts,  # type: ignore
-                    slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+                    slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
                         output="benchmark.1day.dacegpu.%t.out"
                     ),
                     gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
@@ -336,10 +336,10 @@ class HeldSuarez(TaskBase):
                     experiment_directory=experiment_directory,  # type: ignore
                     executable_name=self.executable_name,
                     prolog_scripts=prolog_scripts,  # type: ignore
-                    slurm_config=SlurmConfiguration.one_half_nodes_CPU(
+                    slurm_config=SlurmConfiguration.slurm_72CPUs(
                         output="benchmark.1day.fortran.%t.out"
                     ),
-                    gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Python"),
+                    gtfv3_config=GTFV3Config.fortran(),
                     setup_script=self._setup_1day_1node_fortran(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
                 )
@@ -498,7 +498,7 @@ def benchmark(
         experiment_directory=experiment_directory,
         executable_name=HS.executable_name,
         prolog_scripts=prolog_scripts,
-        slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+        slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
             output="benchmark.cache.dacegpu.%t.out"
         ),
         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
@@ -509,7 +509,7 @@ def benchmark(
         experiment_directory=experiment_directory,
         executable_name=HS.executable_name,
         prolog_scripts=prolog_scripts,
-        slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+        slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
             output="benchmark.1day.dacegpu.%t.out"
         ),
         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
@@ -520,7 +520,7 @@ def benchmark(
         experiment_directory=experiment_directory,
         executable_name=HS.executable_name,
         prolog_scripts=prolog_scripts,
-        slurm_config=SlurmConfiguration.one_half_nodes_CPU(
+        slurm_config=SlurmConfiguration.slurm_72CPUs(
             output="benchmark.1day.fortran.%t.out"
         ),
         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
