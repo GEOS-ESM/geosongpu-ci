@@ -147,6 +147,7 @@ class GEOS(TaskBase):
                 set_env_script,
             ],
             shell_commands=[
+                "mkdir -p geos/build",
                 "cd geos/build",
                 f"export TMP={env.CI_WORKSPACE}/geos/build/tmp",
                 build_cmd,

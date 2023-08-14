@@ -124,7 +124,7 @@ def _make_srun_script(
         working_directory=experiment_directory,
     ).write(
         env_to_source=[
-            prolog_scripts.set_env.name,
+            prolog_scripts.set_env,
         ],
         shell_commands=[
             f"cd {experiment_directory}",

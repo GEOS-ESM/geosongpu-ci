@@ -1,5 +1,5 @@
 import subprocess
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Union
 import os
 import stat
 from geosongpu_ci.utils.progress import Progress
@@ -25,7 +25,7 @@ class ShellScript:
         self,
         shell_commands: List[str],
         modules: Optional[List[str]] = None,
-        env_to_source: Optional[List[str]] = None,
+        env_to_source: Optional[List[Union[str, "ShellScript"]]] = None,
     ) -> "ShellScript":
         code = "#!/bin/sh\n"
         # Module load in prolog
