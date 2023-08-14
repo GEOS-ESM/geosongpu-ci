@@ -120,7 +120,7 @@ def _make_srun_script(
         executable_name=executable_name,
     )
     srun_script_script = ShellScript(
-        f"srun_{slurm_config.ntasks}tasks",
+        f"srun_{slurm_config.ntasks}tasks_{gtfv3_config.backend_sanitized()}",
         working_directory=experiment_directory,
     ).write(
         env_to_source=[
@@ -337,10 +337,10 @@ class HeldSuarez(TaskBase):
                     executable_name=self.executable_name,
                     prolog_scripts=prolog_scripts,  # type: ignore
                     slurm_config=SlurmConfiguration.one_half_nodes_CPU(
-                        output="benchmark.1day.dacegpu.%t.out"
+                        output="benchmark.1day.fortran.%t.out"
                     ),
-                    gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
-                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),  # type: ignore
+                    gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Python"),
+                    setup_script=self._setup_1day_1node_fortran(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
                 )
 

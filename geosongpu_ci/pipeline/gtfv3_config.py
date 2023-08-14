@@ -24,3 +24,6 @@ class GTFV3Config:
     @classmethod
     def dace_gpu_32_bit_BAR(cls, dacemode: Optional[str] = None) -> "GTFV3Config":
         return cls(FV3_DACEMODE=dacemode or cls.FV3_DACEMODE)
+
+    def backend_sanitized(self):
+        return self.GTFV3_BACKEND.replace(":", "")

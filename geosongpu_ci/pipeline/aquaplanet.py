@@ -66,7 +66,7 @@ class Aquaplanet(TaskBase):
     ):
         executor_name = f"{setup_sh.replace('sh', '')}_{cap_rc}.sbatch"
         executor_name.replace("/", "-")  # sanitize
-        if setup_only:
+        if not setup_only:
             ShellScript("temporary_setup").write(
                 shell_commands=[
                     f"cd {experiment_directory}",
