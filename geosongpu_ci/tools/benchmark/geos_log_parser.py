@@ -1,5 +1,5 @@
 from geosongpu_ci.tools.benchmark.raw_data import BenchmarkRawData
-from typing import Iterable, Optional
+from typing import List, Optional
 import re
 
 
@@ -16,7 +16,7 @@ def _grep(
     start_pattern: Optional[str] = None,
     end_pattern: Optional[str] = None,
     expected: Optional[bool] = True,
-) -> Iterable[str]:
+) -> List[str]:
     results = []
     check = start_pattern is None
     with open(filename, "r") as f:
@@ -35,7 +35,7 @@ def _grep(
     return results
 
 
-def _extract_numerics(strings: Iterable[str]) -> Iterable[float]:
+def _extract_numerics(strings: List[str]) -> List[float]:
     results = []
     for s in strings:
         for r in RE_NUMERIC.findall(s):
@@ -54,21 +54,22 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
     if not is_gtfv3:
         benchmark.backend = "fortran"
     else:
-        backend_pattern = "backend: "
+        backend_pattern = "backend : "
         grepped = _grep(filename, backend_pattern, exclude_pattern=True, expected=False)
         if grepped == []:
             benchmark.backend = "gtfv3 (details failed to parse)"
         else:
-            backend = grepped[0].strip().replace("\n", "")
-            benchmark.backend = f"gtfv3_{backend})"
+            backend = grepped[0].strip().replace("\n", "").replace(":", "")
+            benchmark.backend = f"gtfv3_{backend}"
 
     # Get timings of FV
     if is_gtfv3:
         interface_timings = _grep(filename, "0 , geos_gtfv3", exclude_pattern=True)
         benchmark.fv_dyncore_timings = _extract_numerics(interface_timings)
 
-        dycore_timings = _grep(filename, "] Run...", exclude_pattern=True)
-        benchmark.inner_dycore_timings = _extract_numerics(dycore_timings)
+        if "dace" in benchmark.backend:
+            dycore_timings = _grep(filename, "] Run...", exclude_pattern=True)
+            benchmark.inner_dycore_timings = _extract_numerics(dycore_timings)
     else:
         dycore_timings = _grep(filename, "0: fv_dynamics", exclude_pattern=True)
         benchmark.fv_dyncore_timings = _extract_numerics(dycore_timings)

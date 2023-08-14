@@ -13,7 +13,7 @@ from geosongpu_ci.pipeline.gtfv3_config import GTFV3Config
 from geosongpu_ci.utils.progress import Progress
 from geosongpu_ci.tools.benchmark.geos_log_parser import parse_geos_log
 from geosongpu_ci.tools.benchmark.report import report
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 import shutil
 import os
 import glob
@@ -53,19 +53,25 @@ class PrologScripts:
         post_execution = []
         if hardware_sampling:
             script_name += "-hws"
-            pre_execution.append(
-                "if [ $SLURM_LOCALID -eq 0 ]; then",
-                "    geosongpu_hws server &",
-                "    sleep 20",
-                "    geosongpu_hws client start",
-                "fi",
-            )
+            pre_execution.append("if [ $SLURM_LOCALID -eq 0 ]; then")
+            pre_execution.append("    geosongpu_hws server &")
+            pre_execution.append("    sleep 20")
+            pre_execution.append("    geosongpu_hws client start")
+            pre_execution.append("fi")
+
             post_execution.append(
                 "if [ $SLURM_LOCALID -eq 0 ]; then",
+            )
+            post_execution.append(
                 "    geosongpu_hws client dump",
+            )
+            post_execution.append(
                 "    geosongpu_hws client stop",
+            )
+            post_execution.append(
                 "fi",
             )
+
         cuda_device_setup = [
             "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
             'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
@@ -118,7 +124,7 @@ def _make_srun_script(
         working_directory=experiment_directory,
     ).write(
         env_to_source=[
-            prolog_scripts.set_env,
+            prolog_scripts.set_env.name,
         ],
         shell_commands=[
             f"cd {experiment_directory}",
@@ -194,7 +200,7 @@ class HeldSuarez(TaskBase):
         geos_directory: str,
         geos_install_directory: str,
         executable_name: str,
-    ) -> str:
+    ) -> Tuple[str, PrologScripts]:
         experiment_dir = copy_input_to_experiment_directory(
             input_directory=input_directory,
             geos_directory=geos_directory,
@@ -288,10 +294,10 @@ class HeldSuarez(TaskBase):
                 ):
                     # In case validation ran already, we have the experiment dir
                     # and the cache ready to run
-                    experiment_dir = validation_experiment_directory
+                    experiment_directory = validation_experiment_directory
                     prolog_scripts = validation_prolog_script
                 else:
-                    experiment_dir, prolog_scripts = self.prepare_experiment(
+                    experiment_directory, prolog_scripts = self.prepare_experiment(
                         input_directory=config["input"][resolution],
                         resolution=resolution,
                         geos_directory=geos,
@@ -314,27 +320,27 @@ class HeldSuarez(TaskBase):
 
                 # Run 1 day gtfv3
                 self.simulate(
-                    experiment_directory=experiment_directory,
+                    experiment_directory=experiment_directory,  # type: ignore
                     executable_name=self.executable_name,
-                    prolog_scripts=prolog_scripts,
+                    prolog_scripts=prolog_scripts,  # type: ignore
                     slurm_config=SlurmConfiguration.one_half_nodes_GPU(
                         output="benchmark.1day.dacegpu.%t.out"
                     ),
                     gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
-                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),
+                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
                 )
 
                 # Run 1 day Fortran
                 self.simulate(
-                    experiment_directory=experiment_directory,
+                    experiment_directory=experiment_directory,  # type: ignore
                     executable_name=self.executable_name,
-                    prolog_scripts=prolog_scripts,
-                    slurm_config=SlurmConfiguration.one_half_Nodes_CPU(
+                    prolog_scripts=prolog_scripts,  # type: ignore
+                    slurm_config=SlurmConfiguration.one_half_nodes_CPU(
                         output="benchmark.1day.dacegpu.%t.out"
                     ),
                     gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
-                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),
+                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
                 )
 

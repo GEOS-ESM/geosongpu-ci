@@ -57,7 +57,7 @@ class SlurmConfiguration:
         )
 
     @classmethod
-    def one_half_Nodes_CPU(cls, output: Optional[str] = None) -> "SlurmConfiguration":
+    def one_half_nodes_CPU(cls, output: Optional[str] = None) -> "SlurmConfiguration":
         """1/2 node configuration on Discover with Rome Epyc"""
         return SlurmConfiguration(
             nodes=2,

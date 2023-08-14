@@ -6,6 +6,7 @@ import numpy as np
 from geosongpu_ci.tools.benchmark.raw_data import BenchmarkRawData
 from geosongpu_ci.tools.benchmark.geos_log_parser import parse_geos_log
 from geosongpu_ci.tools.hws.graph import energy_envelop_calculation
+import plotly.graph_objects as go
 
 
 @dataclass
@@ -33,8 +34,6 @@ def _index_in_profiling(parent, profilings) -> int:
 
 
 def sankey_plot_of_gridcomp(raw_data: BenchmarkRawData, filename: str, title: str):
-    import plotly.graph_objects as go
-
     sources = []
     targets = []
     values = []
@@ -282,6 +281,10 @@ def cli(geos_logs: Iterable[str]):
                 f"FVGridComp_breakdown_{raw_data.backend_sanitized}",
                 f"FV Grid Comp for {raw_data.backend}",
             )
+    for raw_data in benchmark_raw_data:
+        x = np.arange(len(raw_data.fv_dyncore_timings))
+        fig = go.Figure(data=go.Scatter(x=x, y=raw_data.fv_dyncore_timings))
+        fig.write_image(f"dyncore_verif_{raw_data.backend}.png")
 
 
 if __name__ == "__main__":
