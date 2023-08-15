@@ -92,8 +92,14 @@ def _make_srun_script(
     {f'export LOCAL_REDIRECT_LOG=1' if local_redirect_log else 'unset LOCAL_REDIRECT_LOG' }
     """
 
-    srun_script_script = ShellScript(
-        f"srun_{slurm_config.ntasks}tasks_{gtfv3_config.backend_sanitized()}",
+    if "dace" in gtfv3_config.GTFV3_BACKEND:
+        backend = f"{gtfv3_config.backend_sanitized()}.{gtfv3_config.FV3_DACEMODE}"
+    else:
+        backend = f"{gtfv3_config.backend_sanitized()}"
+    srun_script_name = f"srun_{slurm_config.ntasks}tasks_{backend}"
+
+    srun_script = ShellScript(
+        srun_script_name,
         working_directory=experiment_directory,
     ).write(
         env_to_source=[
@@ -112,7 +118,7 @@ def _make_srun_script(
             f"{srun_cmd}",
         ],
     )
-    return srun_script_script
+    return srun_script
 
 
 VALIDATION_RESOLUTION = "C180-L72"
@@ -320,7 +326,9 @@ class HeldSuarez(TaskBase):
                             output="benchmark.cache.dacegpu.%t.out"
                         ),
                         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
-                        setup_script=self._setup_1ts_1node_gtfv3(experiment_directory),
+                        setup_script=self._setup_1day_2nodes_gtfv3(
+                            experiment_directory
+                        ),
                         setup_only=env.setup_only,
                     )
 

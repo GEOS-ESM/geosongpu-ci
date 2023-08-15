@@ -52,9 +52,9 @@ echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID, pinned to GPU: $CUDA_VISIBLE_DE
 
 # Run program with or without log dump in file
 if [ -z ${LOCAL_REDIRECT_LOG} ]; then
-    $* > log.redirect_local.%t.out > 2&1
-else
     $*
+else
+    $* > log.redirect_local.$SLURM_PROCID.out 2>&1
 fi
 
 # Clean up of all tools
