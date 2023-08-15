@@ -46,12 +46,11 @@ class PrologScripts:
     def _make_gpu_wrapper_script(
         self,
         experiment_directory: str,
-        hardware_sampling: bool = False,
     ) -> None:
         self.gpu_wrapper = ShellScript(
             "gpu-wrapper-slurm-mps",
             working_directory=experiment_directory,
-        ).from_template(template_name="gpu-wrapper-slurm-mps.sh.tpl")
+        ).from_template(template_name="gpu-wrapper-slurm-mps.sh")
 
     def _copy_executable_script(
         self,

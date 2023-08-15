@@ -4,6 +4,7 @@ import os
 import stat
 from geosongpu_ci.utils.progress import Progress
 from time import sleep
+from geosongpu_ci.pipeline.templates import find_template
 
 
 class ShellScript:
@@ -22,11 +23,8 @@ class ShellScript:
         return self._name
 
     def from_template(self, template_name: str):
-        template_file = f"./templates/{template_name}"
-        if not os.path.exists(template_file):
-            raise FileNotFoundError(f"Template: could not locate {template_file}")
-
         # Read template
+        template_file = find_template(template_name)
         with open(template_file, "r") as f:
             tpl = f.read()
 

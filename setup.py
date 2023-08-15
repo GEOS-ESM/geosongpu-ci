@@ -25,10 +25,14 @@ setuptools.setup(
         "psutil",
         "matplotlib",
         "plotly",
-        "kaleido"
+        "kaleido",
     ],
     data_files=[
         ("./geosongpu/experiments", ["./experiments/experiments.yaml"]),
+        (
+            "./geosongpu/templates",
+            ["./geosongpu_ci/pipeline/templates/gpu-wrapper-slurm-mps.sh.tpl"],
+        ),
     ],
     entry_points={
         "console_scripts": [
