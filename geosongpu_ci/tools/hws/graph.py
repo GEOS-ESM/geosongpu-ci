@@ -56,12 +56,15 @@ def cli(
     )
 
     fig.add_trace(
-        go.Scatter(y=d["gpu_mem"][s], x=yd, name="gpu_mem"),
+        go.Scatter(y=d["gpu_mem"][s], x=yd, name="GPU VRAM (Mb)"),
         secondary_y=True,
     )
 
     # Labels
-    fig.update_layout(title_text="Hardware sensors")
+    fig.update_layout(
+        title_text="Hardware sensors",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    )
     fig.update_xaxes(title_text="Sample #")
     fig.update_yaxes(
         title_text="W or %",
