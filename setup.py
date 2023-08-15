@@ -23,7 +23,6 @@ setuptools.setup(
         "pdoc",
         "pynvml",
         "psutil",
-        "matplotlib",
         "plotly",
         "kaleido",
     ],
