@@ -19,6 +19,7 @@ class GTFV3Config:
             f"export PACE_FLOAT_PRECISION={self.PACE_FLOAT_PRECISION}\n"
             f"export PACE_LOGLEVEL={self.PACE_LOGLEVEL}\n"
             f"export GTFV3_BACKEND={self.GTFV3_BACKEND}\n"
+            f"export PYTHONOPTIMIZE=1"
         )
 
     @classmethod

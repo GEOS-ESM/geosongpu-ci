@@ -21,6 +21,22 @@ class ShellScript:
     def name(self) -> str:
         return self._name
 
+    def from_template(self, template_name: str):
+        template_file = f"./templates/{template_name}"
+        if not os.path.exists(template_file):
+            raise FileNotFoundError(f"Template: could not locate {template_file}")
+
+        # Read template
+        with open(template_file, "r") as f:
+            tpl = f.read()
+
+        # Write file
+        with open(self.path, "w") as f:
+            f.write(tpl)
+
+        self._make_executable()
+        return self
+
     def write(
         self,
         shell_commands: List[str],
