@@ -80,7 +80,7 @@ Bot commands:
 : Triggers a geosongpu_dispatch command with given parameters
 ```
 
-# Documentation
+## Documentation
 
 Build with pdoc with
 

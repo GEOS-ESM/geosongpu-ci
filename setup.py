@@ -16,13 +16,24 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3",
-    install_requires=["pyyaml", "click", "numpy", "pdoc"],
+    install_requires=[
+        "pyyaml",
+        "click",
+        "numpy",
+        "pdoc",
+        "pynvml",
+        "psutil",
+        "matplotlib",
+        "plotly",
+        "kaleido"
+    ],
     data_files=[
         ("./geosongpu/experiments", ["./experiments/experiments.yaml"]),
     ],
     entry_points={
         "console_scripts": [
-            "geosongpu_dispatch = geosongpu_ci.dispatch:cli_dispatch",
+            "geosongpu_dispatch = geosongpu_ci.dispatch:cli",
+            "geosongpu_hws = geosongpu_ci.tools.hws.cli:cli",
         ],
     },
 )

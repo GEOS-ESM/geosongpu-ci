@@ -119,7 +119,7 @@ class GEOS(TaskBase):
         if env.experiment_name == GEOS_AQ_KEY:
             cmake_cmd += " -DAQUAPLANET=ON"
 
-        ShellScript("CMake_geos").write(
+        ShellScript("geos_build_CMake").write(
             modules=[],
             env_to_source=[
                 set_env_script,
@@ -135,12 +135,12 @@ class GEOS(TaskBase):
                 "echo $TMP",
                 cmake_cmd,
             ],
-        )
+        ).execute()
 
         build_cmd = (
             f"{one_gpu_srun(log='build.out', time='01:30:00')} make -j48 install"
         )
-        make_script = ShellScript("make_geos")
+        make_script = ShellScript("geos_build_make")
         make_script.write(
             modules=[],
             env_to_source=[

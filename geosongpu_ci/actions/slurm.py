@@ -44,7 +44,7 @@ class SlurmConfiguration:
         )
 
     @classmethod
-    def one_half_nodes_GPU(cls, output: Optional[str] = None) -> "SlurmConfiguration":
+    def slurm_6CPUs_6GPUs(cls, output: Optional[str] = None) -> "SlurmConfiguration":
         """1/2 node configuration on Discover with A100 & Rome Epyc"""
         return cls(
             nodes=2,
@@ -57,12 +57,25 @@ class SlurmConfiguration:
         )
 
     @classmethod
-    def one_half_Nodes_CPU(cls, output: Optional[str] = None) -> "SlurmConfiguration":
+    def slurm_72CPUs(cls, output: Optional[str] = None) -> "SlurmConfiguration":
         """1/2 node configuration on Discover with Rome Epyc"""
         return SlurmConfiguration(
             nodes=2,
             ntasks=72,
             ntasks_per_node=48,
             sockets_per_node=2,
+            output=output or cls.output,
+        )
+
+    @classmethod
+    def slurm_96CPUs_8GPUs(cls, output: Optional[str] = None) -> "SlurmConfiguration":
+        """2 nodes configuration on Discover with A100 & Rome Epyc"""
+        return cls(
+            nodes=2,
+            ntasks=96,
+            ntasks_per_node=48,
+            sockets_per_node=2,
+            gpus_per_node=4,
+            mem_per_gpu="40G",
             output=output or cls.output,
         )

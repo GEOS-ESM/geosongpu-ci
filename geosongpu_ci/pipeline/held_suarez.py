@@ -13,7 +13,7 @@ from geosongpu_ci.pipeline.gtfv3_config import GTFV3Config
 from geosongpu_ci.utils.progress import Progress
 from geosongpu_ci.tools.benchmark.geos_log_parser import parse_geos_log
 from geosongpu_ci.tools.benchmark.report import report
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 import shutil
 import os
 import glob
@@ -43,19 +43,50 @@ class PrologScripts:
             geos_install_path,
         )
 
-    def _make_gpu_wrapper_script(self, experiment_directory: str) -> None:
+    def _make_gpu_wrapper_script(
+        self,
+        experiment_directory: str,
+        hardware_sampling: bool = False,
+    ) -> None:
+        script_name = "gpu-wrapper-slurm"
+        pre_execution = []
+        post_execution = []
+        if hardware_sampling:
+            script_name += "-hws"
+            pre_execution.append("if [ $SLURM_LOCALID -eq 0 ]; then")
+            pre_execution.append("    geosongpu_hws server &")
+            pre_execution.append("    sleep 20")
+            pre_execution.append("    geosongpu_hws client start")
+            pre_execution.append("fi")
+
+            post_execution.append(
+                "if [ $SLURM_LOCALID -eq 0 ]; then",
+            )
+            post_execution.append(
+                "    geosongpu_hws client dump",
+            )
+            post_execution.append(
+                "    geosongpu_hws client stop",
+            )
+            post_execution.append(
+                "fi",
+            )
+
+        cuda_device_setup = [
+            "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
+            'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
+            ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
+        ]
+        execution = ["$*"]
         self.gpu_wrapper = ShellScript(
-            "gpu-wrapper-slurm",
+            script_name,
             working_directory=experiment_directory,
         ).write(
             modules=[],
-            shell_commands=[
-                "#!/usr/bin/env sh",
-                "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
-                'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
-                ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
-                "$*",
-            ],
+            shell_commands=cuda_device_setup
+            + pre_execution
+            + execution
+            + post_execution,
         )
 
     def _copy_executable_script(
@@ -89,7 +120,7 @@ def _make_srun_script(
         executable_name=executable_name,
     )
     srun_script_script = ShellScript(
-        f"srun_{slurm_config.ntasks}tasks",
+        f"srun_{slurm_config.ntasks}tasks_{gtfv3_config.backend_sanitized()}",
         working_directory=experiment_directory,
     ).write(
         env_to_source=[
@@ -169,7 +200,7 @@ class HeldSuarez(TaskBase):
         geos_directory: str,
         geos_install_directory: str,
         executable_name: str,
-    ) -> str:
+    ) -> Tuple[str, PrologScripts]:
         experiment_dir = copy_input_to_experiment_directory(
             input_directory=input_directory,
             geos_directory=geos_directory,
@@ -238,7 +269,7 @@ class HeldSuarez(TaskBase):
                 experiment_directory=experiment_directory,
                 executable_name=self.executable_name,
                 prolog_scripts=prolog_scripts,
-                slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+                slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
                     output="validation.cache.dacegpu.%t.out"
                 ),
                 gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
@@ -256,17 +287,17 @@ class HeldSuarez(TaskBase):
             or env.experiment_action == PipelineAction.All
         ):
             # We run a range of resolution. C180-L72 might already be ran
-            for resolution in ["C180-L72", "C180-L91", "C180-L137"]:
+            for resolution in ["C180-L72", "C180-L137", "C360-L72"]:
                 if (
                     resolution == VALIDATION_RESOLUTION
                     and env.experiment_action == PipelineAction.All
                 ):
                     # In case validation ran already, we have the experiment dir
                     # and the cache ready to run
-                    experiment_dir = validation_experiment_directory
+                    experiment_directory = validation_experiment_directory
                     prolog_scripts = validation_prolog_script
                 else:
-                    experiment_dir, prolog_scripts = self.prepare_experiment(
+                    experiment_directory, prolog_scripts = self.prepare_experiment(
                         input_directory=config["input"][resolution],
                         resolution=resolution,
                         geos_directory=geos,
@@ -279,7 +310,7 @@ class HeldSuarez(TaskBase):
                         experiment_directory=experiment_directory,
                         executable_name=self.executable_name,
                         prolog_scripts=prolog_scripts,
-                        slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+                        slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
                             output="benchmark.cache.dacegpu.%t.out"
                         ),
                         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
@@ -289,27 +320,27 @@ class HeldSuarez(TaskBase):
 
                 # Run 1 day gtfv3
                 self.simulate(
-                    experiment_directory=experiment_directory,
+                    experiment_directory=experiment_directory,  # type: ignore
                     executable_name=self.executable_name,
-                    prolog_scripts=prolog_scripts,
-                    slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+                    prolog_scripts=prolog_scripts,  # type: ignore
+                    slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
                         output="benchmark.1day.dacegpu.%t.out"
                     ),
                     gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
-                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),
+                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
                 )
 
                 # Run 1 day Fortran
                 self.simulate(
-                    experiment_directory=experiment_directory,
+                    experiment_directory=experiment_directory,  # type: ignore
                     executable_name=self.executable_name,
-                    prolog_scripts=prolog_scripts,
-                    slurm_config=SlurmConfiguration.one_half_Nodes_CPU(
-                        output="benchmark.1day.dacegpu.%t.out"
+                    prolog_scripts=prolog_scripts,  # type: ignore
+                    slurm_config=SlurmConfiguration.slurm_72CPUs(
+                        output="benchmark.1day.fortran.%t.out"
                     ),
-                    gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
-                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),
+                    gtfv3_config=GTFV3Config.fortran(),
+                    setup_script=self._setup_1day_1node_fortran(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
                 )
 
@@ -467,7 +498,7 @@ def benchmark(
         experiment_directory=experiment_directory,
         executable_name=HS.executable_name,
         prolog_scripts=prolog_scripts,
-        slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+        slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
             output="benchmark.cache.dacegpu.%t.out"
         ),
         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
@@ -478,7 +509,7 @@ def benchmark(
         experiment_directory=experiment_directory,
         executable_name=HS.executable_name,
         prolog_scripts=prolog_scripts,
-        slurm_config=SlurmConfiguration.one_half_nodes_GPU(
+        slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
             output="benchmark.1day.dacegpu.%t.out"
         ),
         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
@@ -489,7 +520,7 @@ def benchmark(
         experiment_directory=experiment_directory,
         executable_name=HS.executable_name,
         prolog_scripts=prolog_scripts,
-        slurm_config=SlurmConfiguration.one_half_nodes_CPU(
+        slurm_config=SlurmConfiguration.slurm_72CPUs(
             output="benchmark.1day.fortran.%t.out"
         ),
         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),

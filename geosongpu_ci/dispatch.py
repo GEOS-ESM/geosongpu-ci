@@ -12,7 +12,7 @@ from geosongpu_ci.actions.pipeline import PipelineAction
     is_flag=True,
     help="Setup the experiment but skip any long running jobs (build, run...)",
 )
-def cli_dispatch(name: str, action: str, artifact: str, setup_only: bool):
+def cli(name: str, action: str, artifact: str, setup_only: bool):
     """Dispatch the _NAME_ experiment (as recorded in experiments.yaml)
     with the _ACTION_ (from  Validation, Benchmark or All).
 
@@ -22,4 +22,4 @@ def cli_dispatch(name: str, action: str, artifact: str, setup_only: bool):
 
 
 if __name__ == "__main__":
-    cli_dispatch()
+    cli()

@@ -66,7 +66,7 @@ class Aquaplanet(TaskBase):
     ):
         executor_name = f"{setup_sh.replace('sh', '')}_{cap_rc}.sbatch"
         executor_name.replace("/", "-")  # sanitize
-        if setup_only:
+        if not setup_only:
             ShellScript("temporary_setup").write(
                 shell_commands=[
                     f"cd {experiment_directory}",
@@ -102,6 +102,7 @@ class Aquaplanet(TaskBase):
     ):
         geos = env.get("GEOS_BASE_DIRECTORY")
         validation_experiment_dir = None
+        resolution = None
 
         if (
             env.experiment_action == PipelineAction.All
@@ -159,7 +160,7 @@ class Aquaplanet(TaskBase):
 
             # Execute 1 day run on 6 GPUs
             self.simulate(
-                experiment_directory=experiment_dir,
+                experiment_directory=experiment_dir,  # type: ignore
                 setup_sh="setup_1.5nodes_gpu.sh",
                 cap_rc="CAP.rc.1day",
                 log_pattern="benchmark.1day.dacegpu.%t.out",
@@ -168,7 +169,7 @@ class Aquaplanet(TaskBase):
 
             # Execute 1 day run on 72 CPUs (fortran)
             self.simulate(
-                experiment_directory=experiment_dir,
+                experiment_directory=experiment_dir,  # type: ignore
                 setup_sh="setup_1.5nodes_cpu.sh",
                 cap_rc="CAP.rc.1day",
                 log_pattern="benchmark.1day.fortran.%t.out",
@@ -183,7 +184,7 @@ class Aquaplanet(TaskBase):
         # Setup
         geos_path = env.get("GEOS_BASE_DIRECTORY")
         geos_experiment_path = f"{geos_path}/experiment"
-        artifact_directory = f"{env.artifact_directory}/held_suarez/"
+        artifact_directory = f"{env.artifact_directory}/Aquaplanet/"
         os.makedirs(artifact_directory, exist_ok=True)
 
         # Metadata

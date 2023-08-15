@@ -1,10 +1,12 @@
 import click
 import itertools
-from typing import Any, List, Iterable
+from typing import Any, List, Iterable, Optional
 from dataclasses import dataclass, field
 import numpy as np
 from geosongpu_ci.tools.benchmark.raw_data import BenchmarkRawData
 from geosongpu_ci.tools.benchmark.geos_log_parser import parse_geos_log
+from geosongpu_ci.tools.hws.graph import energy_envelop_calculation
+import plotly.graph_objects as go
 
 
 @dataclass
@@ -32,15 +34,17 @@ def _index_in_profiling(parent, profilings) -> int:
 
 
 def sankey_plot_of_gridcomp(raw_data: BenchmarkRawData, filename: str, title: str):
-    import plotly.graph_objects as go
-
     sources = []
     targets = []
     values = []
-    for i, (shortname, value, parent) in enumerate(raw_data):
+    for i, (_shortname, value, parent) in enumerate(
+        raw_data.fv_gridcomp_detailed_profiling
+    ):
         if parent == "":
             continue
-        sources.append(_index_in_profiling(parent, raw_data))
+        sources.append(
+            _index_in_profiling(parent, raw_data.fv_gridcomp_detailed_profiling)
+        )
         targets.append(i)
         values.append(value)
 
@@ -53,7 +57,8 @@ def sankey_plot_of_gridcomp(raw_data: BenchmarkRawData, filename: str, title: st
                     thickness=15,
                     line=dict(color="black", width=0.5),
                     label=[
-                        f"{shortname}:{measure}s" for shortname, measure, _ in raw_data
+                        f"{shortname}:{measure}s"
+                        for shortname, measure, _ in raw_data.fv_gridcomp_detailed_profiling
                     ],
                 ),
                 # Add links
@@ -65,27 +70,29 @@ def sankey_plot_of_gridcomp(raw_data: BenchmarkRawData, filename: str, title: st
     fig.write_image(f"{filename}.png")
 
 
-REPORT_TIME_KEY = "Time"
-REPORT_COST_KEY = "Cost"
-REPORT_ENERGY_KEY = "Energy"
+REPORT_TIME_KEY = "Time (in seconds)"
+REPORT_COST_KEY = "Cost (in kW)"
+REPORT_ENERGY_KEY = "Energy (in seconds.k$)"
 
 
-def _comparison_in_X(value_A: float, value_B: float, label: str) -> str:
+def _comparison_in_X(value_A, value_B, label: str, unit: str = "s") -> str:
     if value_A > value_B:
+        speed_up = value_A / value_B
         return (
-            f"{label}: 1.00x ({value_A:.2f}s) - "
-            f"{(value_A/value_B):.2f}x ({value_B:.2f}s)\n"
+            f"{label}: 1.00x ({value_A:.2f}{unit}) - "
+            f"{speed_up:.2f}x ({value_B:.2f}{unit})\n"
         )
     else:
+        speed_up = value_B / value_A
         return (
-            f"{label}: {(value_B/value_A):.2f}x ({value_A:.2f}s) -  "
-            f"1.00x ({value_B:.2f}s)\n"
+            f"{label}: {speed_up:.2f}x ({value_A:.2f}{unit}) -  "
+            f"1.00x ({value_B:.2f}{unit})\n"
         )
 
 
-def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
+def report(raw_data: List[BenchmarkRawData]) -> Optional[BenchmarkReport]:
     if raw_data == []:
-        return "No data, no report."
+        return None
 
     report = BenchmarkReport()
 
@@ -113,22 +120,11 @@ def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
 
     # Compute speed ups
     raw_backends_2by2 = itertools.combinations(raw_data, 2)
-    for benchA, benchB in raw_backends_2by2:
+    for benchA, benchB in raw_backends_2by2:  # Time
         time_report = f"{benchA.backend} vs {benchB.backend}\n\n"
         time_report += _comparison_in_X(
             benchA.global_run_time, benchB.global_run_time, "Global RUN"
         )
-        time_report += _comparison_in_X(
-            np.median(benchA.fv_dyncore_timings),
-            np.median(benchB.fv_dyncore_timings),
-            "Dycore (median)",
-        )
-        if benchA.inner_dycore_timings != [] and benchB.inner_dycore_timings != []:
-            time_report += _comparison_in_X(
-                np.median(benchA.inner_dycore_timings),
-                np.median(benchB.inner_dycore_timings),
-                "GT dycore (median)",
-            )
 
         first_fv_timestep_A = benchA.fv_dyncore_timings[0]
         first_fv_timestep_B = benchB.fv_dyncore_timings[0]
@@ -146,10 +142,126 @@ def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
             elif key == "RUN2":
                 benchB_fvcomp_run += value
         time_report += _comparison_in_X(
-            benchA_fvcomp_run, benchB_fvcomp_run, "FV Grid Comp (1st timestep removed)"
+            benchA_fvcomp_run,
+            benchB_fvcomp_run,
+            "FV Grid Comp (1st timestep removed)",
         )
 
+        benchA_dycore_median = np.median(benchA.fv_dyncore_timings)
+        benchB_dycore_median = np.median(benchB.fv_dyncore_timings)
+        time_report += _comparison_in_X(
+            benchA_dycore_median,
+            benchB_dycore_median,
+            "Dycore (median)",
+        )
+        if benchA.inner_dycore_timings != [] and benchB.inner_dycore_timings != []:
+            time_report += _comparison_in_X(
+                np.median(benchA.inner_dycore_timings),
+                np.median(benchB.inner_dycore_timings),
+                "GT dycore (median)",
+            )
+
         report.per_backend_per_metric_comparison.append({REPORT_TIME_KEY: time_report})
+
+        # Energy
+        if benchA.hws_data != {}:
+            energy_report = f"{benchA.backend} vs {benchB.backend}\n\n"
+
+            gpu_kW_envelop, cpu_kW_envelop = energy_envelop_calculation(
+                benchA.hws_data["cpu_psu"],
+                benchA.hws_data["gpu_psu"],
+            )
+            if benchA.backend == "fortran":
+                benchA_global_kW_envelop = cpu_kW_envelop
+            else:
+                benchA_global_kW_envelop = gpu_kW_envelop + cpu_kW_envelop
+
+            gpu_kW_envelop, cpu_kW_envelop = energy_envelop_calculation(
+                benchB.hws_data["cpu_psu"],
+                benchB.hws_data["gpu_psu"],
+            )
+            if benchB.backend == "fortran":
+                benchB_global_kW_envelop = cpu_kW_envelop
+            else:
+                benchB_global_kW_envelop = gpu_kW_envelop + cpu_kW_envelop
+
+            energy_report += _comparison_in_X(
+                benchA_global_kW_envelop,
+                benchB_global_kW_envelop,
+                "Overall energy envelop",
+                unit="kW",
+            )
+            report.per_backend_per_metric_comparison.append(
+                {REPORT_ENERGY_KEY: energy_report}
+            )
+
+        # Cost (normalized to the highest runtime)
+        # TODO: We need to normalize to the highest runtime
+        cost_report = f"{benchA.backend} vs {benchB.backend}\n\n"
+        cost_1node_EPYC_7402_kDollars = 11
+        cost_1node_EPYC_7402_A100_kDollars = 63
+
+        if benchA.backend == "fortran":
+            benchA_global_kDollars = (
+                benchA.global_run_time * cost_1node_EPYC_7402_kDollars
+            )
+        else:
+            benchA_global_kDollars = (
+                benchA.global_run_time * cost_1node_EPYC_7402_A100_kDollars
+            )
+        if benchB.backend == "fortran":
+            benchB_global_kDollars = (
+                benchB.global_run_time * cost_1node_EPYC_7402_kDollars
+            )
+        else:
+            benchB_global_kDollars = (
+                benchB.global_run_time * cost_1node_EPYC_7402_A100_kDollars
+            )
+        cost_report += _comparison_in_X(
+            benchA_global_kDollars, benchB_global_kDollars, "Overall", unit="s.k$"
+        )
+
+        if benchA.backend == "fortran":
+            benchA_fvcomp_kDollars = benchA_fvcomp_run * cost_1node_EPYC_7402_kDollars
+        else:
+            benchA_fvcomp_kDollars = (
+                benchA_fvcomp_run * cost_1node_EPYC_7402_A100_kDollars
+            )
+        if benchB.backend == "fortran":
+            benchB_fvcomp_kDollars = benchB_fvcomp_run * cost_1node_EPYC_7402_kDollars
+        else:
+            benchB_fvcomp_kDollars = (
+                benchB_fvcomp_run * cost_1node_EPYC_7402_A100_kDollars
+            )
+        cost_report += _comparison_in_X(
+            benchA_fvcomp_kDollars, benchB_fvcomp_kDollars, "FV Grid Comp", unit="s.k$"
+        )
+
+        if benchA.backend == "fortran":
+            benchA_dycore_kDollars = (
+                benchA_dycore_median * cost_1node_EPYC_7402_kDollars
+            )
+        else:
+            benchA_dycore_kDollars = (
+                benchA_dycore_median * cost_1node_EPYC_7402_A100_kDollars
+            )
+
+        if benchB.backend == "fortran":
+            benchB_dycore_kDollars = (
+                benchB_dycore_median * cost_1node_EPYC_7402_kDollars
+            )
+        else:
+            benchB_dycore_kDollars = (
+                benchB_dycore_median * cost_1node_EPYC_7402_A100_kDollars
+            )
+        cost_report += _comparison_in_X(
+            benchA_dycore_kDollars,
+            benchB_dycore_kDollars,
+            "Dycore (median)",
+            unit="s.k$",
+        )
+
+        report.per_backend_per_metric_comparison.append({REPORT_COST_KEY: cost_report})
 
     return report
 
@@ -157,11 +269,22 @@ def report(raw_data: List[BenchmarkRawData]) -> BenchmarkReport:
 @click.command()
 @click.argument("geos_logs", nargs=-1)
 def cli(geos_logs: Iterable[str]):
-    benchmark_raw_data = []
+    benchmark_raw_data: List[BenchmarkRawData] = []
     for log in geos_logs:
         benchmark_raw_data.append(parse_geos_log(log))
     r = report(benchmark_raw_data)
     print(r)
+    for raw_data in benchmark_raw_data:
+        if raw_data.fv_gridcomp_detailed_profiling != []:
+            sankey_plot_of_gridcomp(
+                raw_data,
+                f"FVGridComp_breakdown_{raw_data.backend_sanitized}",
+                f"FV Grid Comp for {raw_data.backend}",
+            )
+    for raw_data in benchmark_raw_data:
+        x = np.arange(len(raw_data.fv_dyncore_timings))
+        fig = go.Figure(data=go.Scatter(x=x, y=raw_data.fv_dyncore_timings))
+        fig.write_image(f"dyncore_verif_{raw_data.backend}.png")
 
 
 if __name__ == "__main__":
