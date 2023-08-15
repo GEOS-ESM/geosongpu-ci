@@ -333,7 +333,7 @@ class HeldSuarez(TaskBase):
                         output="benchmark.1day.MPS.44.dacegpu.%t.out"
                     ),
                     gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
-                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),  # type: ignore
+                    setup_script=self._setup_1day_2nodes_gtfv3(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
                     hardware_sampler_on=True,
                     mps_on=True,
@@ -344,11 +344,11 @@ class HeldSuarez(TaskBase):
                     experiment_directory=experiment_directory,  # type: ignore
                     executable_name=self.executable_name,
                     prolog_scripts=prolog_scripts,  # type: ignore
-                    slurm_config=SlurmConfiguration.slurm_72CPUs(
+                    slurm_config=SlurmConfiguration.slurm_96CPUs(
                         output="benchmark.1day.MPS.44.fortran.%t.out"
                     ),
                     gtfv3_config=GTFV3Config.fortran(),
-                    setup_script=self._setup_1day_1node_fortran(experiment_directory),  # type: ignore
+                    setup_script=self._setup_1day_2nodes_fortran(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
                     hardware_sampler_on=True,
                     mps_on=True,
