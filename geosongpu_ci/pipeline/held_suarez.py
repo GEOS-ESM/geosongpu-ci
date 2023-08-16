@@ -160,19 +160,6 @@ class HeldSuarez(TaskBase):
             ],
         )
 
-    def _setup_1day_2nodes_gtfv3(self, experiment_directory: str) -> ShellScript:
-        return ShellScript(
-            name="_setup_config_1day_2nodes_gtfv3",
-            working_directory=experiment_directory,
-        ).write(
-            shell_commands=[
-                f"cd {experiment_directory}",
-                "cp -f AgcmSimple.rc.4x24.gtfv3 AgcmSimple.rc",
-                "cp -f input.nml.4x4 input.nml",
-                "cp -f CAP.rc.1day CAP.rc",
-            ],
-        )
-
     def _setup_1day_1node_fortran(self, experiment_directory: str) -> ShellScript:
         return ShellScript(
             name="setup_config_1day_1node_fortran",
@@ -182,6 +169,32 @@ class HeldSuarez(TaskBase):
                 f"cd {experiment_directory}",
                 "cp -f AgcmSimple.rc.3x24.fortran AgcmSimple.rc",
                 "cp -f input.nml.3x4 input.nml",
+                "cp -f CAP.rc.1day CAP.rc",
+            ],
+        )
+
+    def _setup_1ts_2nodes_gtfv3(self, experiment_directory: str) -> ShellScript:
+        return ShellScript(
+            name="_setup_config_1ts_2nodes_gtfv3",
+            working_directory=experiment_directory,
+        ).write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                "cp -f AgcmSimple.rc.4x24.gtfv3 AgcmSimple.rc",
+                "cp -f input.nml.4x4 input.nml",
+                "cp -f CAP.rc.1ts CAP.rc",
+            ],
+        )
+
+    def _setup_1day_2nodes_gtfv3(self, experiment_directory: str) -> ShellScript:
+        return ShellScript(
+            name="_setup_config_1day_2nodes_gtfv3",
+            working_directory=experiment_directory,
+        ).write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                "cp -f AgcmSimple.rc.4x24.gtfv3 AgcmSimple.rc",
+                "cp -f input.nml.4x4 input.nml",
                 "cp -f CAP.rc.1day CAP.rc",
             ],
         )
@@ -326,9 +339,7 @@ class HeldSuarez(TaskBase):
                             output="benchmark.cache.dacegpu.%t.out"
                         ),
                         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
-                        setup_script=self._setup_1day_2nodes_gtfv3(
-                            experiment_directory
-                        ),
+                        setup_script=self._setup_1ts_2nodes_gtfv3(experiment_directory),
                         setup_only=env.setup_only,
                     )
 
@@ -343,7 +354,6 @@ class HeldSuarez(TaskBase):
                     gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
                     setup_script=self._setup_1day_2nodes_gtfv3(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
-                    hardware_sampler_on=True,
                     mps_on=True,
                 )
 
@@ -358,7 +368,6 @@ class HeldSuarez(TaskBase):
                     gtfv3_config=GTFV3Config.fortran(),
                     setup_script=self._setup_1day_2nodes_fortran(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
-                    hardware_sampler_on=True,
                     mps_on=True,
                 )
 
