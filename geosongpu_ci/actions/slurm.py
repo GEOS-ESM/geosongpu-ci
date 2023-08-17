@@ -79,3 +79,14 @@ class SlurmConfiguration:
             mem_per_gpu="40G",
             output=output or cls.output,
         )
+
+    @classmethod
+    def slurm_96CPUs(cls, output: Optional[str] = None) -> "SlurmConfiguration":
+        """2 nodes configuration on Discover with Rome Epyc"""
+        return cls(
+            nodes=2,
+            ntasks=96,
+            ntasks_per_node=48,
+            sockets_per_node=2,
+            output=output or cls.output,
+        )

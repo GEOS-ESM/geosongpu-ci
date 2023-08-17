@@ -26,10 +26,12 @@ CLIENT_CMD_STOP = "stop"
 CLIENT_CMD_DUMP = "dump"
 CLIENT_CMD_TICK = "tick"
 
+DEFAULT_SAMPLERATE_IN_S = 0.1
+
 CLIENT_CMDS = {
     CLIENT_CMD_START: {
         "action": SERV_ORDER_START,
-        "dt": 0.01,
+        "dt": DEFAULT_SAMPLERATE_IN_S,
     },
     CLIENT_CMD_STOP: {"action": SERV_ORDER_STOP},
     CLIENT_CMD_DUMP: {

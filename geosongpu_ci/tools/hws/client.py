@@ -4,9 +4,9 @@ from geosongpu_ci.tools.hws.constants import SOCKET_FILENAME, CLIENT_CMDS
 
 
 def client_main(order: str, dump_name: str):
-    order = CLIENT_CMDS[order]
-    order["dump_name"] = dump_name
-    data = json.dumps(order)
+    filtered_order = CLIENT_CMDS[order]
+    filtered_order["dump_name"] = dump_name
+    data = json.dumps(filtered_order)
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     server.connect(SOCKET_FILENAME)
     server.send(data.encode("utf8"))

@@ -68,7 +68,9 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         benchmark.fv_dyncore_timings = _extract_numerics(interface_timings)
 
         if "dace" in benchmark.backend:
-            dycore_timings = _grep(filename, "] Run...", exclude_pattern=True)
+            dycore_timings = _grep(
+                filename, "] Run...", exclude_pattern=True, expected=False
+            )
             benchmark.inner_dycore_timings = _extract_numerics(dycore_timings)
     else:
         dycore_timings = _grep(filename, "0: fv_dynamics", exclude_pattern=True)
@@ -131,8 +133,16 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
 
     # Model throughput
     gloabl_profiler_entry = "Model Throughput"
+    global_init_time = _grep(
+        filename, "--Initialize", start_pattern=gloabl_profiler_entry
+    )
+    benchmark.global_init_time = _extract_numerics(global_init_time)[1]
     global_run_time = _grep(filename, "--Run", start_pattern=gloabl_profiler_entry)
     benchmark.global_run_time = _extract_numerics(global_run_time)[1]
+    global_finalize_time = _grep(
+        filename, "--Finalize", start_pattern=gloabl_profiler_entry
+    )
+    benchmark.global_finalize_time = _extract_numerics(global_finalize_time)[1]
 
     return benchmark
 

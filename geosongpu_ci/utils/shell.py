@@ -4,6 +4,7 @@ import os
 import stat
 from geosongpu_ci.utils.progress import Progress
 from time import sleep
+from geosongpu_ci.pipeline.templates import find_template
 
 
 class ShellScript:
@@ -20,6 +21,19 @@ class ShellScript:
     @property
     def name(self) -> str:
         return self._name
+
+    def from_template(self, template_name: str):
+        # Read template
+        template_file = find_template(template_name)
+        with open(template_file, "r") as f:
+            tpl = f.read()
+
+        # Write file
+        with open(self.path, "w") as f:
+            f.write(tpl)
+
+        self._make_executable()
+        return self
 
     def write(
         self,

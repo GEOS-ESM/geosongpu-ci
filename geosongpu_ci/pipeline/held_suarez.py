@@ -46,48 +46,11 @@ class PrologScripts:
     def _make_gpu_wrapper_script(
         self,
         experiment_directory: str,
-        hardware_sampling: bool = False,
     ) -> None:
-        script_name = "gpu-wrapper-slurm"
-        pre_execution = []
-        post_execution = []
-        if hardware_sampling:
-            script_name += "-hws"
-            pre_execution.append("if [ $SLURM_LOCALID -eq 0 ]; then")
-            pre_execution.append("    geosongpu_hws server &")
-            pre_execution.append("    sleep 20")
-            pre_execution.append("    geosongpu_hws client start")
-            pre_execution.append("fi")
-
-            post_execution.append(
-                "if [ $SLURM_LOCALID -eq 0 ]; then",
-            )
-            post_execution.append(
-                "    geosongpu_hws client dump",
-            )
-            post_execution.append(
-                "    geosongpu_hws client stop",
-            )
-            post_execution.append(
-                "fi",
-            )
-
-        cuda_device_setup = [
-            "export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID",
-            'echo "Node: $SLURM_NODEID | Rank: $SLURM_PROCID,'
-            ' pinned to GPU: $CUDA_VISIBLE_DEVICES"',
-        ]
-        execution = ["$*"]
         self.gpu_wrapper = ShellScript(
-            script_name,
+            "gpu-wrapper-slurm-mps",
             working_directory=experiment_directory,
-        ).write(
-            modules=[],
-            shell_commands=cuda_device_setup
-            + pre_execution
-            + execution
-            + post_execution,
-        )
+        ).from_template(template_name="gpu-wrapper-slurm-mps.sh")
 
     def _copy_executable_script(
         self,
@@ -114,13 +77,29 @@ def _make_srun_script(
     slurm_config: SlurmConfiguration,
     gtfv3_config: GTFV3Config,
     prolog_scripts: PrologScripts,
+    hardware_sampler_on: bool = False,
+    mps_on: bool = False,
+    local_redirect_log: bool = False,
 ) -> ShellScript:
+    # Executing command with the SLURM setup
     srun_cmd = slurm_config.srun_bash(
         wrapper=prolog_scripts.gpu_wrapper.path,
         executable_name=executable_name,
     )
-    srun_script_script = ShellScript(
-        f"srun_{slurm_config.ntasks}tasks_{gtfv3_config.backend_sanitized()}",
+    # Options
+    options = f"""{'export HARDWARE_SAMPLING=1' if hardware_sampler_on else 'unset HARDWARE_SAMPLING' }
+{'export MPS_ON=1' if mps_on else 'unset MPS_ON' }
+{f'export LOCAL_REDIRECT_LOG=1' if local_redirect_log else 'unset LOCAL_REDIRECT_LOG' }
+    """
+
+    if "dace" in gtfv3_config.GTFV3_BACKEND:
+        backend = f"{gtfv3_config.backend_sanitized()}.{gtfv3_config.FV3_DACEMODE}"
+    else:
+        backend = f"{gtfv3_config.backend_sanitized()}"
+    srun_script_name = f"srun_{slurm_config.ntasks}tasks_{backend}"
+
+    srun_script = ShellScript(
+        srun_script_name,
         working_directory=experiment_directory,
     ).write(
         env_to_source=[
@@ -132,13 +111,14 @@ def _make_srun_script(
             f"source {prolog_scripts.copy_executable.path}",
             "",
             f"{gtfv3_config.sh()}",
-            "export PYTHONOPTIMIZE=1",
             f"export CUPY_CACHE_DIR={experiment_directory}/.cupy",
+            "",
+            f"{options}",
             "",
             f"{srun_cmd}",
         ],
     )
-    return srun_script_script
+    return srun_script
 
 
 VALIDATION_RESOLUTION = "C180-L72"
@@ -169,7 +149,7 @@ class HeldSuarez(TaskBase):
 
     def _setup_1day_1node_gtfv3(self, experiment_directory: str) -> ShellScript:
         return ShellScript(
-            name="_setup_config_1day_1node_gtfv3",
+            name="setup_config_1day_1node_gtfv3",
             working_directory=experiment_directory,
         ).write(
             shell_commands=[
@@ -189,6 +169,45 @@ class HeldSuarez(TaskBase):
                 f"cd {experiment_directory}",
                 "cp -f AgcmSimple.rc.3x24.fortran AgcmSimple.rc",
                 "cp -f input.nml.3x4 input.nml",
+                "cp -f CAP.rc.1day CAP.rc",
+            ],
+        )
+
+    def _setup_1ts_2nodes_gtfv3(self, experiment_directory: str) -> ShellScript:
+        return ShellScript(
+            name="setup_config_1ts_2nodes_gtfv3",
+            working_directory=experiment_directory,
+        ).write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                "cp -f AgcmSimple.rc.4x24.gtfv3 AgcmSimple.rc",
+                "cp -f input.nml.4x4 input.nml",
+                "cp -f CAP.rc.1ts CAP.rc",
+            ],
+        )
+
+    def _setup_1day_2nodes_gtfv3(self, experiment_directory: str) -> ShellScript:
+        return ShellScript(
+            name="setup_config_1day_2nodes_gtfv3",
+            working_directory=experiment_directory,
+        ).write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                "cp -f AgcmSimple.rc.4x24.gtfv3 AgcmSimple.rc",
+                "cp -f input.nml.4x4 input.nml",
+                "cp -f CAP.rc.1day CAP.rc",
+            ],
+        )
+
+    def _setup_1day_2nodes_fortran(self, experiment_directory: str) -> ShellScript:
+        return ShellScript(
+            name="setup_config_1day_2nodes_fortran",
+            working_directory=experiment_directory,
+        ).write(
+            shell_commands=[
+                f"cd {experiment_directory}",
+                "cp -f AgcmSimple.rc.4x24.fortran AgcmSimple.rc",
+                "cp -f input.nml.4x4 input.nml",
                 "cp -f CAP.rc.1day CAP.rc",
             ],
         )
@@ -224,6 +243,9 @@ class HeldSuarez(TaskBase):
         gtfv3_config: GTFV3Config,
         setup_script: ShellScript,
         setup_only: bool = False,
+        hardware_sampler_on: bool = False,
+        mps_on: bool = False,
+        local_redirect_log: bool = False,
     ):
         srun_script = _make_srun_script(
             executable_name=executable_name,
@@ -231,6 +253,9 @@ class HeldSuarez(TaskBase):
             slurm_config=slurm_config,
             gtfv3_config=gtfv3_config,
             prolog_scripts=prolog_scripts,
+            hardware_sampler_on=hardware_sampler_on,
+            mps_on=mps_on,
+            local_redirect_log=local_redirect_log,
         )
 
         setup_script.execute()
@@ -310,11 +335,11 @@ class HeldSuarez(TaskBase):
                         experiment_directory=experiment_directory,
                         executable_name=self.executable_name,
                         prolog_scripts=prolog_scripts,
-                        slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
+                        slurm_config=SlurmConfiguration.slurm_96CPUs_8GPUs(
                             output="benchmark.cache.dacegpu.%t.out"
                         ),
                         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
-                        setup_script=self._setup_1ts_1node_gtfv3(experiment_directory),
+                        setup_script=self._setup_1ts_2nodes_gtfv3(experiment_directory),
                         setup_only=env.setup_only,
                     )
 
@@ -323,12 +348,13 @@ class HeldSuarez(TaskBase):
                     experiment_directory=experiment_directory,  # type: ignore
                     executable_name=self.executable_name,
                     prolog_scripts=prolog_scripts,  # type: ignore
-                    slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
-                        output="benchmark.1day.dacegpu.%t.out"
+                    slurm_config=SlurmConfiguration.slurm_96CPUs_8GPUs(
+                        output="benchmark.1day.MPS.44.dacegpu.%t.out"
                     ),
                     gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(dacemode="Run"),
-                    setup_script=self._setup_1day_1node_gtfv3(experiment_directory),  # type: ignore
+                    setup_script=self._setup_1day_2nodes_gtfv3(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
+                    mps_on=True,
                 )
 
                 # Run 1 day Fortran
@@ -336,12 +362,13 @@ class HeldSuarez(TaskBase):
                     experiment_directory=experiment_directory,  # type: ignore
                     executable_name=self.executable_name,
                     prolog_scripts=prolog_scripts,  # type: ignore
-                    slurm_config=SlurmConfiguration.slurm_72CPUs(
-                        output="benchmark.1day.fortran.%t.out"
+                    slurm_config=SlurmConfiguration.slurm_96CPUs(
+                        output="benchmark.1day.MPS.44.fortran.%t.out"
                     ),
                     gtfv3_config=GTFV3Config.fortran(),
-                    setup_script=self._setup_1day_1node_fortran(experiment_directory),  # type: ignore
+                    setup_script=self._setup_1day_2nodes_fortran(experiment_directory),  # type: ignore
                     setup_only=env.setup_only,
+                    mps_on=True,
                 )
 
     def check(
