@@ -20,12 +20,12 @@ Validation capacities for physics compares OACC and original Fortran on.
 
 Automatic benchmarking are as follow (legends after table)
 
-| Experimentation               | Resolutions |  Layout   | Setup                                    |
-| ----------------------------- | ------------|-----------| ---------------------------------------- |
-| Held-Suarez                   | C180-L72    | 1x1       | Discover @ node-to-node (exclusive GPU)  |
-|                               | C180-L91    | 1x1       | Discover @ node-to-node (exclusive GPU)  |
-|                               | C180-L137   | 1x1       | Discover @ node-to-node (exclusive GPU)  |
-| Aquaplanet                    | C180-L72    | 1x1       | Discover @ node-to-node (exclusive GPU)  |
+| Experimentation               | Resolutions | Layout | CPU/GPU                           |
+| ----------------------------- | ----------- | ------ | --------------------------------- |
+| Held-Suarez                   | C180-L72    | 4x4    | 96/8 Node-to-node (sharing GPU)   |
+|                               | C180-L137   | 4x4    | 96/8 Node-to-node (sharing GPU)   |
+|                               | C360-L72    | 4x4    | 96/8 Node-to-node (sharing GPU)   |
+| Aquaplanet                    | C180-L72    | 1x1    | 6/6  Node-to-node (exclusive GPU) |
 
 Legend:
 

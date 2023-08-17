@@ -87,9 +87,9 @@ def _make_srun_script(
         executable_name=executable_name,
     )
     # Options
-    options = f""" {'export HARDWARE_SAMPLING=1' if hardware_sampler_on else 'unset HARDWARE_SAMPLING' }
-    {'export MPS_ON=1' if mps_on else 'unset MPS_ON' }
-    {f'export LOCAL_REDIRECT_LOG=1' if local_redirect_log else 'unset LOCAL_REDIRECT_LOG' }
+    options = f"""{'export HARDWARE_SAMPLING=1' if hardware_sampler_on else 'unset HARDWARE_SAMPLING' }
+{'export MPS_ON=1' if mps_on else 'unset MPS_ON' }
+{f'export LOCAL_REDIRECT_LOG=1' if local_redirect_log else 'unset LOCAL_REDIRECT_LOG' }
     """
 
     if "dace" in gtfv3_config.GTFV3_BACKEND:
@@ -149,7 +149,7 @@ class HeldSuarez(TaskBase):
 
     def _setup_1day_1node_gtfv3(self, experiment_directory: str) -> ShellScript:
         return ShellScript(
-            name="_setup_config_1day_1node_gtfv3",
+            name="setup_config_1day_1node_gtfv3",
             working_directory=experiment_directory,
         ).write(
             shell_commands=[
@@ -175,7 +175,7 @@ class HeldSuarez(TaskBase):
 
     def _setup_1ts_2nodes_gtfv3(self, experiment_directory: str) -> ShellScript:
         return ShellScript(
-            name="_setup_config_1ts_2nodes_gtfv3",
+            name="setup_config_1ts_2nodes_gtfv3",
             working_directory=experiment_directory,
         ).write(
             shell_commands=[
@@ -188,7 +188,7 @@ class HeldSuarez(TaskBase):
 
     def _setup_1day_2nodes_gtfv3(self, experiment_directory: str) -> ShellScript:
         return ShellScript(
-            name="_setup_config_1day_2nodes_gtfv3",
+            name="setup_config_1day_2nodes_gtfv3",
             working_directory=experiment_directory,
         ).write(
             shell_commands=[
@@ -335,7 +335,7 @@ class HeldSuarez(TaskBase):
                         experiment_directory=experiment_directory,
                         executable_name=self.executable_name,
                         prolog_scripts=prolog_scripts,
-                        slurm_config=SlurmConfiguration.slurm_6CPUs_6GPUs(
+                        slurm_config=SlurmConfiguration.slurm_96CPUs_8GPUs(
                             output="benchmark.cache.dacegpu.%t.out"
                         ),
                         gtfv3_config=GTFV3Config.dace_gpu_32_bit_BAR(),
