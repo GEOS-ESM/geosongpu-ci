@@ -14,8 +14,13 @@ class CIInfo(TaskBase):
         metadata: Dict[str, Any],
     ):
         super().__init__(skip_metadata=True)
-        r = ShellScript("showquota").write(["showquota"]).execute()
-        print(r)
+        ShellScript("showquota").write(
+            [
+                "showquota",
+                "cd /discover/nobackup/gmao_ci/",
+                "du -a | cut -d/ -f2 | sort | uniq -c | sort -nr",
+            ]
+        ).execute()
 
     def check(
         self,
