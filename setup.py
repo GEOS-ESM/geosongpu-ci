@@ -25,6 +25,7 @@ setuptools.setup(
         "psutil",
         "plotly",
         "kaleido",
+        "clang-format",
     ],
     data_files=[
         ("./geosongpu/experiments", ["./experiments/experiments.yaml"]),
@@ -32,11 +33,19 @@ setuptools.setup(
             "./geosongpu/templates",
             ["./geosongpu_ci/pipeline/templates/gpu-wrapper-slurm-mps.sh.tpl"],
         ),
+        (
+            "./geosongpu/interface/templates",
+            [
+                "./geosongpu_ci/tools/py_ftn_interface/templates/data_conversion.py.tpl",
+                "./geosongpu_ci/tools/py_ftn_interface/templates/cuda_profiler.py.tpl",
+            ],
+        ),
     ],
     entry_points={
         "console_scripts": [
             "geosongpu_dispatch = geosongpu_ci.dispatch:cli",
             "geosongpu_hws = geosongpu_ci.tools.hws.cli:cli",
+            "geosongpu_py_ftn_interface = geosongpu_ci.tools.py_ftn_interface.cli:cli",
         ],
     },
 )
