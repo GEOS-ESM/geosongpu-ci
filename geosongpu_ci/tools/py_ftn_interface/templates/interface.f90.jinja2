@@ -1,0 +1,45 @@
+module {{prefix}}_interface_mod
+
+    use iso_c_binding, only: c_int, c_float, c_double
+
+    implicit none
+
+    private
+    {% for function in functions -%}
+    public :: {{prefix}}_{{function.name}}_f
+    {% endfor -%}
+    interface
+    {% for function in functions %}
+        subroutine {{prefix}}_{{function.name}}_f( &
+            !inputs
+            {% for input in function.inputs -%}
+                {{input.name}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}{{"&\n" if (loop.index % 10) == 0 else ""}}
+            {%- endfor %}{{ "&" if function.inputs|length > 0 else "" }}
+            !inouts
+            {% for input in function.inouts -%}
+                {{input.name}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor %}{{ "&" if function.inouts|length > 0 else "" }}
+            !outputs
+            {% for input in function.outputs -%}
+                {{input.name}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor -%}{{ "&" if function.outputs|length > 0 else "" }}
+        ) bind(c, name='{{prefix}}_{{function.name}}_c')
+            import c_int, c_float, c_double
+            implicit none
+
+            {% for input in function.inputs -%}
+            {{input.type}}, intent(in) :: {{input.name}}
+            {% endfor -%}
+
+            {% for inout in function.inouts -%}
+            {{inout.type}}, intent(in) :: {{inout.name}}
+            {% endfor -%}
+
+            {% for output in function.outputs -%}
+            {{output.type}}, intent(in) :: {{output.name}}
+            {% endfor -%}
+
+        end subroutine {{prefix}}_{{function.name}}_f
+    {% endfor %}
+    end interface
+end module {{prefix}}_interface_mod

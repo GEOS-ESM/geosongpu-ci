@@ -1,0 +1,33 @@
+#include "{{prefix}}_interface_py.h"
+#include "mpi.h"
+#include <stdio.h>
+#include <time.h>
+
+{% for function in functions -%}
+
+  void {{prefix}}_{{function.name}}_c(
+      // inputs
+      {% for input in function.inputs -%}
+        {{input.type}} {{input.name}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}
+      {%- endfor %}
+      // inputs-outputs
+      {% for inout in function.inouts -%}
+        {{inout.type}} {{inout.name}}{{ ", " if not loop.last or function.outputs|length > 0 else "" }}
+      {%- endfor %}
+      // outputs
+      {% for output in function.outputs -%}
+        {{output.type}} {{output.name}}{{ ", " if not loop.last else "" }}
+      {%- endfor %}
+  ) {
+    {%- for init_code in function.arguments_init -%}
+        {{init_code}}
+    {%- endfor -%}
+    {{prefix}}_interface_py_{{function.name}}(
+      {%- for call in function.arguments_name -%}
+          {{call}}{{ ", " if not loop.last else "" }}
+      {%- endfor -%}
+    );
+  }
+
+{% endfor %}
+

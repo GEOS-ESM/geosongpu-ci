@@ -1,0 +1,77 @@
+import cffi
+from mpi4py import MPI
+
+TMPFILEBASE = "{{prefix}}_interface_py"
+
+ffi = cffi.FFI()
+
+# MPI_Comm can be int or void*
+if MPI._sizeof(MPI.Comm) == ffi.sizeof("int"):
+    _mpi_comm_t = "int"
+else:
+    _mpi_comm_t = "void*"
+
+
+source = f"""
+from {TMPFILEBASE} import ffi
+from datetime import datetime
+from mpi4py import MPI
+
+        
+from {{prefix}} import (
+    {% for function in functions -%}
+    {{prefix}}_{{function.name}}{{ ", " if not loop.last else "" }}
+    {% endfor %}
+)
+
+
+{% for function in functions %}
+@ffi.def_extern()
+def {{prefix}}_{{function.name}}_py(
+      # inputs
+      {% for input in function.inputs -%}
+        {{input.name}}:{{input.type}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}
+      {%- endfor %}
+      # inputs-outputs
+      {% for inout in function.inouts -%}
+        {{inout.name}}:{{inout.type}}{{ ", " if not loop.last or function.outputs|length > 0 else "" }}
+      {%- endfor %}
+      # outputs
+      {% for output in function.outputs -%}
+        {{output.name}}:{{output.type}}{{ ", " if not loop.last else "" }}
+      {%- endfor %}
+    ):
+
+    # Transform init code
+    {% for code in function.init_code %}
+    {{code}}
+    {% endfor %}
+    
+    {{prefix}}_{{function.name}}(
+        {%- for name in function.all_arguments_name -%}
+          {{name}}={{name}}{{ ", " if not loop.last else "" }}
+      {% endfor %}
+    )
+{% endfor %}
+"""
+
+header = f"""
+
+{% for function in functions -%}
+extern void {{prefix}}_{{function.name}}(
+    {%- for arg in function.c_arguments -%}
+        {{arg.type}} {{arg.name}}{{ ", " if not loop.last else "" }}
+    {%- endfor -%}
+);
+{% endfor %}
+"""
+
+with open(TMPFILEBASE + ".h", "w") as f:
+    f.write(header)
+    ffi.embedding_api(header)
+
+    source_header = r'''#include "{}.h"'''.format(TMPFILEBASE)
+    ffi.set_source(TMPFILEBASE, source_header)
+
+    ffi.embedding_init_code(source)
+    ffi.compile(target="lib" + TMPFILEBASE + ".so", verbose=True)

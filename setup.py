@@ -26,6 +26,7 @@ setuptools.setup(
         "plotly",
         "kaleido",
         "clang-format",
+        "jinja2",
     ],
     data_files=[
         ("./geosongpu/experiments", ["./experiments/experiments.yaml"]),
