@@ -7,6 +7,43 @@ import clang_format as cf
 import fprettify
 import jinja2
 import textwrap
+import sys
+import site
+
+###############
+# TODO:
+# - Fill Object version of the interface (actually used in GEOS)
+# - Use converter (CPU/GPU & Py/Fortran)
+# - Add fortran reference validator
+#   - Go to python -> deep copy inputs/inouts
+#   - Go back to fortran -> execute run
+#   - Down to py -> get fortran inouts/ouputs, execute on deep copied data, compare
+###############
+
+
+def _find_templates_dir() -> str:
+    # pip install geosongpu-ci
+    candidate = f"{sys.prefix}/geosongpu/py_ftn_interface/templates"
+    if os.path.isdir(candidate):
+        return candidate
+    # pip install --user geosongpu-ci
+    candidate = f"{site.USER_BASE}/geosongpu/py_ftn_interface/templates"
+    if os.path.isdir(candidate):
+        return candidate
+    # pip install -e geosongpu-ci
+    candidate = os.path.join(os.path.dirname(__file__), "./templates")
+    if os.path.isdir(candidate):
+        return candidate
+    raise RuntimeError("Cannot find template directory")
+
+
+def _find_templates(name: str) -> str:
+    directory = _find_templates_dir()
+    # pip install geosongpu-ci
+    candidate = f"{directory}{name}"
+    if os.path.isfile(candidate):
+        return candidate
+    raise RuntimeError(f"Cannot find template: {name}")
 
 
 class BridgeFunction:
@@ -121,47 +158,6 @@ class BridgeFunction:
         else:
             raise RuntimeError(f"ERROR_DEF_TYPE_TO_FORTRAN: {def_type}")
 
-    def _parse_py_argument_definitions(self, args, next_args) -> str:
-        code = ""
-        for name, _type in args.items():
-            if _type.startswith("array_"):
-                _type = "'cffi.FFI.CData'"
-            if _type == "MPI":
-                _type = "MPI.Intercomm"
-            code += f"{name}: {_type}, "
-        if len(next_args) == 0:
-            code = code[:-2]
-        return code
-
-    def generate_hook(self, prefix: str) -> str:
-        input_code_define = self._parse_py_argument_definitions(
-            self._inputs, self._inouts
-        )
-        inout_code_define = self._parse_py_argument_definitions(
-            self._inouts, self._outputs
-        )
-        output_code_define = self._parse_py_argument_definitions(self._outputs, [])
-
-        py_hook_code = """
-def {PREFIX}_{FUNCTION_NAME}(
-    #inputs
-    {ARGUMENTS_DEF_INPUT}
-    #inputs-outputs
-    {ARGUMENTS_DEF_INOUT}
-    #outputs
-    {ARGUMENTS_DEF_OUTPUT}
-    ):
-        print("My code for {PREFIX}_{FUNCTION_NAME} geos here.")
-        """.format(
-            PREFIX=prefix,
-            FUNCTION_NAME=self.name,
-            ARGUMENTS_DEF_INPUT=input_code_define,
-            ARGUMENTS_DEF_INOUT=inout_code_define,
-            ARGUMENTS_DEF_OUTPUT=output_code_define,
-        )
-
-        return py_hook_code
-
 
 class Bridge:
     def __init__(
@@ -169,10 +165,12 @@ class Bridge:
         directory_path: str,
         prefix: str,
         function_defines: List[BridgeFunction],
+        template_env: jinja2.Environment,
     ) -> None:
         self._directory_path = directory_path
         self._prefix = prefix
         self._functions = function_defines
+        self._template_env = template_env
 
     def generate_c(self) -> "Bridge":
         # Transform data for Jinja2 template
@@ -189,15 +187,7 @@ class Bridge:
                 }
             )
 
-        # TODO: replace hard coded by deployed template directory or local for dev
-        template_loader = jinja2.FileSystemLoader(
-            searchpath=os.path.join(
-                "/home/fgdeconi/work/git/geosongpu-ci/geosongpu_ci/tools/py_ftn_interface",
-                "templates",
-            )
-        )
-        template_env = jinja2.Environment(loader=template_loader)
-        template = template_env.get_template("interface.c.jinja2")
+        template = self._template_env.get_template("interface.c.jinja2")
         code = template.render(
             prefix=self._prefix,
             functions=functions,
@@ -231,15 +221,7 @@ class Bridge:
                 }
             )
 
-        # TODO: replace hard coded by deployed template directory or local for dev
-        template_loader = jinja2.FileSystemLoader(
-            searchpath=os.path.join(
-                "/home/fgdeconi/work/git/geosongpu-ci/geosongpu_ci/tools/py_ftn_interface",
-                "templates",
-            )
-        )
-        template_env = jinja2.Environment(loader=template_loader)
-        template = template_env.get_template("interface.f90.jinja2")
+        template = self._template_env.get_template("interface.f90.jinja2")
         code = template.render(
             prefix=self._prefix,
             functions=functions,
@@ -272,15 +254,7 @@ class Bridge:
                 }
             )
 
-        # TODO: replace hard coded by deployed template directory or local for dev
-        template_loader = jinja2.FileSystemLoader(
-            searchpath=os.path.join(
-                "/home/fgdeconi/work/git/geosongpu-ci/geosongpu_ci/tools/py_ftn_interface",
-                "templates",
-            )
-        )
-        template_env = jinja2.Environment(loader=template_loader)
-        template = template_env.get_template("interface.py.jinja2")
+        template = self._template_env.get_template("interface.py.jinja2")
         code = template.render(
             prefix=self._prefix,
             functions=functions,
@@ -302,10 +276,12 @@ class Hook:
         directory_path: str,
         prefix: str,
         function_defines: List[BridgeFunction],
+        template_env: jinja2.Environment,
     ) -> None:
         self._directory_path = directory_path
         self._prefix = prefix
         self._functions = function_defines
+        self._template_env = template_env
 
     def generate_blank(self):
         functions = []
@@ -319,15 +295,7 @@ class Hook:
                 }
             )
 
-        # TODO: replace hard coded by deployed template directory or local for dev
-        template_loader = jinja2.FileSystemLoader(
-            searchpath=os.path.join(
-                "/home/fgdeconi/work/git/geosongpu-ci/geosongpu_ci/tools/py_ftn_interface",
-                "templates",
-            )
-        )
-        template_env = jinja2.Environment(loader=template_loader)
-        template = template_env.get_template("hook.py.jinja2")
+        template = self._template_env.get_template("hook.py.jinja2")
         code = template.render(
             prefix=self._prefix,
             functions=functions,
@@ -365,7 +333,6 @@ class Build:
 @click.argument("definition_json_filepath")
 @click.option(
     "--directory",
-    default="gt_interface",
     help="Directory name to drop interface files in",
 )
 @click.option("--hook", default="blank")
@@ -394,13 +361,22 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
             )
         )
 
+    template_loader = jinja2.FileSystemLoader(searchpath=_find_templates_dir())
+    template_env = jinja2.Environment(loader=template_loader)
+
     Bridge(
         directory,
         prefix,
         functions,
+        template_env,
     ).generate_c().generate_fortran().generate_python()
 
-    h = Hook(directory, prefix, functions)
+    h = Hook(
+        directory,
+        prefix,
+        functions,
+        template_env,
+    )
     if hook == "blank":
         h.generate_blank()
     else:
@@ -411,8 +387,6 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
         b.generate_cmake()
     else:
         raise NotImplementedError(f"No build '{build}'")
-
-    # Make converter (CPU/GPU & Py/Fortran)
 
 
 if __name__ == "__main__":
