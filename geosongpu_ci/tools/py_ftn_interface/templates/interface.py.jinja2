@@ -18,11 +18,7 @@ from datetime import datetime
 from mpi4py import MPI
 
         
-from {{prefix}} import (
-    {% for function in functions -%}
-    {{prefix}}_{{function.name}}{{ ", " if not loop.last else "" }}
-    {% endfor %}
-)
+from {{prefix}}_hook import {{hook_obj}}
 
 
 {% for function in functions %}
@@ -47,7 +43,7 @@ def {{prefix}}_{{function.name}}_py(
     {{code}}
     {% endfor %}
     
-    {{prefix}}_{{function.name}}(
+    {{hook_obj}}.{{function.name}}(
         {%- for name in function.all_arguments_name -%}
           {{name}}={{name}}{{ ", " if not loop.last else "" }}
       {% endfor %}

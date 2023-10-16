@@ -9,6 +9,7 @@ import jinja2
 import textwrap
 import sys
 import site
+import shutil
 
 ###############
 # TODO:
@@ -117,11 +118,11 @@ class BridgeFunction:
                     textwrap.dedent(
                         f"""\
                         # Comm translate to python
-                            comm_py = MPI.Intracomm() # new comm, internal MPI_Comm handle is MPI_COMM_NULL
+                            comm_py = MPI.Intracomm() # new comm, internal MPI_Comm handle is MPI_COMM_NULL 
                             comm_ptr = MPI._addressof(comm_py)  # internal MPI_Comm handle
                             comm_ptr = ffi.cast('{{_mpi_comm_t}}*', comm_ptr)  # make it a CFFI pointer
                             comm_ptr[0] = {name}  # assign comm_c to comm_py's MPI_Comm handle
-                            {name} = comm_py # Override the symbol name to make life easier for code gen"""
+                            {name} = comm_py # Override the symbol name to make life easier for code gen"""  # noqa
                     )
                 )
         return code
@@ -159,7 +160,7 @@ class BridgeFunction:
             raise RuntimeError(f"ERROR_DEF_TYPE_TO_FORTRAN: {def_type}")
 
 
-class Bridge:
+class InterfaceConfig:
     def __init__(
         self,
         directory_path: str,
@@ -169,8 +170,26 @@ class Bridge:
     ) -> None:
         self._directory_path = directory_path
         self._prefix = prefix
+        self._hook_obj = prefix
+        self._hook_class = prefix.upper()
         self._functions = function_defines
         self._template_env = template_env
+
+
+class Bridge(InterfaceConfig):
+    def __init__(
+        self,
+        directory_path: str,
+        prefix: str,
+        function_defines: List[BridgeFunction],
+        template_env: jinja2.Environment,
+    ) -> None:
+        super().__init__(
+            directory_path=directory_path,
+            prefix=prefix,
+            function_defines=function_defines,
+            template_env=template_env,
+        )
 
     def generate_c(self) -> "Bridge":
         # Transform data for Jinja2 template
@@ -258,6 +277,7 @@ class Bridge:
         code = template.render(
             prefix=self._prefix,
             functions=functions,
+            hook_obj=self._hook_obj,
         )
 
         py_source_filepath = f"./{self._directory_path}/{self._prefix}_interface.py"
@@ -270,7 +290,7 @@ class Bridge:
         return self
 
 
-class Hook:
+class Hook(InterfaceConfig):
     def __init__(
         self,
         directory_path: str,
@@ -278,10 +298,12 @@ class Hook:
         function_defines: List[BridgeFunction],
         template_env: jinja2.Environment,
     ) -> None:
-        self._directory_path = directory_path
-        self._prefix = prefix
-        self._functions = function_defines
-        self._template_env = template_env
+        super().__init__(
+            directory_path=directory_path,
+            prefix=prefix,
+            function_defines=function_defines,
+            template_env=template_env,
+        )
 
     def generate_blank(self):
         functions = []
@@ -299,6 +321,8 @@ class Hook:
         code = template.render(
             prefix=self._prefix,
             functions=functions,
+            hook_class=self._hook_class,
+            hook_obj=self._hook_obj,
         )
 
         py_source_filepath = f"./{self._directory_path}/{self._prefix}_hook.py"
@@ -346,7 +370,8 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
     # Make directory
     os.makedirs(directory, exist_ok=True)
 
-    # Make bridge
+    # Make bridge - this our "translation-only" layer
+    # that move data "as-is" between fortran and python (through c)
     prefix = defs["name"]
     functions = []
     for function_name, args in defs["functions"].items():
@@ -371,6 +396,7 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
         template_env,
     ).generate_c().generate_fortran().generate_python()
 
+    # Make hook - this our springboard to the larger python code
     h = Hook(
         directory,
         prefix,
@@ -382,11 +408,16 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
     else:
         raise NotImplementedError(f"No hook '{hook}'")
 
+    # The build script is not fully functional - it is meant as a hint
     b = Build(directory, prefix, functions)
     if build == "cmake":
         b.generate_cmake()
     else:
         raise NotImplementedError(f"No build '{build}'")
+
+    # Copy support files
+    shutil.copy(_find_templates("cuda_profiler.py"), directory)
+    shutil.copy(_find_templates("data_conversion.py"), directory)
 
 
 if __name__ == "__main__":

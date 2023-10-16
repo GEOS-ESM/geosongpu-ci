@@ -6,20 +6,28 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import cffi
 
-{% for function in functions %}
-def {{prefix}}_{{function.name}}(
-      # inputs
-      {% for input in function.inputs -%}
+
+class {{hook_class}}:
+    def __init__(self):
+        pass
+    
+    {% for function in functions %}
+    def {{function.name}}(
+        self,
+        # inputs
+        {% for input in function.inputs -%}
         {{input.name}}:{{input.type}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}
-      {%- endfor %}
-      # inputs-outputs
-      {% for inout in function.inouts -%}
+        {%- endfor %}
+        # inputs-outputs
+        {% for inout in function.inouts -%}
         {{inout.name}}:{{inout.type}}{{ ", " if not loop.last or function.outputs|length > 0 else "" }}
-      {%- endfor %}
-      # outputs
-      {% for output in function.outputs -%}
+        {%- endfor %}
+        # outputs
+        {% for output in function.outputs -%}
         {{output.name}}:{{output.type}}{{ ", " if not loop.last else "" }}
-      {%- endfor %}    
-):
-    print("My code for {{prefix}}_{{function.name}} goes here.")
-{% endfor %}
+        {%- endfor %}    
+    ):
+        print("My code for {{prefix}}_{{function.name}} goes here.")
+    {% endfor %}
+
+{{hook_obj}} = {{hook_class}}()
