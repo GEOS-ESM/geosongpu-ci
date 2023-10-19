@@ -41,10 +41,16 @@ def _find_templates_dir() -> str:
 def _find_templates(name: str) -> str:
     directory = _find_templates_dir()
     # pip install geosongpu-ci
-    candidate = f"{directory}{name}"
+    candidate = f"{directory}/{name}"
     if os.path.isfile(candidate):
         return candidate
-    raise RuntimeError(f"Cannot find template: {name}")
+    raise RuntimeError(f"Cannot find template: {name} im {directory}")
+
+
+def _sanitize_variable_for_python(var: str):
+    if var in ["is", "in"]:
+        var = f"_{var}"
+    return var
 
 
 class BridgeFunction:
@@ -83,6 +89,8 @@ class BridgeFunction:
         for name, _type in arguments.items():
             if _type.startswith("array_"):
                 _type = _type[len("array_") :] + "*"
+            if _type.startswith("MPI"):
+                _type = "void*"
             trf_args.append({"type": _type, "name": name})
 
         return trf_args
@@ -106,6 +114,7 @@ class BridgeFunction:
                 _type = "'cffi.FFI.CData'"
             if _type == "MPI":
                 _type = "MPI.Intercomm"
+            name = _sanitize_variable_for_python(name)
             trf_args.append({"type": _type, "name": name})
         return trf_args
 
@@ -137,7 +146,7 @@ class BridgeFunction:
     def arguments_name(self) -> List[str]:
         call = []
         for name, _type in self.arguments.items():
-            call.append(name)
+            call.append(_sanitize_variable_for_python(name))
         return call
 
     @staticmethod
@@ -201,22 +210,24 @@ class Bridge(InterfaceConfig):
                     "inputs": BridgeFunction.c_arguments_for_jinja2(function.inputs),
                     "inouts": BridgeFunction.c_arguments_for_jinja2(function.inouts),
                     "ouputs": BridgeFunction.c_arguments_for_jinja2(function.outputs),
+                    "arguments": BridgeFunction.c_arguments_for_jinja2(
+                        function.arguments
+                    ),
                     "arguments_init": function.c_init_code(),
-                    "arguments_name": function.arguments_name(),
                 }
             )
 
+        # Source
         template = self._template_env.get_template("interface.c.jinja2")
         code = template.render(
             prefix=self._prefix,
             functions=functions,
         )
 
-        c_source_filepath = f"./{self._directory_path}/{self._prefix}_interface.c"
+        c_source_filepath = f"{self._directory_path}/{self._prefix}_interface.c"
         with open(c_source_filepath, "w+") as f:
             f.write(code)
 
-        # Format
         subprocess.call([cf._get_executable("clang-format"), "-i", c_source_filepath])
 
         return self
@@ -246,7 +257,7 @@ class Bridge(InterfaceConfig):
             functions=functions,
         )
 
-        ftn_source_filepath = f"./{self._directory_path}/{self._prefix}_interface.f90"
+        ftn_source_filepath = f"{self._directory_path}/{self._prefix}_interface.f90"
         with open(ftn_source_filepath, "w+") as f:
             f.write(code)
 
@@ -280,7 +291,7 @@ class Bridge(InterfaceConfig):
             hook_obj=self._hook_obj,
         )
 
-        py_source_filepath = f"./{self._directory_path}/{self._prefix}_interface.py"
+        py_source_filepath = f"{self._directory_path}/{self._prefix}_interface.py"
         with open(py_source_filepath, "w+") as f:
             f.write(code)
 
@@ -325,7 +336,7 @@ class Hook(InterfaceConfig):
             hook_obj=self._hook_obj,
         )
 
-        py_source_filepath = f"./{self._directory_path}/{self._prefix}_hook.py"
+        py_source_filepath = f"{self._directory_path}/{self._prefix}_hook.py"
         with open(py_source_filepath, "w+") as f:
             f.write(code)
 
@@ -338,19 +349,33 @@ class Hook(InterfaceConfig):
         raise NotImplementedError("Not implemented")
 
 
-class Build:
+class Build(InterfaceConfig):
     def __init__(
         self,
         directory_path: str,
         prefix: str,
         function_defines: List[BridgeFunction],
+        template_env: jinja2.Environment,
     ) -> None:
-        self._directory_path = directory_path
-        self._prefix = prefix
-        self._functions = function_defines
+        super().__init__(
+            directory_path=directory_path,
+            prefix=prefix,
+            function_defines=function_defines,
+            template_env=template_env,
+        )
 
     def generate_cmake(self):
-        pass
+        template = self._template_env.get_template("cmake.jinja2")
+        code = template.render(
+            prefix=self._prefix,
+            interface_directory=self._directory_path,
+        )
+
+        py_source_filepath = f"{self._directory_path}/CMakeLists_partial.txt"
+        with open(py_source_filepath, "w+") as f:
+            f.write(code)
+
+        return self
 
 
 @click.command()
@@ -409,7 +434,12 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
         raise NotImplementedError(f"No hook '{hook}'")
 
     # The build script is not fully functional - it is meant as a hint
-    b = Build(directory, prefix, functions)
+    b = Build(
+        directory,
+        prefix,
+        functions,
+        template_env,
+    )
     if build == "cmake":
         b.generate_cmake()
     else:

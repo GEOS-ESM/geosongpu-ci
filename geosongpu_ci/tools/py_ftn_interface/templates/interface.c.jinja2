@@ -1,4 +1,4 @@
-#include "{{prefix}}_interface_py.h"
+#include "{{prefix}}_interface.h"
 #include "mpi.h"
 #include <stdio.h>
 #include <time.h>
@@ -22,9 +22,9 @@
     {%- for init_code in function.arguments_init -%}
         {{init_code}}
     {%- endfor -%}
-    {{prefix}}_interface_py_{{function.name}}(
-      {%- for call in function.arguments_name -%}
-          {{call}}{{ ", " if not loop.last else "" }}
+    {{prefix}}_{{function.name}}_py(
+      {%- for arg in function.arguments -%}
+          {{arg.name}}{{ ", " if not loop.last else "" }}
       {%- endfor -%}
     );
   }

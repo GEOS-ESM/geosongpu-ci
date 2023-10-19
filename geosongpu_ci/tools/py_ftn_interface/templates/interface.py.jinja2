@@ -1,7 +1,8 @@
 import cffi
+import os
 from mpi4py import MPI
 
-TMPFILEBASE = "{{prefix}}_interface_py"
+TMPFILEBASE = "{{prefix}}_interface"
 
 ffi = cffi.FFI()
 
@@ -54,7 +55,7 @@ def {{prefix}}_{{function.name}}_py(
 header = f"""
 
 {% for function in functions -%}
-extern void {{prefix}}_{{function.name}}(
+extern void {{prefix}}_{{function.name}}_py(
     {%- for arg in function.c_arguments -%}
         {{arg.type}} {{arg.name}}{{ ", " if not loop.last else "" }}
     {%- endfor -%}
@@ -62,7 +63,7 @@ extern void {{prefix}}_{{function.name}}(
 {% endfor %}
 """
 
-with open(TMPFILEBASE + ".h", "w") as f:
+with open(f"{TMPFILEBASE}.h", "w") as f:
     f.write(header)
     ffi.embedding_api(header)
 
@@ -71,3 +72,7 @@ with open(TMPFILEBASE + ".h", "w") as f:
 
     ffi.embedding_init_code(source)
     ffi.compile(target="lib" + TMPFILEBASE + ".so", verbose=True)
+
+header_path = os.path.join(os.path.dirname(__file__), f"./{TMPFILEBASE}.h")
+with open(header_path, "w") as f:
+    f.write(header)

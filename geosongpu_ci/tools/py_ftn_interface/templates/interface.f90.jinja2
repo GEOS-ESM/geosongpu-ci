@@ -16,12 +16,12 @@ module {{prefix}}_interface_mod
                 {{input.name}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}{{"&\n" if (loop.index % 10) == 0 else ""}}
             {%- endfor %}{{ "&" if function.inputs|length > 0 else "" }}
             !inouts
-            {% for input in function.inouts -%}
-                {{input.name}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {% for inout in function.inouts -%}
+                {{inout.name}}{{ ", " if not loop.last or function.outputs|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
             {%- endfor %}{{ "&" if function.inouts|length > 0 else "" }}
             !outputs
-            {% for input in function.outputs -%}
-                {{input.name}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {% for output in function.outputs -%}
+                {{output.name}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
             {%- endfor -%}{{ "&" if function.outputs|length > 0 else "" }}
         ) bind(c, name='{{prefix}}_{{function.name}}_c')
             import c_int, c_float, c_double
