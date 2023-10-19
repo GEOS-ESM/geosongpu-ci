@@ -35,7 +35,7 @@ find_package(Python COMPONENTS Interpreter REQUIRED)
 # Set up some variables in case names change
 set({{prefix}}_INTERFACE_LIBRARY     ${CMAKE_CURRENT_BINARY_DIR}/lib{{prefix}}_interface.so)
 set({{prefix}}_INTERFACE_HEADER_FILE ${CMAKE_CURRENT_BINARY_DIR}/{{prefix}}_interface.h)
-set({{prefix}}_INTERFACE_DIRECTORY   ../src/interface)
+set({{prefix}}_INTERFACE_DIRECTORY   {{interface_directory}})
 set({{prefix}}_INTERFACE_SRCS        ${{"{"}}{{prefix}}_INTERFACE_DIRECTORY}/{{prefix}}_interface.py)
 
 message(VERBOSE "Python is: ${Python3_EXECUTABLE}")

@@ -160,9 +160,9 @@ class BridgeFunction:
         elif def_type == "array_int":
             return "integer(kind=c_int), dimension(*)"
         elif def_type == "array_float":
-            return "integer(kind=c_float), dimension(*)"
+            return "real(kind=c_float), dimension(*)"
         elif def_type == "array_double":
-            return "integer(kind=c_double), dimension(*)"
+            return "real(kind=c_double), dimension(*)"
         elif def_type == "MPI":
             return "integer(kind=c_int), value"
         else:
@@ -209,7 +209,7 @@ class Bridge(InterfaceConfig):
                     "name": function.name,
                     "inputs": BridgeFunction.c_arguments_for_jinja2(function.inputs),
                     "inouts": BridgeFunction.c_arguments_for_jinja2(function.inouts),
-                    "ouputs": BridgeFunction.c_arguments_for_jinja2(function.outputs),
+                    "outputs": BridgeFunction.c_arguments_for_jinja2(function.outputs),
                     "arguments": BridgeFunction.c_arguments_for_jinja2(
                         function.arguments
                     ),
@@ -245,7 +245,7 @@ class Bridge(InterfaceConfig):
                     "inouts": BridgeFunction.fortran_arguments_for_jinja2(
                         function.inouts
                     ),
-                    "ouputs": BridgeFunction.fortran_arguments_for_jinja2(
+                    "outputs": BridgeFunction.fortran_arguments_for_jinja2(
                         function.outputs
                     ),
                 }
@@ -275,7 +275,7 @@ class Bridge(InterfaceConfig):
                     "name": function.name,
                     "inputs": BridgeFunction.py_arguments_for_jinja2(function.inputs),
                     "inouts": BridgeFunction.py_arguments_for_jinja2(function.inouts),
-                    "ouputs": BridgeFunction.py_arguments_for_jinja2(function.outputs),
+                    "outputs": BridgeFunction.py_arguments_for_jinja2(function.outputs),
                     "init_code": function.py_init_code(),
                     "all_arguments_name": function.arguments_name(),
                     "c_arguments": BridgeFunction.c_arguments_for_jinja2(
@@ -324,7 +324,7 @@ class Hook(InterfaceConfig):
                     "name": function.name,
                     "inputs": BridgeFunction.py_arguments_for_jinja2(function.inputs),
                     "inouts": BridgeFunction.py_arguments_for_jinja2(function.inouts),
-                    "ouputs": BridgeFunction.py_arguments_for_jinja2(function.outputs),
+                    "outputs": BridgeFunction.py_arguments_for_jinja2(function.outputs),
                 }
             )
 
