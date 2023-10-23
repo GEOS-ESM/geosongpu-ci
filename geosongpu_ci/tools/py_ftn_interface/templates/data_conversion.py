@@ -1,11 +1,19 @@
 import cffi
 import numpy as np
 from math import prod
-from cuda_profiler import CUDAProfiler
-from pace.dsl.typing import Float
-from typing import Tuple, Optional, List, Dict, Union
+from typing import Tuple, Optional, List, Union
 from types import ModuleType
-from pace.util._optional_imports import cupy as cp
+
+try:
+    import cupy as cp
+except ImportError:
+    cp = None
+if cupy is not None:
+    # Cupy might be available - but not the device
+    try:
+        cupy.cuda.runtime.deviceSynchronize()
+    except cupy.cuda.runtime.CUDARuntimeError:
+        cp = None
 
 DeviceArray = cp.ndarray if cp else None
 PythonArray = Union[np.ndarray, (cp.ndarray if cp else None)]
@@ -16,41 +24,18 @@ class FortranPythonConversion:
     Convert Fortran arrays to NumPy and vice-versa
     """
 
-    def __init__(
-        self,
-        npx: int,
-        npy: int,
-        npz: int,
-        is_: int,
-        ie: int,
-        js: int,
-        je: int,
-        isd: int,
-        ied: int,
-        jsd: int,
-        jed: int,
-        num_tracers: int,
-        numpy_module: ModuleType,
-    ):
+    def __init__(self, numpy_module: ModuleType):
         # Python numpy-like module is given by the caller leaving
         # optional control of upload/download in the case
         # of GPU/CPU system
         self._target_np = numpy_module
 
         # Device parameters
-        #  Pace targets gpu: we want the Pace layout to be on device
         self._python_targets_gpu = self._target_np == cp
         if self._python_targets_gpu:
             self._stream_A = cp.cuda.Stream(non_blocking=True)
             self._stream_B = cp.cuda.Stream(non_blocking=True)
             self._current_stream = self._stream_A
-
-        # Layout & indexing
-        self._npx, self._npy, self._npz = npx, npy, npz
-        self._is, self._ie, self._js, self._je = is_, ie, js, je
-        self._isd, self._ied, self._jsd, self._jed = isd, ied, jsd, jed
-        assert num_tracers == 7, f"Expected 7 tracers, received: {num_tracers}"
-        self._num_tracers = num_tracers
 
         # cffi init
         self._ffi = cffi.FFI()
@@ -69,7 +54,7 @@ class FortranPythonConversion:
         self,
         fptr: "cffi.FFI.CData",
         dim: List[int],
-    ):
+    ) -> np.ndarray:
         """
         Input: Fortran data pointed to by fptr and of shape dim = (i, j, k)
         Output: C-ordered double precision NumPy data of shape (i, j, k)

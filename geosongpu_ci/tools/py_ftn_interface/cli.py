@@ -10,6 +10,10 @@ import textwrap
 import sys
 import site
 import shutil
+from geosongpu_ci.tools.py_ftn_interface.argument import (
+    Argument,
+    get_argument_yaml_loader,
+)
 
 ###############
 # TODO:
@@ -57,9 +61,9 @@ class BridgeFunction:
     def __init__(
         self,
         name: str,
-        inputs: Dict[str, str],
-        inouts: Dict[str, str],
-        outputs: Dict[str, str],
+        inputs: List[Argument],
+        inouts: List[Argument],
+        outputs: List[Argument],
     ) -> None:
         self.name = name
         self._inputs = inputs
@@ -67,62 +71,48 @@ class BridgeFunction:
         self._outputs = outputs
 
     @property
-    def inputs(self) -> Dict[str, str]:
+    def inputs(self) -> List[Argument]:
         return self._inputs
 
     @property
-    def outputs(self) -> Dict[str, str]:
+    def outputs(self) -> List[Argument]:
         return self._outputs
 
     @property
-    def inouts(self) -> Dict[str, str]:
+    def inouts(self) -> List[Argument]:
         return self._inouts
 
     @property
-    def arguments(self) -> Dict[str, str]:
-        return {**self._inputs, **self._inouts, **self._outputs}
+    def arguments(self) -> List[Argument]:
+        return self._inputs + self._inouts + self._outputs
 
     @staticmethod
-    def c_arguments_for_jinja2(arguments: Dict[str, str]) -> List[Dict[str, str]]:
+    def c_arguments_for_jinja2(arguments: List[Argument]) -> List[Dict[str, str]]:
         """Transform yaml input for the template renderer"""
-        trf_args = []
-        for name, _type in arguments.items():
-            if _type.startswith("array_"):
-                _type = _type[len("array_") :] + "*"
-            if _type.startswith("MPI"):
-                _type = "void*"
-            trf_args.append({"type": _type, "name": name})
-
-        return trf_args
+        return [
+            {"type": argument.c_type, "name": argument.name} for argument in arguments
+        ]
 
     @staticmethod
-    def fortran_arguments_for_jinja2(arguments: Dict[str, str]) -> List[Dict[str, str]]:
+    def fortran_arguments_for_jinja2(arguments: List[Argument]) -> List[Dict[str, str]]:
         """Transform yaml input for the template renderer"""
-        trf_args = []
-        for name, _type in arguments.items():
-            _type = BridgeFunction._fortran_type_declaration(_type)
-            trf_args.append({"type": _type, "name": name})
-
-        return trf_args
+        return [
+            {"type": argument.f90_type_definition, "name": argument.name}
+            for argument in arguments
+        ]
 
     @staticmethod
-    def py_arguments_for_jinja2(arguments: Dict[str, str]) -> List[Dict[str, str]]:
+    def py_arguments_for_jinja2(arguments: List[Argument]) -> List[Dict[str, str]]:
         """Transform yaml input for the template renderer"""
-        trf_args = []
-        for name, _type in arguments.items():
-            if _type.startswith("array_"):
-                _type = "'cffi.FFI.CData'"
-            if _type == "MPI":
-                _type = "MPI.Intercomm"
-            name = _sanitize_variable_for_python(name)
-            trf_args.append({"type": _type, "name": name})
-        return trf_args
+        return [
+            {"type": argument.py_type_hint, "name": argument.name_sanitize}
+            for argument in arguments
+        ]
 
     def py_init_code(self) -> List[str]:
         code = []
-        for name, _type in self.arguments.items():
-            if _type == "MPI":
-                _type = "MPI.Intercomm"
+        for argument in self.arguments:
+            if argument.yaml_type == "MPI":
                 code.append(
                     textwrap.dedent(
                         f"""\
@@ -130,24 +120,23 @@ class BridgeFunction:
                             comm_py = MPI.Intracomm() # new comm, internal MPI_Comm handle is MPI_COMM_NULL 
                             comm_ptr = MPI._addressof(comm_py)  # internal MPI_Comm handle
                             comm_ptr = ffi.cast('{{_mpi_comm_t}}*', comm_ptr)  # make it a CFFI pointer
-                            comm_ptr[0] = {name}  # assign comm_c to comm_py's MPI_Comm handle
-                            {name} = comm_py # Override the symbol name to make life easier for code gen"""  # noqa
+                            comm_ptr[0] = {argument.name}  # assign comm_c to comm_py's MPI_Comm handle
+                            {argument.name} = comm_py # Override the symbol name to make life easier for code gen"""  # noqa
                     )
                 )
         return code
 
     def c_init_code(self) -> List[str]:
         prolog_code = []
-        for name, _type in self.arguments.items():
-            if _type == "MPI":
-                prolog_code.append(f"MPI_Comm {name}_c = MPI_Comm_f2c({name});")
+        for argument in self.arguments:
+            if argument.yaml_type == "MPI":
+                prolog_code.append(
+                    f"MPI_Comm {argument.name}_c = MPI_Comm_f2c({argument.name});"
+                )
         return prolog_code
 
     def arguments_name(self) -> List[str]:
-        call = []
-        for name, _type in self.arguments.items():
-            call.append(_sanitize_variable_for_python(name))
-        return call
+        return [argument.name_sanitize for argument in self.arguments]
 
     @staticmethod
     def _fortran_type_declaration(def_type: str) -> str:
@@ -388,7 +377,7 @@ class Build(InterfaceConfig):
 @click.option("--build", default="cmake")
 def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
     with open(definition_json_filepath) as f:
-        defs = yaml.safe_load(f)
+        defs = yaml.load(f, Loader=get_argument_yaml_loader())
     if "type" not in defs.keys() and defs["type"] == "py_ftn_interface":
         raise RuntimeError("Bad definition")
 
@@ -399,15 +388,16 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
     # that move data "as-is" between fortran and python (through c)
     prefix = defs["name"]
     functions = []
-    for function_name, args in defs["functions"].items():
+    for function in defs["bridge"]:
+        args = function["arguments"]
         if args == "None":
             args = None
         functions.append(
             BridgeFunction(
-                function_name,
-                (args["inputs"] if "inputs" in args.keys() else {}) if args else {},
-                (args["inouts"] if "inouts" in args.keys() else {}) if args else {},
-                (args["outputs"] if "outputs" in args.keys() else {}) if args else {},
+                function["name"],
+                (args["inputs"] if "inputs" in args.keys() else []) if args else [],
+                (args["inouts"] if "inouts" in args.keys() else []) if args else [],
+                (args["outputs"] if "outputs" in args.keys() else []) if args else [],
             )
         )
 
