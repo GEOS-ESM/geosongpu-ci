@@ -135,6 +135,7 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
     # Copy support files
     shutil.copy(_find_templates("cuda_profiler.py"), directory)
     shutil.copy(_find_templates("data_conversion.py"), directory)
+    open(directory + "/__init__.py", "a").close()
 
 
 if __name__ == "__main__":
