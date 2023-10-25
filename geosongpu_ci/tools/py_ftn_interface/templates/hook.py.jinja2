@@ -1,13 +1,17 @@
 from mpi4py import MPI
 from typing import TYPE_CHECKING
 
+from data_conversion import FortranPythonConversion
+
 if TYPE_CHECKING:
     import cffi
 
 
 class {{hook_class}}:
     def __init__(self):
-        pass
+        # Default converter on Host memory. Use `cupy`
+        # insteady of Numpy to get a Host<>Device converter
+        self._f2py = FortranPythonConversion(target_numpy_module=np)
     
     {% for function in functions %}
     def {{function.name}}(
@@ -26,6 +30,21 @@ class {{hook_class}}:
         {%- endfor %}    
     ):
         print("My code for {{prefix}}_{{function.name}} goes here.")
+    {% endfor %}
+
+    {% for validation in validations %}
+    def v_{{validation.candidate}}(
+        self,
+        # inputs-outputs
+        {% for inout in validation.inouts -%}
+        f90_{{inout.name}}:{{inout.type}}, py_{{inout.name}}:{{inout.type}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
+        {%- endfor %}
+        # outputs
+        {% for output in validation.outputs -%}
+        f90_{{output.name}}:{{output.type}}, py_{{output.name}}:{{output.type}}{{ ", " if not loop.last else "" }}
+        {%- endfor %}    
+    ):
+        print("My code for v_{{prefix}}_{{validation.candidate}} goes here.")
     {% endfor %}
 
 {{hook_obj}} = {{hook_class}}()

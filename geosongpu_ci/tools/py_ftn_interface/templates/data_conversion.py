@@ -8,11 +8,11 @@ try:
     import cupy as cp
 except ImportError:
     cp = None
-if cupy is not None:
+if cp is not None:
     # Cupy might be available - but not the device
     try:
-        cupy.cuda.runtime.deviceSynchronize()
-    except cupy.cuda.runtime.CUDARuntimeError:
+        cp.cuda.runtime.deviceSynchronize()
+    except cp.cuda.runtime.CUDARuntimeError:
         cp = None
 
 DeviceArray = cp.ndarray if cp else None
@@ -21,14 +21,16 @@ PythonArray = Union[np.ndarray, (cp.ndarray if cp else None)]
 
 class FortranPythonConversion:
     """
-    Convert Fortran arrays to NumPy and vice-versa
+    Convert Fortran arrays to NumPy and vice-versa.
+
+    WARNING: This class DOES NOT type cast
     """
 
-    def __init__(self, numpy_module: ModuleType):
+    def __init__(self, target_numpy_module: ModuleType):
         # Python numpy-like module is given by the caller leaving
         # optional control of upload/download in the case
         # of GPU/CPU system
-        self._target_np = numpy_module
+        self._target_np = target_numpy_module
 
         # Device parameters
         self._python_targets_gpu = self._target_np == cp
@@ -45,12 +47,50 @@ class FortranPythonConversion:
             "int": np.int32,
         }
 
-    def _device_sync(self):
+    def sync(self):
         """Synchronize the working CUDA streams"""
         self._stream_A.synchronize()
         self._stream_B.synchronize()
 
-    def _fortran_to_numpy(
+    def fortran_to_python(
+        self,
+        fptr: np.ndarray,
+        dim: List[int],
+        swap_axes: Optional[Tuple[int, int]] = None,
+    ) -> PythonArray:
+        """Move fortran memory into python space"""
+        np_array = self._fortran_pointer_to_numpy_buffer(fptr, dim)
+        if self._python_targets_gpu:
+            return self._upload_and_transform(np_array, dim, swap_axes)
+        else:
+            return self._transform_from_fortran_layout(
+                np_array,
+                dim,
+                swap_axes,
+            )
+
+    def python_to_fortran(
+        self,
+        array: PythonArray,
+        fptr: "cffi.FFI.CData",
+        ptr_offset: int = 0,
+        swap_axes: Optional[Tuple[int, int]] = None,
+    ) -> np.ndarray:
+        """
+        Input: Fortran data pointed to by fptr and of shape dim = (i, j, k)
+        Output: C-ordered double precision NumPy data of shape (i, j, k)
+        """
+        ftype = self._ffi.getctype(self._ffi.typeof(fptr).item)
+        assert ftype in self._TYPEMAP
+        dtype = self._TYPEMAP[ftype]
+        numpy_array = self._transform_from_python_layout(
+            array,
+            dtype,
+            swap_axes,
+        )
+        self._ffi.memmove(fptr + ptr_offset, numpy_array, 4 * numpy_array.size)
+
+    def _fortran_pointer_to_numpy_buffer(
         self,
         fptr: "cffi.FFI.CData",
         dim: List[int],
@@ -94,7 +134,7 @@ class FortranPythonConversion:
         swap_axes: Optional[Tuple[int, int]] = None,
     ) -> PythonArray:
         """Transform from Fortran layout into a Pace compatible layout"""
-        trf_array = array.reshape(tuple(reversed(dim))).transpose().astype(Float)
+        trf_array = array.reshape(tuple(reversed(dim))).transpose()
         if swap_axes:
             trf_array = self._target_np.swapaxes(
                 trf_array,
@@ -102,23 +142,6 @@ class FortranPythonConversion:
                 swap_axes[1],
             )
         return trf_array
-
-    def _fortran_to_python_trf(
-        self,
-        fptr: np.ndarray,
-        dim: List[int],
-        swap_axes: Optional[Tuple[int, int]] = None,
-    ) -> PythonArray:
-        """Move fortran memory into python space"""
-        np_array = self._fortran_to_numpy(fptr, dim)
-        if self._python_targets_gpu:
-            return self._upload_and_transform(np_array, dim, swap_axes)
-        else:
-            return self._transform_from_fortran_layout(
-                np_array,
-                dim,
-                swap_axes,
-            )
 
     def _transform_and_download(
         self,
@@ -162,24 +185,3 @@ class FortranPythonConversion:
                     swap_axes[1],
                 )
         return numpy_array
-
-    def _python_to_fortran_trf(
-        self,
-        array: PythonArray,
-        fptr: "cffi.FFI.CData",
-        ptr_offset: int = 0,
-        swap_axes: Optional[Tuple[int, int]] = None,
-    ) -> np.ndarray:
-        """
-        Input: Fortran data pointed to by fptr and of shape dim = (i, j, k)
-        Output: C-ordered double precision NumPy data of shape (i, j, k)
-        """
-        ftype = self._ffi.getctype(self._ffi.typeof(fptr).item)
-        assert ftype in self._TYPEMAP
-        dtype = self._TYPEMAP[ftype]
-        numpy_array = self._transform_from_python_layout(
-            array,
-            dtype,
-            swap_axes,
-        )
-        self._ffi.memmove(fptr + ptr_offset, numpy_array, 4 * numpy_array.size)

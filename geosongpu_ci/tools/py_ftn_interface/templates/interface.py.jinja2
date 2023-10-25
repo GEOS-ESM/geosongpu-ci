@@ -50,6 +50,28 @@ def {{prefix}}_{{function.name}}_py(
       {% endfor %}
     )
 {% endfor %}
+{% for validation in validations %}
+@ffi.def_extern()
+def v_{{prefix}}_{{validation.candidate}}_py(
+      # inputs-outputs
+      {% for inout in validation.inouts -%}
+        f90_{{inout.name}}:{{inout.type}}, py_{{inout.name}}:{{inout.type}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
+      {%- endfor %}
+      # outputs
+      {% for output in validation.outputs -%}
+        f90_{{output.name}}:{{output.type}}, py_{{output.name}}:{{output.type}},{{ ", " if not loop.last else "" }}
+      {%- endfor %}
+    ):
+    {{hook_obj}}.v_{{validation.candidate}}(
+      {%- for inout in validation.inouts -%}
+        f90_{{inout.name}}=f90_{{inout.name}}, py_{{inout.name}}=py_{{inout.name}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
+      {% endfor %}
+      {%- for output in validation.outputs -%}
+        f90_{{output.name}}=f90_{{output.name}}, py_{{output.name}}=py_{{output.name}}{{ ", " if not loop.last else "" }}
+      {% endfor %}
+    )
+{% endfor %}
+
 """
 
 header = f"""
@@ -59,6 +81,16 @@ extern void {{prefix}}_{{function.name}}_py(
     {%- for arg in function.c_arguments -%}
         {{arg.type}} {{arg.name}}{{ ", " if not loop.last else "" }}
     {%- endfor -%}
+);
+{% endfor %}
+{% for validation in validations %}
+extern void v_{{prefix}}_{{validation.candidate}}_py(
+    {% for inout in validation.inouts_c -%}
+      {{inout.type}} f90_{{inout.name}}, {{inout.type}} py_{{inout.name}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
+    {%- endfor %}
+    {% for output in validation.outputs_c -%}
+      {{output.type}} f90_{{output.name}}, {{output.type}} py_{{output.name}}{{ ", " if not loop.last else "" }}
+    {%- endfor %}
 );
 {% endfor %}
 """

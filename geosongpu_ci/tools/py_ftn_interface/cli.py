@@ -1,19 +1,18 @@
 import click
-import yaml
-import os
-from typing import List, Dict
-import subprocess
-import clang_format as cf
-import fprettify
 import jinja2
-import textwrap
-import sys
+from typing import List
+import os
 import site
 import shutil
+import sys
+import yaml
+
 from geosongpu_ci.tools.py_ftn_interface.argument import (
-    Argument,
     get_argument_yaml_loader,
 )
+from geosongpu_ci.tools.py_ftn_interface.base import InterfaceConfig, Function
+from geosongpu_ci.tools.py_ftn_interface.bridge import Bridge
+
 
 ###############
 # TODO:
@@ -51,299 +50,12 @@ def _find_templates(name: str) -> str:
     raise RuntimeError(f"Cannot find template: {name} im {directory}")
 
 
-def _sanitize_variable_for_python(var: str):
-    if var in ["is", "in"]:
-        var = f"_{var}"
-    return var
-
-
-class BridgeFunction:
-    def __init__(
-        self,
-        name: str,
-        inputs: List[Argument],
-        inouts: List[Argument],
-        outputs: List[Argument],
-    ) -> None:
-        self.name = name
-        self._inputs = inputs
-        self._inouts = inouts
-        self._outputs = outputs
-
-    @property
-    def inputs(self) -> List[Argument]:
-        return self._inputs
-
-    @property
-    def outputs(self) -> List[Argument]:
-        return self._outputs
-
-    @property
-    def inouts(self) -> List[Argument]:
-        return self._inouts
-
-    @property
-    def arguments(self) -> List[Argument]:
-        return self._inputs + self._inouts + self._outputs
-
-    @staticmethod
-    def c_arguments_for_jinja2(arguments: List[Argument]) -> List[Dict[str, str]]:
-        """Transform yaml input for the template renderer"""
-        return [
-            {"type": argument.c_type, "name": argument.name} for argument in arguments
-        ]
-
-    @staticmethod
-    def fortran_arguments_for_jinja2(arguments: List[Argument]) -> List[Dict[str, str]]:
-        """Transform yaml input for the template renderer"""
-        return [
-            {"type": argument.f90_type_definition, "name": argument.name}
-            for argument in arguments
-        ]
-
-    @staticmethod
-    def py_arguments_for_jinja2(arguments: List[Argument]) -> List[Dict[str, str]]:
-        """Transform yaml input for the template renderer"""
-        return [
-            {"type": argument.py_type_hint, "name": argument.name_sanitize}
-            for argument in arguments
-        ]
-
-    def py_init_code(self) -> List[str]:
-        code = []
-        for argument in self.arguments:
-            if argument.yaml_type == "MPI":
-                code.append(
-                    textwrap.dedent(
-                        f"""\
-                        # Comm translate to python
-                            comm_py = MPI.Intracomm() # new comm, internal MPI_Comm handle is MPI_COMM_NULL 
-                            comm_ptr = MPI._addressof(comm_py)  # internal MPI_Comm handle
-                            comm_ptr = ffi.cast('{{_mpi_comm_t}}*', comm_ptr)  # make it a CFFI pointer
-                            comm_ptr[0] = {argument.name}  # assign comm_c to comm_py's MPI_Comm handle
-                            {argument.name} = comm_py # Override the symbol name to make life easier for code gen"""  # noqa
-                    )
-                )
-        return code
-
-    def c_init_code(self) -> List[str]:
-        prolog_code = []
-        for argument in self.arguments:
-            if argument.yaml_type == "MPI":
-                prolog_code.append(
-                    f"MPI_Comm {argument.name}_c = MPI_Comm_f2c({argument.name});"
-                )
-        return prolog_code
-
-    def arguments_name(self) -> List[str]:
-        return [argument.name_sanitize for argument in self.arguments]
-
-    @staticmethod
-    def _fortran_type_declaration(def_type: str) -> str:
-        if def_type == "int":
-            return "integer(kind=c_int), value"
-        elif def_type == "float":
-            return "real(kind=c_float), value"
-        elif def_type == "double":
-            return "real(kind=c_double), value"
-        elif def_type == "array_int":
-            return "integer(kind=c_int), dimension(*)"
-        elif def_type == "array_float":
-            return "real(kind=c_float), dimension(*)"
-        elif def_type == "array_double":
-            return "real(kind=c_double), dimension(*)"
-        elif def_type == "MPI":
-            return "integer(kind=c_int), value"
-        else:
-            raise RuntimeError(f"ERROR_DEF_TYPE_TO_FORTRAN: {def_type}")
-
-
-class InterfaceConfig:
-    def __init__(
-        self,
-        directory_path: str,
-        prefix: str,
-        function_defines: List[BridgeFunction],
-        template_env: jinja2.Environment,
-    ) -> None:
-        self._directory_path = directory_path
-        self._prefix = prefix
-        self._hook_obj = prefix
-        self._hook_class = prefix.upper()
-        self._functions = function_defines
-        self._template_env = template_env
-
-
-class Bridge(InterfaceConfig):
-    def __init__(
-        self,
-        directory_path: str,
-        prefix: str,
-        function_defines: List[BridgeFunction],
-        template_env: jinja2.Environment,
-    ) -> None:
-        super().__init__(
-            directory_path=directory_path,
-            prefix=prefix,
-            function_defines=function_defines,
-            template_env=template_env,
-        )
-
-    def generate_c(self) -> "Bridge":
-        # Transform data for Jinja2 template
-        functions = []
-        for function in self._functions:
-            functions.append(
-                {
-                    "name": function.name,
-                    "inputs": BridgeFunction.c_arguments_for_jinja2(function.inputs),
-                    "inouts": BridgeFunction.c_arguments_for_jinja2(function.inouts),
-                    "outputs": BridgeFunction.c_arguments_for_jinja2(function.outputs),
-                    "arguments": BridgeFunction.c_arguments_for_jinja2(
-                        function.arguments
-                    ),
-                    "arguments_init": function.c_init_code(),
-                }
-            )
-
-        # Source
-        template = self._template_env.get_template("interface.c.jinja2")
-        code = template.render(
-            prefix=self._prefix,
-            functions=functions,
-        )
-
-        c_source_filepath = f"{self._directory_path}/{self._prefix}_interface.c"
-        with open(c_source_filepath, "w+") as f:
-            f.write(code)
-
-        subprocess.call([cf._get_executable("clang-format"), "-i", c_source_filepath])
-
-        return self
-
-    def generate_fortran(self) -> "Bridge":
-        # Transform data for Jinja2 template
-        functions = []
-        for function in self._functions:
-            functions.append(
-                {
-                    "name": function.name,
-                    "inputs": BridgeFunction.fortran_arguments_for_jinja2(
-                        function.inputs
-                    ),
-                    "inouts": BridgeFunction.fortran_arguments_for_jinja2(
-                        function.inouts
-                    ),
-                    "outputs": BridgeFunction.fortran_arguments_for_jinja2(
-                        function.outputs
-                    ),
-                }
-            )
-
-        template = self._template_env.get_template("interface.f90.jinja2")
-        code = template.render(
-            prefix=self._prefix,
-            functions=functions,
-        )
-
-        ftn_source_filepath = f"{self._directory_path}/{self._prefix}_interface.f90"
-        with open(ftn_source_filepath, "w+") as f:
-            f.write(code)
-
-        # Format
-        fprettify.reformat_inplace(ftn_source_filepath)
-
-        return self
-
-    def generate_python(self) -> "Bridge":
-        # Transform data for Jinja2 template
-        functions = []
-        for function in self._functions:
-            functions.append(
-                {
-                    "name": function.name,
-                    "inputs": BridgeFunction.py_arguments_for_jinja2(function.inputs),
-                    "inouts": BridgeFunction.py_arguments_for_jinja2(function.inouts),
-                    "outputs": BridgeFunction.py_arguments_for_jinja2(function.outputs),
-                    "init_code": function.py_init_code(),
-                    "all_arguments_name": function.arguments_name(),
-                    "c_arguments": BridgeFunction.c_arguments_for_jinja2(
-                        function.arguments
-                    ),
-                }
-            )
-
-        template = self._template_env.get_template("interface.py.jinja2")
-        code = template.render(
-            prefix=self._prefix,
-            functions=functions,
-            hook_obj=self._hook_obj,
-        )
-
-        py_source_filepath = f"{self._directory_path}/{self._prefix}_interface.py"
-        with open(py_source_filepath, "w+") as f:
-            f.write(code)
-
-        # Format
-        subprocess.call(["black", "-q", py_source_filepath])
-
-        return self
-
-
-class Hook(InterfaceConfig):
-    def __init__(
-        self,
-        directory_path: str,
-        prefix: str,
-        function_defines: List[BridgeFunction],
-        template_env: jinja2.Environment,
-    ) -> None:
-        super().__init__(
-            directory_path=directory_path,
-            prefix=prefix,
-            function_defines=function_defines,
-            template_env=template_env,
-        )
-
-    def generate_blank(self):
-        functions = []
-        for function in self._functions:
-            functions.append(
-                {
-                    "name": function.name,
-                    "inputs": BridgeFunction.py_arguments_for_jinja2(function.inputs),
-                    "inouts": BridgeFunction.py_arguments_for_jinja2(function.inouts),
-                    "outputs": BridgeFunction.py_arguments_for_jinja2(function.outputs),
-                }
-            )
-
-        template = self._template_env.get_template("hook.py.jinja2")
-        code = template.render(
-            prefix=self._prefix,
-            functions=functions,
-            hook_class=self._hook_class,
-            hook_obj=self._hook_obj,
-        )
-
-        py_source_filepath = f"{self._directory_path}/{self._prefix}_hook.py"
-        with open(py_source_filepath, "w+") as f:
-            f.write(code)
-
-        # Format
-        subprocess.call(["black", "-q", py_source_filepath])
-
-        return self
-
-    def generate_obj(self):
-        raise NotImplementedError("Not implemented")
-
-
 class Build(InterfaceConfig):
     def __init__(
         self,
         directory_path: str,
         prefix: str,
-        function_defines: List[BridgeFunction],
+        function_defines: List[Function],
         template_env: jinja2.Environment,
     ) -> None:
         super().__init__(
@@ -393,7 +105,7 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
         if args == "None":
             args = None
         functions.append(
-            BridgeFunction(
+            Function(
                 function["name"],
                 (args["inputs"] if "inputs" in args.keys() else []) if args else [],
                 (args["inouts"] if "inouts" in args.keys() else []) if args else [],
@@ -404,24 +116,9 @@ def cli(definition_json_filepath: str, directory: str, hook: str, build: str):
     template_loader = jinja2.FileSystemLoader(searchpath=_find_templates_dir())
     template_env = jinja2.Environment(loader=template_loader)
 
-    Bridge(
-        directory,
-        prefix,
-        functions,
-        template_env,
-    ).generate_c().generate_fortran().generate_python()
-
-    # Make hook - this our springboard to the larger python code
-    h = Hook(
-        directory,
-        prefix,
-        functions,
-        template_env,
-    )
-    if hook == "blank":
-        h.generate_blank()
-    else:
-        raise NotImplementedError(f"No hook '{hook}'")
+    Bridge.make_from_yaml(
+        directory, template_env, defs
+    ).generate_c().generate_fortran().generate_python().generate_hook(hook)
 
     # The build script is not fully functional - it is meant as a hint
     b = Build(
