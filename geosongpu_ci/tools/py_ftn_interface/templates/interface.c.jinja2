@@ -36,20 +36,46 @@
   void v_{{prefix}}_{{validation.candidate}}_c(
       // inputs-outputs
       {% for inout in validation.inouts -%}
-        {{inout.type}} f90_{{inout.name}}, {{inout.type}} py_{{inout.name}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
+        {{inout.type}} f90_{{inout.name}}, {{inout.type}} py_{{inout.name}}, int {{inout.name}}_dims,
+        {%- for n in range(inout.dims) -%}
+          int {{inout.name}}_shape_{{n}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
+        {%- endfor -%}
       {%- endfor %}
       // outputs
       {% for output in validation.outputs -%}
-        {{output.type}} f90_{{output.name}}, {{output.type}} py_{{output.name}}{{ ", " if not loop.last else "" }}
+        {{output.type}} f90_{{output.name}}, {{output.type}} py_{{output.name}}, int {{output.name}}_dims,
+        {%- for n in range(output.dims) -%}
+          int {{output.name}}_shape_{{n}}{{ ", " if not loop.last else "" }}
+        {%- endfor -%}
       {%- endfor %}
   ) {
+    {% for inout in validation.inouts -%}
+    FloatArray {{inout.name}}_wrapped;
+    {{inout.name}}_wrapped.fortran = f90_{{inout.name}};
+    {{inout.name}}_wrapped.python = py_{{inout.name}};
+    {{inout.name}}_wrapped.dims = {{inout.name}}_dims;
+    {% for n in range(inout.dims) -%}
+      {{inout.name}}_wrapped.shape[{{n}}] = {{inout.name}}_shape_{{n}};
+    {%- endfor %}
+    {%- endfor %}
+
+    {% for output in validation.outputs -%}
+    FloatArray {{output.name}}_wrapped;
+    {{output.name}}_wrapped.fortran = f90_{{output.name}};
+    {{output.name}}_wrapped.python = py_{{output.name}};
+    {{output.name}}_wrapped.dims = {{output.name}}_dims;
+    {% for n in range(output.dims) -%}
+      {{output.name}}_wrapped.shape[{{n}}] = {{output.name}}_shape_{{n}};
+    {% endfor %}
+    {%- endfor %}
+
     v_{{prefix}}_{{validation.candidate}}_py(
       {% for inout in validation.inouts -%}
-        f90_{{inout.name}}, py_{{inout.name}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
+        {{inout.name}}_wrapped{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
       {%- endfor %}
       // outputs
       {% for output in validation.outputs -%}
-        f90_{{output.name}}, py_{{output.name}}{{ ", " if not loop.last else "" }}
+        {{output.name}}_wrapped{{ ", " if not loop.last else "" }}
       {%- endfor %}
     );
   }

@@ -158,11 +158,11 @@ module {{prefix}}_interface_mod
         call v_{{prefix}}_{{validation.candidate}}_f( &
             !inouts as input
             {% for inout in validation.inouts -%}
-                {{inout.name}}, tmp_{{inout.name}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+                {{inout.name}}, tmp_{{inout.name}},{{inout.f90_dims_and_size}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
             {%- endfor %}{{ "&" if validation.inouts|length > 0 else "" }}
             !outputs as input
             {% for output in validation.outputs -%}
-                {{output.name}}, tmp_{{output.name}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
+                {{output.name}}, tmp_{{output.name}}, {{output.f90_dims_and_size}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
             {%- endfor -%}{{ "&" if validation.outputs|length > 0 else "" }}
         )
 

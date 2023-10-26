@@ -25,6 +25,7 @@ module runtime_fortran_mod
   
         print*, "> runtime_fortran, out is ", out_array
         out_array = 11
+        inout_array = 22
 
     end subroutine runtime_fortran
 

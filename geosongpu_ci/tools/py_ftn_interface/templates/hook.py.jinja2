@@ -19,7 +19,7 @@ class {{hook_class}}:
         self,
         # inputs
         {% for input in function.inputs -%}
-        {{input.name}}:{{input.type}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}
+        {{input.name}}:{{input.type}}{{ ", " if not loop.last or function.outputs|length > 0 else "" }}
         {%- endfor %}
         # inputs-outputs
         {% for inout in function.inouts -%}
@@ -38,14 +38,37 @@ class {{hook_class}}:
         self,
         # inputs-outputs
         {% for inout in validation.inouts -%}
-        f90_{{inout.name}}:{{inout.type}}, py_{{inout.name}}:{{inout.type}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
+        {{inout.name}}:{{inout.type}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}
         {%- endfor %}
         # outputs
         {% for output in validation.outputs -%}
-        f90_{{output.name}}:{{output.type}}, py_{{output.name}}:{{output.type}}{{ ", " if not loop.last else "" }}
+        {{output.name}}:{{output.type}}{{ ", " if not loop.last else "" }}
         {%- endfor %}    
     ):
-        print("My code for v_{{prefix}}_{{validation.candidate}} goes here.")
+        print("Validation of v_{{prefix}}_{{validation.candidate}}.")
+
+        {% for inout in validation.inouts -%}
+        {{inout.name}}_shape = list({{inout.name}}.shape[0 : {{inout.name}}.dims])
+        f90_{{inout.name}} = self._f2py.fortran_to_python(
+            {{inout.name}}.fortran, {{inout.name}}_shape
+        )
+        py_{{inout.name}} = self._f2py.fortran_to_python(
+            {{inout.name}}.python, {{inout.name}}_shape
+        )
+        assert np.isclose(py_{{inout.name}}, f90_{{inout.name}}).all()
+        {% endfor %}
+
+        {% for output in validation.outputs -%}
+        {{output.name}}_shape = list({{output.name}}.shape[0 : {{output.name}}.dims])
+        f90_{{output.name}} = self._f2py.fortran_to_python(
+            {{output.name}}.fortran, {{output.name}}_shape
+        )
+        py_{{output.name}} = self._f2py.fortran_to_python(
+            {{output.name}}.python, {{output.name}}_shape
+        )
+        assert np.isclose(py_{{output.name}}, f90_{{output.name}}).all()
+        {% endfor %}
+
     {% endfor %}
 
 {{hook_obj}} = {{hook_class}}()

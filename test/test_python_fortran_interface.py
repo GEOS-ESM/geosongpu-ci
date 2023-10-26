@@ -57,7 +57,7 @@ def test_fortran_python_interface():
         hook_code = f.read()
     hook_code = hook_code.replace(
         'print("My code for py_ftn_test_check_data goes here.")',
-        "out = self._f2py.fortran_to_python(out_array, [2, 2]);out[:, :] = 11;self._f2py.python_to_fortran(out, out_array)",
+        "out = self._f2py.fortran_to_python(out_array, [2, 2]);out[:, :] = 11;self._f2py.python_to_fortran(out, out_array);inout = self._f2py.fortran_to_python(inout_array, [2, 2]);inout[:, :] = 11;self._f2py.python_to_fortran(inout, inout_array)",  # noqa
     )
     with open(hook_file, "w") as f:
         f.write(hook_code)

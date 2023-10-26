@@ -1,5 +1,5 @@
 import jinja2
-from typing import Dict, List
+from typing import Any, Dict, List
 import textwrap
 
 from geosongpu_ci.tools.py_ftn_interface.argument import Argument
@@ -35,10 +35,15 @@ class Function:
         return self._inputs + self._inouts + self._outputs
 
     @staticmethod
-    def c_arguments_for_jinja2(arguments: List[Argument]) -> List[Dict[str, str]]:
+    def c_arguments_for_jinja2(arguments: List[Argument]) -> List[Dict[str, Any]]:
         """Transform yaml input for the template renderer"""
         return [
-            {"type": argument.c_type, "name": argument.name} for argument in arguments
+            {
+                "type": argument.c_type,
+                "name": argument.name,
+                "dims": argument._dims,
+            }
+            for argument in arguments
         ]
 
     @staticmethod
@@ -50,6 +55,7 @@ class Function:
                 "type": argument.f90_type_definition,
                 "dims_f90_defs": argument.f90_dims_definition,
                 "size_f90_per_dims": argument.f90_size_per_dims,
+                "f90_dims_and_size": argument.f90_dims_and_size,
             }
             for argument in arguments
         ]

@@ -35,6 +35,17 @@ class Argument:
         return f"({s[:-1]})"
 
     @property
+    def f90_dims_and_size(self) -> str:
+        # 2, size(var_name, 1), size(var_name, 2)
+        if not self._dims:
+            return ""
+        s = ""
+        for dim in range(0, self._dims):
+            s += f"size({self.name}, {dim+1}),"
+
+        return f"{self._dims},{s[:-1]}"
+
+    @property
     def yaml_type(self) -> str:
         return self._type
 
