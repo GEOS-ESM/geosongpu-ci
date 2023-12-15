@@ -1,10 +1,10 @@
 import cupy as cp
 import multiprocessing as mp
-from geosongpu_ci.tools.hws.server import cli
-from geosongpu_ci.tools.hws.client import client_main
+from smtn.tools.hws.server import cli
+from smtn.tools.hws.client import client_main
 import time
 import os
-from geosongpu_ci.tools.hws.constants import DUMP_HWLOAD_FILENAME
+from smtn.tools.hws.constants import DUMP_HWLOAD_FILENAME
 
 
 def GPU_work():
