@@ -1,0 +1,36 @@
+type: py_ftn_interface
+name: py_ftn_test
+bridge:
+    - name: check_mpi_translation
+      arguments:
+        inputs:
+            - !Argument
+              name: comm
+              type: MPI
+    - name: check_data
+      arguments:
+        inputs:
+            - !Argument
+              name: scalar
+              type: int
+            - !Argument
+              name: in_array
+              type: array_float
+              dims: 2
+        inouts:
+            - !Argument
+              name: inout_array
+              type: array_float
+              dims: 2
+        outputs:
+            - !Argument
+              name: out_array
+              type: array_float
+              dims: 2
+      validation:
+        reference:
+          call: runtime_fortran
+          mod: runtime_fortran_mod
+    - name: check_empty_function 
+      arguments: None
+      

@@ -1,4 +1,5 @@
 import setuptools
+from glob import glob
 
 setuptools.setup(
     name="geosongpu_ci",
@@ -25,6 +26,10 @@ setuptools.setup(
         "psutil",
         "plotly",
         "kaleido",
+        "clang-format",
+        "jinja2",
+        "fprettify",
+        "black",
     ],
     data_files=[
         ("./geosongpu/experiments", ["./experiments/experiments.yaml"]),
@@ -32,11 +37,16 @@ setuptools.setup(
             "./geosongpu/templates",
             ["./geosongpu_ci/pipeline/templates/gpu-wrapper-slurm-mps.sh.tpl"],
         ),
+        (
+            "./geosongpu/py_ftn_interface/templates",
+            glob("./geosongpu_ci/tools/py_ftn_interface/templates/*"),
+        ),
     ],
     entry_points={
         "console_scripts": [
             "geosongpu_dispatch = geosongpu_ci.dispatch:cli",
             "geosongpu_hws = geosongpu_ci.tools.hws.cli:cli",
+            "gog_interface = geosongpu_ci.tools.py_ftn_interface.cli:cli",
         ],
     },
 )
