@@ -43,15 +43,20 @@ CLIENT_CMDS = {
 
 # Hardware specs
 LBL_EPYC_7402 = "EPYC 7402"
+LBL_EPYC_7763 = "EPYC 7763"
 LBL_A100 = "A100_SX40"
 HWS_HARDWARE_SPECS = {
     LBL_EPYC_7402: {
         "PSU_IDLE": 60,  # From bench report on the internet
         "PSU_TDP": 180,  # From spec sheet
     },
+    LBL_EPYC_7763: {
+        "PSU_IDLE": 60,  # Assuming same as 7402
+        "PSU_TDP": 280,  # From spec sheet
+    },
     LBL_A100: {"PSU_TDP": 400, "MAX_VRAM": 40536},  # From spec sheet
 }
 
 
-HWS_HW_CPU = os.getenv("HWS_HW_CPU", LBL_EPYC_7402)
+HWS_HW_CPU = os.getenv("HWS_HW_CPU", LBL_EPYC_7763)
 HWS_HW_GPU = os.getenv("HWS_HW_GPU", LBL_A100)

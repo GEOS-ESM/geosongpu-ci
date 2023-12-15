@@ -2,6 +2,9 @@ import numpy as np
 from typing import Dict, Any
 import geosongpu_ci.tools.hws.constants as cst
 import dataclasses
+from geosongpu_ci.tools.hws.constants import (
+    HWS_HW_CPU,
+)
 
 
 @dataclasses.dataclass
@@ -15,7 +18,10 @@ class EnergyReport:
 
 
 def energy_envelop_calculation(
-    cpu_psu_data: np.ndarray, gpu_psu_data: np.ndarray, verbose: bool = True
+    cpu_psu_data: np.ndarray,
+    gpu_psu_data: np.ndarray,
+    cpu_label: str = HWS_HW_CPU,
+    verbose: bool = True,
 ) -> EnergyReport:
     report = EnergyReport()
     # TODO we need the sample rate here too

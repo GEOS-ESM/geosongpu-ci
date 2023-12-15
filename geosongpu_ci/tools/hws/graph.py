@@ -3,6 +3,7 @@ from plotly.subplots import make_subplots
 import numpy as np
 from geosongpu_ci.tools.hws.constants import (
     HWS_HW_GPU,
+    HWS_HW_CPU,
     HWS_HARDWARE_SPECS,
 )
 from geosongpu_ci.tools.hws.analysis import load_data, energy_envelop_calculation
@@ -14,6 +15,8 @@ def cli(
     data_filepath: str,
     data_format: str = "npz",
     data_range: slice = slice(None),
+    cpu_label: str = HWS_HW_CPU,
+    gpu_label: str = HWS_HW_GPU,
 ):
     d = load_data(data_filepath, data_format)
     sample_count = len(d["cpu_psu"][data_range])
@@ -52,12 +55,18 @@ def cli(
     fig.update_yaxes(
         title_text="W or %",
         secondary_y=False,
-        range=[0, HWS_HARDWARE_SPECS[HWS_HW_GPU]["PSU_TDP"]],
+        range=[0, HWS_HARDWARE_SPECS[gpu_label]["PSU_TDP"]],
     )
     fig.update_yaxes(
         title_text="Mb",
         secondary_y=True,
-        range=[0, HWS_HARDWARE_SPECS[HWS_HW_GPU]["MAX_VRAM"]],
+        range=[0, HWS_HARDWARE_SPECS[gpu_label]["MAX_VRAM"]],
+    )
+
+    print(
+        f"Max VRAM: {np.max(d['gpu_mem'][data_range])}\n"
+        f"Max GPU PSU: {np.max(d['gpu_psu'][data_range])}\n"
+        f"Max CPU exe: {np.max(d['gpu_exe_utl'][data_range])}\n"
     )
 
     fig.write_image(data_filepath.replace(f".{data_format}", ".png"))
