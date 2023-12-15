@@ -64,7 +64,7 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
 
     # Get timings of FV
     if is_gtfv3:
-        interface_timings = _grep(filename, "0 , geos_gtfv3", exclude_pattern=True)
+        interface_timings = _grep(filename, " 0 , geos_gtfv3", exclude_pattern=True)
         benchmark.fv_dyncore_timings = _extract_numerics(interface_timings)
 
         if "dace" in benchmark.backend:
@@ -73,7 +73,7 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
             )
             benchmark.inner_dycore_timings = _extract_numerics(dycore_timings)
     else:
-        dycore_timings = _grep(filename, "0: fv_dynamics", exclude_pattern=True)
+        dycore_timings = _grep(filename, " 0: fv_dynamics", exclude_pattern=True)
         benchmark.fv_dyncore_timings = _extract_numerics(dycore_timings)
 
     # Get setup (grid, nodes)

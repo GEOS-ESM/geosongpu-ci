@@ -195,74 +195,6 @@ def report(raw_data: List[BenchmarkRawData]) -> Optional[BenchmarkReport]:
                 {REPORT_ENERGY_KEY: energy_report}
             )
 
-        # Cost (normalized to the highest runtime)
-        # TODO: We need to normalize to the highest runtime
-        cost_report = f"{benchA.backend} vs {benchB.backend}\n\n"
-        cost_1node_EPYC_7402_kDollars = 11
-        cost_1node_EPYC_7402_A100_kDollars = 63
-
-        if benchA.backend == "fortran":
-            benchA_global_kDollars = (
-                benchA.global_run_time * cost_1node_EPYC_7402_kDollars
-            )
-        else:
-            benchA_global_kDollars = (
-                benchA.global_run_time * cost_1node_EPYC_7402_A100_kDollars
-            )
-        if benchB.backend == "fortran":
-            benchB_global_kDollars = (
-                benchB.global_run_time * cost_1node_EPYC_7402_kDollars
-            )
-        else:
-            benchB_global_kDollars = (
-                benchB.global_run_time * cost_1node_EPYC_7402_A100_kDollars
-            )
-        cost_report += _comparison_in_X(
-            benchA_global_kDollars, benchB_global_kDollars, "Overall", unit="s.k$"
-        )
-
-        if benchA.backend == "fortran":
-            benchA_fvcomp_kDollars = benchA_fvcomp_run * cost_1node_EPYC_7402_kDollars
-        else:
-            benchA_fvcomp_kDollars = (
-                benchA_fvcomp_run * cost_1node_EPYC_7402_A100_kDollars
-            )
-        if benchB.backend == "fortran":
-            benchB_fvcomp_kDollars = benchB_fvcomp_run * cost_1node_EPYC_7402_kDollars
-        else:
-            benchB_fvcomp_kDollars = (
-                benchB_fvcomp_run * cost_1node_EPYC_7402_A100_kDollars
-            )
-        cost_report += _comparison_in_X(
-            benchA_fvcomp_kDollars, benchB_fvcomp_kDollars, "FV Grid Comp", unit="s.k$"
-        )
-
-        if benchA.backend == "fortran":
-            benchA_dycore_kDollars = (
-                benchA_dycore_median * cost_1node_EPYC_7402_kDollars
-            )
-        else:
-            benchA_dycore_kDollars = (
-                benchA_dycore_median * cost_1node_EPYC_7402_A100_kDollars
-            )
-
-        if benchB.backend == "fortran":
-            benchB_dycore_kDollars = (
-                benchB_dycore_median * cost_1node_EPYC_7402_kDollars
-            )
-        else:
-            benchB_dycore_kDollars = (
-                benchB_dycore_median * cost_1node_EPYC_7402_A100_kDollars
-            )
-        cost_report += _comparison_in_X(
-            benchA_dycore_kDollars,
-            benchB_dycore_kDollars,
-            "Dycore (median)",
-            unit="s.k$",
-        )
-
-        report.per_backend_per_metric_comparison.append({REPORT_COST_KEY: cost_report})
-
     return report
 
 
@@ -283,7 +215,7 @@ def cli(geos_logs: Iterable[str]):
             )
     for raw_data in benchmark_raw_data:
         x = np.arange(len(raw_data.fv_dyncore_timings))
-        fig = go.Figure(data=go.Scatter(x=x, y=raw_data.fv_dyncore_timings))
+        fig = go.Figure(data=go.Scatter(x=x[1:], y=raw_data.fv_dyncore_timings[1:]))
         fig.write_image(f"dyncore_verif_{raw_data.backend}.png")
 
 
