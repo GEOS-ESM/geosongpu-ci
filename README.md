@@ -13,7 +13,7 @@ Validation capacities for physics compares OACC and original Fortran on.
 | ------------------------------------------ | --------- |
 | NCCS Discover Heartbeat                    | [![💓](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_heartbeat_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_heartbeat_nightly.yml) |
 | NCCS Discover GEOS Held-Suarez Validation  | [![HS](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_hs_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_hs_nightly.yml) |
-| NCCS Discover Physics Standalone           | [![Physics](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_physics_standalone_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_physics_standalone_nightly.yml) |
+| NCCS Discover Physics Standalone           | Deactivated |
 | NCCS Discover GEOS Aquaplanet Validation   | [![AQ](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_aq_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/geosongpu-ci/actions/workflows/discover_aq_nightly.yml) |
 
 ## Benchmarking capacities
