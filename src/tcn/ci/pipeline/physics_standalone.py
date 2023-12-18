@@ -1,12 +1,13 @@
-from tcn.utils.environment import Environment
-from typing import Dict, Any, Optional
-from tcn.ci.pipeline.task import TaskBase
-from tcn.utils.shell import ShellScript
-from tcn.utils.registry import Registry
-from tcn.ci.actions.git import git_prelude
-from tcn.ci.actions.discover import one_gpu_srun
-from tcn.utils.ci_exception import CICheckException
 import os
+from typing import Any, Dict, Optional
+
+from tcn.ci.actions.discover import one_gpu_srun
+from tcn.ci.actions.git import git_prelude
+from tcn.ci.pipeline.task import TaskBase
+from tcn.utils.ci_exception import CICheckException
+from tcn.utils.environment import Environment
+from tcn.utils.registry import Registry
+from tcn.utils.shell import ShellScript
 
 
 def _run_action(

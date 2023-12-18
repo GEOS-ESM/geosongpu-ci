@@ -1,8 +1,9 @@
-import jinja2
 import subprocess
 from typing import List
 
-from tcn.tools.py_ftn_interface.base import InterfaceConfig, Function
+import jinja2
+
+from tcn.tools.py_ftn_interface.base import Function, InterfaceConfig
 from tcn.tools.py_ftn_interface.validation import Validation
 
 

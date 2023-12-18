@@ -1,6 +1,7 @@
-import jinja2
-from typing import Any, Dict, List
 import textwrap
+from typing import Any, Dict, List
+
+import jinja2
 
 from tcn.tools.py_ftn_interface.argument import Argument
 
@@ -76,7 +77,7 @@ class Function:
                     textwrap.dedent(
                         f"""\
                         # Comm translate to python
-                            comm_py = MPI.Intracomm() # new comm, internal MPI_Comm handle is MPI_COMM_NULL 
+                            comm_py = MPI.Intracomm() # new comm, internal MPI_Comm handle is MPI_COMM_NULL
                             comm_ptr = MPI._addressof(comm_py)  # internal MPI_Comm handle
                             comm_ptr = ffi.cast('{{_mpi_comm_t}}*', comm_ptr)  # make it a CFFI pointer
                             comm_ptr[0] = {argument.name}  # assign comm_c to comm_py's MPI_Comm handle

@@ -1,10 +1,10 @@
-import numpy as np
-from typing import Dict, Any
-import tcn.tools.hws.constants as cst
 import dataclasses
-from tcn.tools.hws.constants import (
-    HWS_HW_CPU,
-)
+from typing import Any, Dict
+
+import numpy as np
+
+import tcn.tools.hws.constants as cst
+from tcn.tools.hws.constants import HWS_HW_CPU
 
 
 @dataclasses.dataclass

@@ -6,4 +6,3 @@ Collection of tools to sample hardware usage for:
  - GPU power usage
  - CPU usage
  - CPU power usage (extrapolated)
-

@@ -31,6 +31,6 @@ bridge:
         reference:
           call: runtime_fortran
           mod: runtime_fortran_mod
-    - name: check_empty_function 
+    - name: check_empty_function
       arguments: None
-      
+

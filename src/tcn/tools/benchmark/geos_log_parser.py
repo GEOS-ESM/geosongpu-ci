@@ -1,7 +1,7 @@
-from tcn.tools.benchmark.raw_data import BenchmarkRawData
-from typing import List, Optional
 import re
+from typing import List, Optional
 
+from tcn.tools.benchmark.raw_data import BenchmarkRawData
 
 _numeric_const_pattern = (
     "[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?"  # noqa

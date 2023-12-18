@@ -123,7 +123,7 @@ install(
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )
 
-list( APPEND PYTHONPATH "${py_ftn_test_INTERFACE_DIRECTORY}" ) 
+list( APPEND PYTHONPATH "${py_ftn_test_INTERFACE_DIRECTORY}" )
 
 #
 ## Executable.

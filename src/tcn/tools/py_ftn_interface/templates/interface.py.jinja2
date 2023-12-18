@@ -18,7 +18,7 @@ from {TMPFILEBASE} import ffi
 from datetime import datetime
 from mpi4py import MPI
 
-        
+
 from {{prefix}}_hook import {{hook_obj}}
 
 
@@ -43,7 +43,7 @@ def {{prefix}}_{{function.name}}_py(
     {% for code in function.init_code %}
     {{code}}
     {% endfor %}
-    
+
     {{hook_obj}}.{{function.name}}(
         {%- for name in function.all_arguments_name -%}
           {{name}}={{name}}{{ ", " if not loop.last else "" }}

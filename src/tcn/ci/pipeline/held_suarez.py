@@ -1,22 +1,24 @@
+import glob
+import os
+import shutil
+from typing import Any, Dict, Tuple
+
 import click
-from tcn.ci.pipeline.task import TaskBase, get_config
-from tcn.utils.environment import Environment
-from tcn.utils.registry import Registry
+
 from tcn.ci.actions.pipeline import PipelineAction
 from tcn.ci.actions.slurm import SlurmConfiguration
-from tcn.utils.shell import ShellScript
 from tcn.ci.pipeline.geos import (
-    set_python_environment,
     copy_input_to_experiment_directory,
+    set_python_environment,
 )
 from tcn.ci.pipeline.gtfv3_config import GTFV3Config
-from tcn.utils.progress import Progress
+from tcn.ci.pipeline.task import TaskBase, get_config
 from tcn.tools.benchmark.geos_log_parser import parse_geos_log
 from tcn.tools.benchmark.report import report
-from typing import Dict, Any, Tuple
-import shutil
-import os
-import glob
+from tcn.utils.environment import Environment
+from tcn.utils.progress import Progress
+from tcn.utils.registry import Registry
+from tcn.utils.shell import ShellScript
 
 
 class PrologScripts:
@@ -89,7 +91,7 @@ def _make_srun_script(
     # Options
     options = f"""{'export HARDWARE_SAMPLING=1' if hardware_sampler_on else 'unset HARDWARE_SAMPLING' }
 {'export MPS_ON=1' if mps_on else 'unset MPS_ON' }
-{f'export LOCAL_REDIRECT_LOG=1' if local_redirect_log else 'unset LOCAL_REDIRECT_LOG' }
+{'export LOCAL_REDIRECT_LOG=1' if local_redirect_log else 'unset LOCAL_REDIRECT_LOG' }
     """
 
     if "dace" in gtfv3_config.GTFV3_BACKEND:
@@ -268,13 +270,10 @@ class HeldSuarez(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         # Setup
         geos_install_directory = env.get("GEOS_INSTALL_DIRECTORY")
         geos = env.get("GEOS_BASE_DIRECTORY")
-        validation_experiment_directory = None
-        validation_prolog_script = None
 
         # # # Validation # # #
         if (

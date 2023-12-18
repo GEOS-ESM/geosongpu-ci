@@ -1,33 +1,35 @@
+import asyncio
 import json
+import os
+import socket
+from typing import List
+
+import numpy as np
+import psutil
 from pynvml import (
-    nvmlInit,
-    nvmlDeviceGetPowerUsage,
-    nvmlDeviceGetUtilizationRates,
-    nvmlSystemGetDriverVersion,
     nvmlDeviceGetCount,
     nvmlDeviceGetHandleByIndex,
-    nvmlDeviceGetName,
     nvmlDeviceGetMemoryInfo,
+    nvmlDeviceGetName,
+    nvmlDeviceGetPowerUsage,
+    nvmlDeviceGetUtilizationRates,
+    nvmlInit,
+    nvmlSystemGetDriverVersion,
 )
-import asyncio
-import socket
+
 from tcn.tools.hws.constants import (
-    SOCKET_FILENAME,
-    SOCKET_DIRECTORY,
-    SERV_ORDER_TICK,
-    SERV_ORDER_DUMP,
-    SERV_ORDER_START,
-    SERV_ORDER_STOP,
     HWS_DUMP_FORMAT,
     HWS_DUMP_JSON,
     HWS_DUMP_NPZ,
-    HWS_HW_CPU,
     HWS_HARDWARE_SPECS,
+    HWS_HW_CPU,
+    SERV_ORDER_DUMP,
+    SERV_ORDER_START,
+    SERV_ORDER_STOP,
+    SERV_ORDER_TICK,
+    SOCKET_DIRECTORY,
+    SOCKET_FILENAME,
 )
-import os
-import numpy as np
-import psutil
-from typing import List
 
 
 async def psu_utlz_read(

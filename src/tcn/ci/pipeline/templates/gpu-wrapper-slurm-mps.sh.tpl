@@ -60,7 +60,7 @@ fi
 # Clean up of all tools
 if [ -z ${HARDWARE_SAMPLING} ]; then
     echo ""
-else 
+else
     if [ $SLURM_PROCID -eq 0 ]; then
         geosongpu_hws client dump
         geosongpu_hws client stop
@@ -68,7 +68,7 @@ else
 fi
 if [ -z ${MPS_ON} ]; then
     echo ""
-else 
+else
     if [ $SLURM_LOCALID -eq 0 ]; then
         echo quit | nvidia-cuda-mps-control
         # sudo nividia -i 0 -c 0 # Per docs, we should insure GPU is flipped back to DEFAULT mode but we might be curtail by HPC settings

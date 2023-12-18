@@ -1,10 +1,11 @@
-from typing import Dict, Any
-from tcn.ci.pipeline.task import TaskBase
-from tcn.utils.registry import Registry
-from tcn.utils.environment import Environment
-from tcn.ci.actions.pipeline import PipelineAction
 import os
 import shutil
+from typing import Any, Dict
+
+from tcn.ci.actions.pipeline import PipelineAction
+from tcn.ci.pipeline.task import TaskBase
+from tcn.utils.environment import Environment
+from tcn.utils.registry import Registry
 
 
 @Registry.register

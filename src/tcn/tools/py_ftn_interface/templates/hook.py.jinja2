@@ -13,7 +13,7 @@ class {{hook_class}}:
         # Default converter on Host memory. Use `cupy`
         # insteady of Numpy to get a Host<>Device converter
         self._f2py = FortranPythonConversion(target_numpy_module=np)
-    
+
     {% for function in functions %}
     def {{function.name}}(
         self,
@@ -28,7 +28,7 @@ class {{hook_class}}:
         # outputs
         {% for output in function.outputs -%}
         {{output.name}}:{{output.type}}{{ ", " if not loop.last else "" }}
-        {%- endfor %}    
+        {%- endfor %}
     ):
         print("My code for {{prefix}}_{{function.name}} goes here.")
     {% endfor %}
@@ -43,7 +43,7 @@ class {{hook_class}}:
         # outputs
         {% for output in validation.outputs -%}
         {{output.name}}:{{output.type}}{{ ", " if not loop.last else "" }}
-        {%- endfor %}    
+        {%- endfor %}
     ):
         print("Validation of v_{{prefix}}_{{validation.candidate}}.")
 

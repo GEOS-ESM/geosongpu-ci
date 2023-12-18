@@ -1,8 +1,9 @@
+from math import prod
+from types import ModuleType
+from typing import List, Optional, Tuple, Union
+
 import cffi
 import numpy as np
-from math import prod
-from typing import Tuple, Optional, List, Union
-from types import ModuleType
 
 try:
     import cupy as cp

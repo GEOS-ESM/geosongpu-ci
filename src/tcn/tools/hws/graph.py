@@ -1,12 +1,9 @@
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np
-from tcn.tools.hws.constants import (
-    HWS_HW_GPU,
-    HWS_HW_CPU,
-    HWS_HARDWARE_SPECS,
-)
-from tcn.tools.hws.analysis import load_data, energy_envelop_calculation
+
+from tcn.tools.hws.analysis import energy_envelop_calculation, load_data
+from tcn.tools.hws.constants import HWS_HARDWARE_SPECS, HWS_HW_CPU, HWS_HW_GPU
 
 COLOR_VRAM = "C4"
 

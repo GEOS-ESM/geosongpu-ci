@@ -1,7 +1,8 @@
-from dash import Output, Input, Dash, html, dcc  # type: ignore
-import tcn.tools.plots.geos.plot_via_plotly as ph
-import xarray as xr  # type: ignore
 import dash_bootstrap_components as dbc  # type: ignore
+import xarray as xr  # type: ignore
+from dash import Dash, Input, Output, dcc, html  # type: ignore
+
+import tcn.tools.plots.geos.plot_via_plotly as ph
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])
 

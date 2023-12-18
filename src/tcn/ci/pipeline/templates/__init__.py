@@ -1,6 +1,6 @@
 import os
-import sys
 import site
+import sys
 
 
 def find_template(name: str) -> str:

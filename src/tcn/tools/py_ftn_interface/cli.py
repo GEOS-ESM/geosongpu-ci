@@ -1,18 +1,16 @@
+import os
+import shutil
+import site
+import sys
+from typing import List
+
 import click
 import jinja2
-from typing import List
-import os
-import site
-import shutil
-import sys
 import yaml
 
-from tcn.tools.py_ftn_interface.argument import (
-    get_argument_yaml_loader,
-)
-from tcn.tools.py_ftn_interface.base import InterfaceConfig, Function
+from tcn.tools.py_ftn_interface.argument import get_argument_yaml_loader
+from tcn.tools.py_ftn_interface.base import Function, InterfaceConfig
 from tcn.tools.py_ftn_interface.bridge import Bridge
-
 
 ###############
 # TODO:

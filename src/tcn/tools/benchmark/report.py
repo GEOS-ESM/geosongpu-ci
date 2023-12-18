@@ -1,12 +1,14 @@
-import click
 import itertools
-from typing import Any, List, Iterable, Optional
 from dataclasses import dataclass, field
+from typing import Any, Iterable, List, Optional
+
+import click
 import numpy as np
-from tcn.tools.benchmark.raw_data import BenchmarkRawData
-from tcn.tools.benchmark.geos_log_parser import parse_geos_log
-from tcn.tools.hws.graph import energy_envelop_calculation
 import plotly.graph_objects as go
+
+from tcn.tools.benchmark.geos_log_parser import parse_geos_log
+from tcn.tools.benchmark.raw_data import BenchmarkRawData
+from tcn.tools.hws.graph import energy_envelop_calculation
 
 
 @dataclass

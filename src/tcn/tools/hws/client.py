@@ -1,6 +1,7 @@
-import socket
 import json
-from tcn.tools.hws.constants import SOCKET_FILENAME, CLIENT_CMDS
+import socket
+
+from tcn.tools.hws.constants import CLIENT_CMDS, SOCKET_FILENAME
 
 
 def client_main(order: str, dump_name: str):

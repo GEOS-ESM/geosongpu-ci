@@ -1,9 +1,11 @@
+from typing import Optional, Tuple
+
 import click
-import tcn.tools.hws.server as hws_server
+
 import tcn.tools.hws.client as hws_client
-import tcn.tools.hws.graph as hws_graph
 import tcn.tools.hws.constants as cst
-from typing import Tuple, Optional
+import tcn.tools.hws.graph as hws_graph
+import tcn.tools.hws.server as hws_server
 
 
 @click.group()

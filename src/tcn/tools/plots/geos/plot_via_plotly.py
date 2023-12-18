@@ -1,7 +1,8 @@
 import sys
-import xarray as xr
-import plotly.graph_objects as pgo
+
 import plotly.express as px
+import plotly.graph_objects as pgo
+import xarray as xr
 
 
 def merge_variable(directory: str, variable: str):

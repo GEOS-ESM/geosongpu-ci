@@ -1,14 +1,16 @@
-from typing import Dict, Any, Iterable
-from tcn.ci.actions.pipeline import PipelineAction
-import sys
-import site
+import datetime
 import os
-import yaml
+import site
+import sys
 from abc import ABC, abstractmethod
-from tcn.utils.registry import Registry
+from typing import Any, Dict, Iterable
+
+import yaml
+
+from tcn.ci.actions.pipeline import PipelineAction
 from tcn.utils.environment import Environment
 from tcn.utils.progress import Progress
-import datetime
+from tcn.utils.registry import Registry
 
 
 class TaskBase(ABC):
@@ -16,18 +18,13 @@ class TaskBase(ABC):
 
     def __init__(self, skip_metadata=False) -> None:
         super().__init__()
-        self.metadata = {}
+        self.metadata: Dict[str, Any] = {}
         self.skip_metadata = skip_metadata
 
-    def _prelude(
-        self,
-        config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
-    ) -> Dict[str, Any]:
+    def _prelude(self, config: Dict[str, Any], env: Environment):
         self.metadata["timestamp"] = str(datetime.datetime.now())
-        self.metadata["config"] = {"name": experiment_name, "value": config}
-        self.metadata["action"] = str(action)
+        self.metadata["config"] = {"name": env.experiment_name, "value": config}
+        self.metadata["action"] = str(env.experiment_action)
 
     def _dump_metadata(self):
         with open("ci_metadata", "w") as f:
@@ -38,16 +35,8 @@ class TaskBase(ABC):
         config: Dict[str, Any],
         env: Environment,
     ):
-        self._prelude(
-            config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
-        )
-        self.run_action(
-            config=config,
-            env=env,
-            metadata=self.metadata,
-        )
+        self._prelude(config, env)
+        self.run_action(config, env)
         if not self.skip_metadata:
             self._dump_metadata()
 
@@ -55,8 +44,6 @@ class TaskBase(ABC):
     def run_action(
         self,
         config: Dict[str, Any],
-        experiment_name: str,
-        action: PipelineAction,
         env: Environment,
     ):
         ...

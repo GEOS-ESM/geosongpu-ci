@@ -1,10 +1,11 @@
-from typing import Dict, Any
-from tcn.ci.pipeline.task import TaskBase
-from tcn.utils.registry import Registry
-from tcn.utils.environment import Environment
 import shutil
-from os.path import abspath
 from os import mkdir
+from os.path import abspath
+from typing import Any, Dict
+
+from tcn.ci.pipeline.task import TaskBase
+from tcn.utils.environment import Environment
+from tcn.utils.registry import Registry
 from tcn.utils.shell import ShellScript
 
 

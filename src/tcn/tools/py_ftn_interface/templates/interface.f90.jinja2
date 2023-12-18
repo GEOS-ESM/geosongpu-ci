@@ -67,7 +67,7 @@ module {{prefix}}_interface_mod
         ) bind(c, name='v_{{prefix}}_{{validation.candidate}}_c')
             import c_int, c_float, c_double
             implicit none
-            
+
             {% for inout in validation.inouts -%}
                 {{inout.type}}, intent(in) :: f90_{{inout.name}}
                 {{inout.type}}, intent(in) :: py_{{inout.name}}
@@ -123,7 +123,7 @@ module {{prefix}}_interface_mod
         {% for output in validation.outputs -%}
             allocate(tmp_{{output.name}}{{output.size_f90_per_dims}})
         {% endfor -%}
-        
+
         ! Runtimes: fortran with original data, then py with copies
         call {{validation.reference_call}}( &
             !inputs
@@ -153,7 +153,7 @@ module {{prefix}}_interface_mod
                 tmp_{{output.name}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
             {%- endfor -%}{{ "&" if validation.outputs|length > 0 else "" }}
         )
-        
+
         ! Validation
         call v_{{prefix}}_{{validation.candidate}}_f( &
             !inouts as input
