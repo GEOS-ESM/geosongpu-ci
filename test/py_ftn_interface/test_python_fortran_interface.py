@@ -2,7 +2,7 @@ import os
 import sys
 import shutil
 import subprocess
-from smtn.tools.py_ftn_interface.cli import cli
+from tcn.tools.py_ftn_interface.cli import cli
 
 
 from click.testing import CliRunner

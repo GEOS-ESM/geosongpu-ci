@@ -1,9 +1,10 @@
 
-# Software Modernization Team: Nebulae codes
+# Software Modernization Team: The Code Nebulae
 
 This is the team sandbox repository, storing early PoC, relevant benchmark data, staging `ci` workflows, etc.
+Shortname for the packge is `tcn`.
 
-🚧 This is a staging area for code, inherently every code here is unstable. 🚧
+🚧 This is a staging/PoC area for code, inherently every code here is unstable. 🚧
 
 ## CI
 
