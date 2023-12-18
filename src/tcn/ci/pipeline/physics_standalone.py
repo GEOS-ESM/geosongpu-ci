@@ -1,10 +1,10 @@
 from tcn.utils.environment import Environment
 from typing import Dict, Any, Optional
-from tcn.pipeline.task import TaskBase
+from tcn.ci.pipeline.task import TaskBase
 from tcn.utils.shell import ShellScript
 from tcn.utils.registry import Registry
-from tcn.actions.git import git_prelude
-from tcn.actions.discover import one_gpu_srun
+from tcn.ci.actions.git import git_prelude
+from tcn.ci.actions.discover import one_gpu_srun
 from tcn.utils.ci_exception import CICheckException
 import os
 

@@ -1,5 +1,5 @@
 from typing import Dict, Any, Iterable
-from tcn.actions.pipeline import PipelineAction
+from tcn.ci.actions.pipeline import PipelineAction
 import sys
 import site
 import os

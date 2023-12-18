@@ -1,15 +1,15 @@
 import click
-from tcn.pipeline.task import TaskBase, get_config
+from tcn.ci.pipeline.task import TaskBase, get_config
 from tcn.utils.environment import Environment
 from tcn.utils.registry import Registry
-from tcn.actions.pipeline import PipelineAction
-from tcn.actions.slurm import SlurmConfiguration
+from tcn.ci.actions.pipeline import PipelineAction
+from tcn.ci.actions.slurm import SlurmConfiguration
 from tcn.utils.shell import ShellScript
-from tcn.pipeline.geos import (
+from tcn.ci.pipeline.geos import (
     set_python_environment,
     copy_input_to_experiment_directory,
 )
-from tcn.pipeline.gtfv3_config import GTFV3Config
+from tcn.ci.pipeline.gtfv3_config import GTFV3Config
 from tcn.utils.progress import Progress
 from tcn.tools.benchmark.geos_log_parser import parse_geos_log
 from tcn.tools.benchmark.report import report

@@ -1,6 +1,6 @@
 import os
 from typing import Dict
-from tcn.actions.pipeline import PipelineAction
+from tcn.ci.actions.pipeline import PipelineAction
 
 
 class Environment:

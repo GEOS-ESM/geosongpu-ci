@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from tcn.pipeline.task import TaskBase
+from tcn.ci.pipeline.task import TaskBase
 from tcn.utils.registry import Registry
 from tcn.utils.environment import Environment
 import shutil

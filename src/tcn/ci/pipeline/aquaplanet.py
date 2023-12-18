@@ -1,9 +1,9 @@
 import click
-from tcn.pipeline.task import TaskBase, get_config
+from tcn.ci.pipeline.task import TaskBase, get_config
 from tcn.utils.environment import Environment
 from tcn.utils.registry import Registry
-from tcn.pipeline.geos import copy_input_to_experiment_directory
-from tcn.actions.pipeline import PipelineAction
+from tcn.ci.pipeline.geos import copy_input_to_experiment_directory
+from tcn.ci.actions.pipeline import PipelineAction
 from tcn.utils.shell import ShellScript
 from tcn.tools.benchmark.geos_log_parser import parse_geos_log
 from tcn.tools.benchmark.report import report

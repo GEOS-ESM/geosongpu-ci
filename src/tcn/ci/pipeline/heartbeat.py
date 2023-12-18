@@ -1,8 +1,8 @@
 from typing import Dict, Any
-from tcn.pipeline.task import TaskBase
+from tcn.ci.pipeline.task import TaskBase
 from tcn.utils.registry import Registry
 from tcn.utils.environment import Environment
-from tcn.actions.pipeline import PipelineAction
+from tcn.ci.actions.pipeline import PipelineAction
 import os
 import shutil
 

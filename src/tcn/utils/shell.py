@@ -4,7 +4,7 @@ import os
 import stat
 from tcn.utils.progress import Progress
 from time import sleep
-from tcn.pipeline.templates import find_template
+from tcn.ci.pipeline.templates import find_template
 
 
 class ShellScript:

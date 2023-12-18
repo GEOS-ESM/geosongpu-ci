@@ -1,4 +1,4 @@
-from tcn.pipeline import (
+from tcn.ci.pipeline import (
     geos,
     heartbeat,
     held_suarez,

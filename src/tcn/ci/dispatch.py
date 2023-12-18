@@ -1,6 +1,6 @@
 import click
-from tcn.pipeline.task import dispatch
-from tcn.actions.pipeline import PipelineAction
+from tcn.ci.pipeline.task import dispatch
+from tcn.ci.actions.pipeline import PipelineAction
 
 
 @click.command()

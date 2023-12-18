@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from tcn.utils.shell import ShellScript
-from tcn.actions.pipeline import PipelineAction
+from tcn.ci.actions.pipeline import PipelineAction
 
 
 def git_prelude(
@@ -10,7 +10,7 @@ def git_prelude(
     metadata: Dict[str, Any],
     override_repo_name: str = "",
     do_mepo: bool = True,
-) -> Dict[str, Any]:
+) -> None:
     git_config = config["repository"]
     modules = []
 

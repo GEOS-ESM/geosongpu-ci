@@ -37,6 +37,6 @@ dependencies = [
 ]
 
 [project.scripts]
-tcn-ci = "tcn.dispatch:cli"
+tcn-ci = "tcn.ci.dispatch:cli"
 tcn-hws = "tcn.tools.hws.cli:cli"
 tcn-fpy = "tcn.tools.py_ftn_interface.cli:cli"
