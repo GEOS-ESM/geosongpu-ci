@@ -17,7 +17,7 @@ from pynvml import (
     nvmlSystemGetDriverVersion,
 )
 
-from tcn.tools.hws.constants import (
+from tcn.hws.constants import (
     HWS_DUMP_FORMAT,
     HWS_DUMP_JSON,
     HWS_DUMP_NPZ,

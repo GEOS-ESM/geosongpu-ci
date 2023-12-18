@@ -8,12 +8,12 @@ import click
 from tcn.ci.actions.pipeline import PipelineAction
 from tcn.ci.pipeline.geos import copy_input_to_experiment_directory
 from tcn.ci.pipeline.task import TaskBase, get_config
-from tcn.tools.benchmark.geos_log_parser import parse_geos_log
-from tcn.tools.benchmark.report import report
-from tcn.utils.environment import Environment
-from tcn.utils.progress import Progress
-from tcn.utils.registry import Registry
-from tcn.utils.shell import ShellScript
+from tcn.benchmark.geos_log_parser import parse_geos_log
+from tcn.benchmark.report import report
+from tcn.ci.utilsenvironment import Environment
+from tcn.ci.utilsprogress import Progress
+from tcn.ci.utilsregistry import Registry
+from tcn.ci.utilsshell import ShellScript
 
 
 def _replace_in_file(url: str, text_to_replace: str, new_text: str):

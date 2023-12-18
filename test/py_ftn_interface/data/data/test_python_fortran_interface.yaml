@@ -33,4 +33,3 @@ bridge:
           mod: runtime_fortran_mod
     - name: check_empty_function
       arguments: None
-

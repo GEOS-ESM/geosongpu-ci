@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from tcn.ci.actions.pipeline import PipelineAction
-from tcn.utils.shell import ShellScript
+from tcn.ci.utilsshell import ShellScript
 
 
 def git_prelude(

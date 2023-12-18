@@ -5,7 +5,7 @@ from time import sleep
 from typing import Any, List, Optional, Union
 
 from tcn.ci.pipeline.templates import find_template
-from tcn.utils.progress import Progress
+from tcn.ci.utilsprogress import Progress
 
 
 class ShellScript:

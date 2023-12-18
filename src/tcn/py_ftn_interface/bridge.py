@@ -5,9 +5,9 @@ import clang_format as cf
 import fprettify
 import jinja2
 
-from tcn.tools.py_ftn_interface.base import Function, InterfaceConfig
-from tcn.tools.py_ftn_interface.hook import Hook
-from tcn.tools.py_ftn_interface.validation import Validation
+from tcn.py_ftn_interface.base import Function, InterfaceConfig
+from tcn.py_ftn_interface.hook import Hook
+from tcn.py_ftn_interface.validation import Validation
 
 
 class Bridge(InterfaceConfig):

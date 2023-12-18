@@ -2,10 +2,10 @@ from typing import Optional, Tuple
 
 import click
 
-import tcn.tools.hws.client as hws_client
-import tcn.tools.hws.constants as cst
-import tcn.tools.hws.graph as hws_graph
-import tcn.tools.hws.server as hws_server
+import tcn.hws.client as hws_client
+import tcn.hws.constants as cst
+import tcn.hws.graph as hws_graph
+import tcn.hws.server as hws_server
 
 
 @click.group()

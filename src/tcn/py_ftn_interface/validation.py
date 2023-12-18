@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from tcn.tools.py_ftn_interface.base import Function, InterfaceConfig
+from tcn.py_ftn_interface.base import Function, InterfaceConfig
 
 
 class Validation(InterfaceConfig):

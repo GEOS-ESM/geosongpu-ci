@@ -8,9 +8,9 @@ import click
 import jinja2
 import yaml
 
-from tcn.tools.py_ftn_interface.argument import get_argument_yaml_loader
-from tcn.tools.py_ftn_interface.base import Function, InterfaceConfig
-from tcn.tools.py_ftn_interface.bridge import Bridge
+from tcn.py_ftn_interface.argument import get_argument_yaml_loader
+from tcn.py_ftn_interface.base import Function, InterfaceConfig
+from tcn.py_ftn_interface.bridge import Bridge
 
 ###############
 # TODO:

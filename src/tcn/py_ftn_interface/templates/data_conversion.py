@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple, Union
 
 import cffi
 import numpy as np
+from typing_extensions import TypeAlias
 
 try:
     import cupy as cp
@@ -17,7 +18,7 @@ if cp is not None:
         cp = None
 
 DeviceArray = cp.ndarray if cp else None
-PythonArray = Union[np.ndarray, (cp.ndarray if cp else None)]
+PythonArray: TypeAlias = np.ndarray
 
 
 class FortranPythonConversion:
@@ -102,9 +103,9 @@ class FortranPythonConversion:
         """
         ftype = self._ffi.getctype(self._ffi.typeof(fptr).item)
         assert ftype in self._TYPEMAP
-        return np.frombuffer(
-            self._ffi.buffer(fptr, prod(dim) * self._ffi.sizeof(ftype)),
-            self._TYPEMAP[ftype],
+        return np.frombuffer(  # noqa
+            buffer=self._ffi.buffer(fptr, prod(dim) * self._ffi.sizeof(ftype)),
+            dtype=self._TYPEMAP[ftype],
         )
 
     def _upload_and_transform(

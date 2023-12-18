@@ -4,9 +4,9 @@ import time
 
 import cupy as cp
 
-from tcn.tools.hws.client import client_main
-from tcn.tools.hws.constants import DUMP_HWLOAD_FILENAME
-from tcn.tools.hws.server import cli
+from tcn.hws.client import client_main
+from tcn.hws.constants import DUMP_HWLOAD_FILENAME
+from tcn.hws.server import cli
 
 
 def GPU_work():

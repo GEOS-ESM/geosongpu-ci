@@ -3,8 +3,8 @@ from typing import Any, Dict
 
 import numpy as np
 
-import tcn.tools.hws.constants as cst
-from tcn.tools.hws.constants import HWS_HW_CPU
+import tcn.hws.constants as cst
+from tcn.hws.constants import HWS_HW_CPU
 
 
 @dataclasses.dataclass

@@ -2,7 +2,7 @@ import pathlib
 import dash_bootstrap_components as dbc
 import xarray as xr
 from dash import Dash, Input, Output, dcc, html
-import tcn.tools.plots.geos.plot_via_plotly as ph
+import tcn.plots.geos.plot_via_plotly as ph
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])
 reference_nc = ""

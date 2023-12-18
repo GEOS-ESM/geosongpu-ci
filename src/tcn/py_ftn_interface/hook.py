@@ -3,8 +3,8 @@ from typing import List
 
 import jinja2
 
-from tcn.tools.py_ftn_interface.base import Function, InterfaceConfig
-from tcn.tools.py_ftn_interface.validation import Validation
+from tcn.py_ftn_interface.base import Function, InterfaceConfig
+from tcn.py_ftn_interface.validation import Validation
 
 
 class Hook(InterfaceConfig):

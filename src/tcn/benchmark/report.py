@@ -6,9 +6,9 @@ import click
 import numpy as np
 import plotly.graph_objects as go
 
-from tcn.tools.benchmark.geos_log_parser import parse_geos_log
-from tcn.tools.benchmark.raw_data import BenchmarkRawData
-from tcn.tools.hws.graph import energy_envelop_calculation
+from tcn.benchmark.geos_log_parser import parse_geos_log
+from tcn.benchmark.raw_data import BenchmarkRawData
+from tcn.hws.graph import energy_envelop_calculation
 
 
 @dataclass

@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 import jinja2
 
-from tcn.tools.py_ftn_interface.argument import Argument
+from tcn.py_ftn_interface.argument import Argument
 
 
 class Function:

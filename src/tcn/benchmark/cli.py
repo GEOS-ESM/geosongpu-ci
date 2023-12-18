@@ -1,5 +1,5 @@
-from tcn.tools.benchmark.geos_log_parser import parse_geos_log
-from tcn.tools.benchmark.report import report
+from tcn.benchmark.geos_log_parser import parse_geos_log
+from tcn.benchmark.report import report
 
 if __name__ == "__main__":
     import sys

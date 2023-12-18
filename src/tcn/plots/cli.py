@@ -1,4 +1,4 @@
-import tcn.tools.plots.geos.dash_grid_heatmaps as dash
+import tcn.plots.geos.dash_grid_heatmaps as dash
 
 
 def cli():

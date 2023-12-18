@@ -4,10 +4,10 @@ from typing import Any, Dict, Optional
 from tcn.ci.actions.discover import one_gpu_srun
 from tcn.ci.actions.git import git_prelude
 from tcn.ci.pipeline.task import TaskBase
-from tcn.utils.ci_exception import CICheckException
-from tcn.utils.environment import Environment
-from tcn.utils.registry import Registry
-from tcn.utils.shell import ShellScript
+from tcn.ci.utilsci_exception import CICheckException
+from tcn.ci.utilsenvironment import Environment
+from tcn.ci.utilsregistry import Registry
+from tcn.ci.utilsshell import ShellScript
 
 
 def _run_action(

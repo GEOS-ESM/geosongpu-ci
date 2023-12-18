@@ -8,9 +8,9 @@ from typing import Any, Dict, Iterable
 import yaml
 
 from tcn.ci.actions.pipeline import PipelineAction
-from tcn.utils.environment import Environment
-from tcn.utils.progress import Progress
-from tcn.utils.registry import Registry
+from tcn.ci.utilsenvironment import Environment
+from tcn.ci.utilsprogress import Progress
+from tcn.ci.utilsregistry import Registry
 
 
 class TaskBase(ABC):

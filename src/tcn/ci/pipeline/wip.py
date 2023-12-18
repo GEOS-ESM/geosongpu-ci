@@ -1,9 +1,9 @@
 from typing import Any, Dict
 
 from tcn.ci.pipeline.task import TaskBase
-from tcn.utils.environment import Environment
-from tcn.utils.registry import Registry
-from tcn.utils.shell import ShellScript
+from tcn.ci.utilsenvironment import Environment
+from tcn.ci.utilsregistry import Registry
+from tcn.ci.utilsshell import ShellScript
 
 
 @Registry.register
