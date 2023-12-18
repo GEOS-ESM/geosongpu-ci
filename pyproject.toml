@@ -32,12 +32,16 @@ dependencies = [
     "fprettify",
     "black",
     "dash",
+    "dash_bootstrap_components",
     "dask",
     "plotly",
     "pre-commit",
+    "xarray",
+    "netcdf4==1.6.3",
 ]
 
 [project.scripts]
 tcn-ci = "tcn.ci.dispatch:cli"
 tcn-hws = "tcn.tools.hws.cli:cli"
 tcn-fpy = "tcn.tools.py_ftn_interface.cli:cli"
+tcn-plots = "tcn.tools.plots.cli:cli"

@@ -51,13 +51,23 @@ def plot_heatmaps_diff_mean_on_K(
     ds_ref_meand_dt_K = dataset_reference[variable].mean(["tile", "time", find_z[0]])
     zmax = float(ds_ref_meand_dt_K.max().values)
     zmin = float(ds_ref_meand_dt_K.min().values)
-    zmax_range = max(abs(zmax), abs(zmin))
+    zrange = max(abs(zmax), abs(zmin))
+
     fig = px.imshow(
         ds_mean_dt_K,
         color_continuous_scale="RdBu_r",
-        zmax=zmax_range,
-        zmin=-zmax_range,
+        zmax=zrange * 0.1,
+        zmin=-zrange * 0.1,
     )
+    # fig = pgo.Figure(
+    #     pgo.Heatmap(
+    #         z=ds_mean_dt_K,
+    #         colorscale="RdBu",
+    #         zmid=0,
+    #         zmax=float(ds_ref_meand_dt_K.max().values),
+    #         zmin=float(ds_ref_meand_dt_K.min().values),
+    #     ),
+    # )
     if write:
         fig.write_image(f"heatmap_diff__time_K_averaged_of_{variable}.png")
     return fig
