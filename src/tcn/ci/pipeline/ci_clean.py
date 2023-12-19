@@ -4,9 +4,9 @@ from os.path import abspath
 from typing import Any, Dict
 
 from tcn.ci.pipeline.task import TaskBase
-from tcn.ci.utilsenvironment import Environment
-from tcn.ci.utilsregistry import Registry
-from tcn.ci.utilsshell import ShellScript
+from tcn.ci.utils.environment import Environment
+from tcn.ci.utils.registry import Registry
+from tcn.ci.utils.shell import ShellScript
 
 
 @Registry.register

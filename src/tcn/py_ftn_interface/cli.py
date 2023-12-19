@@ -24,15 +24,15 @@ from tcn.py_ftn_interface.bridge import Bridge
 
 
 def _find_templates_dir() -> str:
-    # pip install geosongpu-ci
-    candidate = f"{sys.prefix}/geosongpu/py_ftn_interface/templates"
+    # pip install smtn
+    candidate = f"{sys.prefix}/smtn/src/py_ftn_interface/templates"
     if os.path.isdir(candidate):
         return candidate
-    # pip install --user geosongpu-ci
-    candidate = f"{site.USER_BASE}/geosongpu/py_ftn_interface/templates"
+    # pip install --user smtn
+    candidate = f"{site.USER_BASE}/smtn/src/py_ftn_interface/templates"
     if os.path.isdir(candidate):
         return candidate
-    # pip install -e geosongpu-ci
+    # pip install -e smtn
     candidate = os.path.join(os.path.dirname(__file__), "./templates")
     if os.path.isdir(candidate):
         return candidate
@@ -41,7 +41,7 @@ def _find_templates_dir() -> str:
 
 def _find_templates(name: str) -> str:
     directory = _find_templates_dir()
-    # pip install geosongpu-ci
+    # pip install smtn
     candidate = f"{directory}/{name}"
     if os.path.isfile(candidate):
         return candidate

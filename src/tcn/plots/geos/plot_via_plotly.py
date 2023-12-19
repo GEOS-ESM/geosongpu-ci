@@ -59,15 +59,6 @@ def plot_heatmaps_diff_mean_on_K(
         zmax=zrange * 0.1,
         zmin=-zrange * 0.1,
     )
-    # fig = pgo.Figure(
-    #     pgo.Heatmap(
-    #         z=ds_mean_dt_K,
-    #         colorscale="RdBu",
-    #         zmid=0,
-    #         zmax=float(ds_ref_meand_dt_K.max().values),
-    #         zmin=float(ds_ref_meand_dt_K.min().values),
-    #     ),
-    # )
     if write:
         fig.write_image(f"heatmap_diff__time_K_averaged_of_{variable}.png")
     return fig
@@ -82,7 +73,6 @@ def nc4_to_xarray(nc4_file: str) -> xr.Dataset:
 
 
 if __name__ == "__main__":
-    # merge_variable("/home/fgdeconi/work/git/geosongpu-ci/tmp/AQ_OUTPUT", "U")
     nc4_file = sys.argv[1]
     variable = sys.argv[2]
     plot_type = sys.argv[3]

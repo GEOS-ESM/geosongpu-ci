@@ -4,15 +4,15 @@ import sys
 
 
 def find_template(name: str) -> str:
-    # pip install geosongpu-ci
-    candidate = f"{sys.prefix}/geosongpu/templates/{name}.tpl"
+    # pip install smtn
+    candidate = f"{sys.prefix}/smtn/templates/{name}.tpl"
     if os.path.isfile(candidate):
         return candidate
-    # pip install --user geosongpu-ci
-    candidate = f"{site.USER_BASE}/geosongpu/templates/{name}.tpl"
+    # pip install --user smtn
+    candidate = f"{site.USER_BASE}/smtn/templates/{name}.tpl"
     if os.path.isfile(candidate):
         return candidate
-    # pip install -e geosongpu-ci
+    # pip install -e smtn
     candidate = os.path.join(
         os.path.dirname(__file__),
         f"{name}.tpl",

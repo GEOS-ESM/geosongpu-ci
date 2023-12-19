@@ -8,9 +8,9 @@ from typing import Any, Dict, Iterable
 import yaml
 
 from tcn.ci.actions.pipeline import PipelineAction
-from tcn.ci.utilsenvironment import Environment
-from tcn.ci.utilsprogress import Progress
-from tcn.ci.utilsregistry import Registry
+from tcn.ci.utils.environment import Environment
+from tcn.ci.utils.progress import Progress
+from tcn.ci.utils.registry import Registry
 
 
 class TaskBase(ABC):
@@ -62,17 +62,17 @@ class TaskBase(ABC):
 
 
 def _find_experiments() -> str:
-    # pip install geosongpu-ci
-    candidate = f"{sys.prefix}/geosongpu/experiments/experiments.yaml"
+    # pip install smtn
+    candidate = f"{sys.prefix}/smtn/ci_experiments/experiments.yaml"
     if os.path.isfile(candidate):
         return candidate
-    # pip install --user geosongpu-ci
-    candidate = f"{site.USER_BASE}/geosongpu/experiments/experiments.yaml"
+    # pip install --user smtn
+    candidate = f"{site.USER_BASE}/smtn/ci_experiments/experiments.yaml"
     if os.path.isfile(candidate):
         return candidate
-    # pip install -e geosongpu-ci
+    # pip install -e smtn
     candidate = os.path.join(
-        os.path.dirname(__file__), "../../experiments/experiments.yaml"
+        os.path.dirname(__file__), "../../ci_experiments/experiments.yaml"
     )
     if os.path.isfile(candidate):
         return candidate

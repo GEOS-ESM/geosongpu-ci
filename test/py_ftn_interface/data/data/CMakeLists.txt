@@ -32,7 +32,7 @@ set( sources
     ../runtime_fortran.f90
 )
 
-set(py_ftn_test_INTERFACE_DIRECTORY   /home/fgdeconi/work/git/geosongpu-ci/tmp/py_ftn_test/interface)
+set(py_ftn_test_INTERFACE_DIRECTORY   /home/fgdeconi/work/git/smtn/tmp/py_ftn_test/interface)
 set( interface_sources
     ${py_ftn_test_INTERFACE_DIRECTORY}/py_ftn_test_interface.f90
     ${py_ftn_test_INTERFACE_DIRECTORY}/py_ftn_test_interface.c

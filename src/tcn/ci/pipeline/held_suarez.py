@@ -15,10 +15,10 @@ from tcn.ci.pipeline.gtfv3_config import GTFV3Config
 from tcn.ci.pipeline.task import TaskBase, get_config
 from tcn.benchmark.geos_log_parser import parse_geos_log
 from tcn.benchmark.report import report
-from tcn.ci.utilsenvironment import Environment
-from tcn.ci.utilsprogress import Progress
-from tcn.ci.utilsregistry import Registry
-from tcn.ci.utilsshell import ShellScript
+from tcn.ci.utils.environment import Environment
+from tcn.ci.utils.progress import Progress
+from tcn.ci.utils.registry import Registry
+from tcn.ci.utils.shell import ShellScript
 
 
 class PrologScripts:
