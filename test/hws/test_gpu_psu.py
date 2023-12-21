@@ -1,10 +1,12 @@
-import cupy as cp
 import multiprocessing as mp
-from geosongpu_ci.tools.hws.server import cli
-from geosongpu_ci.tools.hws.client import client_main
-import time
 import os
-from geosongpu_ci.tools.hws.constants import DUMP_HWLOAD_FILENAME
+import time
+
+import cupy as cp
+
+from tcn.hws.client import client_main
+from tcn.hws.constants import HWS_DUMP_NAME, HWS_DUMP_NPZ
+from tcn.hws.server import cli
 
 
 def GPU_work():
@@ -27,7 +29,7 @@ def test_gpu_psu_sampling():
     client_main("stop")
     p_server.join()
 
-    assert os.path.exists(f"{DUMP_HWLOAD_FILENAME}.npz")
+    assert os.path.exists(f"{HWS_DUMP_NAME}.{HWS_DUMP_NPZ}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,174 @@
+module {{prefix}}_interface_mod
+
+    use iso_c_binding, only: c_int, c_float, c_double
+
+    {% for validation in validations -%}
+    use {{validation.reference_mod}}, only: {{validation.reference_call}}
+    {% endfor -%}
+
+
+    implicit none
+
+    !> Single precision real numbers, 6 digits, range 10⁻³⁷ to 10³⁷-1; 32 bits
+    integer, parameter :: sp = selected_real_kind(6, 37)
+    !> Double precision real numbers, 15 digits, range 10⁻³⁰⁷ to 10³⁰⁷-1; 64 bits
+    integer, parameter :: dp = selected_real_kind(15, 307)
+
+    private
+    {% for function in functions -%}
+    public :: {{prefix}}_{{function.name}}_f
+    {% endfor -%}
+    {% for validation in validations -%}
+    public :: validate_{{prefix}}_{{validation.candidate}}_f
+    {% endfor -%}
+    interface
+    {% for function in functions %}
+        subroutine {{prefix}}_{{function.name}}_f( &
+            !inputs
+            {% for input in function.inputs -%}
+                {{input.name}}{{ ", " if not loop.last or function.inouts|length > 0 else "" }}{{"&\n" if (loop.index % 10) == 0 else ""}}
+            {%- endfor %}{{ "&" if function.inputs|length > 0 else "" }}
+            !inouts
+            {% for inout in function.inouts -%}
+                {{inout.name}}{{ ", " if not loop.last or function.outputs|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor %}{{ "&" if function.inouts|length > 0 else "" }}
+            !outputs
+            {% for output in function.outputs -%}
+                {{output.name}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor -%}{{ "&" if function.outputs|length > 0 else "" }}
+        ) bind(c, name='{{prefix}}_{{function.name}}_c')
+            import c_int, c_float, c_double
+            implicit none
+
+            {% for input in function.inputs -%}
+            {{input.type}}, intent(in) :: {{input.name}}
+            {% endfor -%}
+
+            {% for inout in function.inouts -%}
+            {{inout.type}}, intent(inout) :: {{inout.name}}
+            {% endfor -%}
+
+            {% for output in function.outputs -%}
+            {{output.type}}, intent(out) :: {{output.name}}
+            {% endfor -%}
+
+        end subroutine {{prefix}}_{{function.name}}_f
+    {% endfor %}
+    {% for validation in validations -%}
+        subroutine v_{{prefix}}_{{validation.candidate}}_f( &
+            !inouts as input
+            {% for inout in validation.inouts -%}
+                f90_{{inout.name}}, py_{{inout.name}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor %}{{ "&" if validation.inouts|length > 0 else "" }}
+            !outputs as input
+            {% for output in validation.outputs -%}
+                f90_{{output.name}}, py_{{output.name}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor -%}{{ "&" if validation.outputs|length > 0 else "" }}
+        ) bind(c, name='v_{{prefix}}_{{validation.candidate}}_c')
+            import c_int, c_float, c_double
+            implicit none
+
+            {% for inout in validation.inouts -%}
+                {{inout.type}}, intent(in) :: f90_{{inout.name}}
+                {{inout.type}}, intent(in) :: py_{{inout.name}}
+            {% endfor -%}
+            {% for output in validation.outputs -%}
+                {{output.type}}, intent(in) :: f90_{{output.name}}
+                {{output.type}}, intent(in) :: py_{{output.name}}
+            {% endfor -%}
+
+        end subroutine
+    {% endfor %}
+    end interface
+
+    contains
+    {% for validation in validations -%}
+    subroutine validate_{{prefix}}_{{validation.candidate}}_f( &
+        !inputs
+        {% for input in validation.inputs -%}
+            {{input.name}}{{ ", " if not loop.last or validation.inouts|length > 0 else "" }}{{"&\n" if (loop.index % 10) == 0 else ""}}
+        {%- endfor %}{{ "&" if validation.inputs|length > 0 else "" }}
+        !inouts
+        {% for inout in validation.inouts -%}
+            {{inout.name}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+        {%- endfor %}{{ "&" if validation.inouts|length > 0 else "" }}
+        !outputs
+        {% for output in validation.outputs -%}
+            {{output.name}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
+        {%- endfor -%}{{ "&" if validation.outputs|length > 0 else "" }}
+    )
+        ! Arguments
+        {% for input in validation.inputs -%}
+            {{input.type}}, intent(in) :: {{input.name}}{{input.dims_f90_defs}}
+        {% endfor -%}
+        {% for inout in validation.inouts -%}
+            {{inout.type}}, intent(out) :: {{inout.name}}{{inout.dims_f90_defs}}
+        {% endfor -%}
+        {% for output in validation.outputs -%}
+            {{output.type}}, intent(inout) :: {{output.name}}{{output.dims_f90_defs}}
+        {% endfor -%}
+
+        ! Temporaries
+        {% for inout in validation.inouts -%}
+            {{inout.type}}, allocatable :: tmp_{{inout.name}}{{inout.dims_f90_defs}}
+        {% endfor -%}
+        {% for output in validation.outputs -%}
+            {{output.type}}, allocatable :: tmp_{{output.name}}{{output.dims_f90_defs}}
+        {% endfor -%}
+
+        ! Deep copy inout & out
+        {% for inout in validation.inouts -%}
+            allocate(tmp_{{inout.name}}{{inout.size_f90_per_dims}})
+        {% endfor -%}
+        {% for output in validation.outputs -%}
+            allocate(tmp_{{output.name}}{{output.size_f90_per_dims}})
+        {% endfor -%}
+
+        ! Runtimes: fortran with original data, then py with copies
+        call {{validation.reference_call}}( &
+            !inputs
+            {% for input in validation.inputs -%}
+                {{input.name}}{{ ", " if not loop.last or validation.inouts|length > 0 else "" }}{{"&\n" if (loop.index % 10) == 0 else ""}}
+            {%- endfor %}{{ "&" if validation.inputs|length > 0 else "" }}
+            !inouts
+            {% for inout in validation.inouts -%}
+                {{inout.name}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor %}{{ "&" if validation.inouts|length > 0 else "" }}
+            !outputs
+            {% for output in validation.outputs -%}
+                {{output.name}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor -%}{{ "&" if validation.outputs|length > 0 else "" }}
+        )
+        call {{prefix}}_{{validation.candidate}}_f( &
+            !inputs
+            {% for input in validation.inputs -%}
+                {{input.name}}{{ ", " if not loop.last or validation.inouts|length > 0 else "" }}{{"&\n" if (loop.index % 10) == 0 else ""}}
+            {%- endfor %}{{ "&" if validation.inputs|length > 0 else "" }}
+            !inouts
+            {% for inout in validation.inouts -%}
+                tmp_{{inout.name}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor %}{{ "&" if validation.inouts|length > 0 else "" }}
+            !outputs
+            {% for output in validation.outputs -%}
+                tmp_{{output.name}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor -%}{{ "&" if validation.outputs|length > 0 else "" }}
+        )
+
+        ! Validation
+        call v_{{prefix}}_{{validation.candidate}}_f( &
+            !inouts as input
+            {% for inout in validation.inouts -%}
+                {{inout.name}}, tmp_{{inout.name}},{{inout.f90_dims_and_size}}{{ ", " if not loop.last or validation.outputs|length > 0 else "" }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor %}{{ "&" if validation.inouts|length > 0 else "" }}
+            !outputs as input
+            {% for output in validation.outputs -%}
+                {{output.name}}, tmp_{{output.name}}, {{output.f90_dims_and_size}}{{ ", " if not loop.last }}{{"&\n" if loop.index % 10 == 0 else ""}}
+            {%- endfor -%}{{ "&" if validation.outputs|length > 0 else "" }}
+        )
+
+
+    end subroutine validate_{{prefix}}_{{validation.candidate}}_f
+    {% endfor -%}
+
+
+end module {{prefix}}_interface_mod

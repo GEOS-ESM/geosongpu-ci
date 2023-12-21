@@ -1,11 +1,11 @@
 import os
-import sys
 import shutil
 import subprocess
-from geosongpu_ci.tools.py_ftn_interface.cli import cli
-
+import sys
 
 from click.testing import CliRunner
+
+from tcn.py_ftn_interface.cli import cli
 
 
 def test_fortran_python_interface():
