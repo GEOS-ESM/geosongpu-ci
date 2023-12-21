@@ -56,8 +56,8 @@ def plot_heatmaps_diff_mean_on_K(
     fig = px.imshow(
         ds_mean_dt_K,
         color_continuous_scale="RdBu_r",
-        zmax=zrange * 0.1,
-        zmin=-zrange * 0.1,
+        zmax=zrange * 0.01,
+        zmin=-zrange * 0.01,
     )
     if write:
         fig.write_image(f"heatmap_diff__time_K_averaged_of_{variable}.png")

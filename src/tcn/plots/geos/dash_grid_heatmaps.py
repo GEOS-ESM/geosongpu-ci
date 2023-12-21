@@ -80,7 +80,7 @@ def render_tab_content(active_tab, data):
     header_row = None
     if active_tab == "diff":
         header_row = dbc.Row(
-            dbc.Alert("Differnce plot scale is 10%% of max range", color="info")
+            dbc.Alert("Differnce plot scale is 1%% of max range", color="info")
         )
 
     if active_tab:
@@ -121,7 +121,7 @@ def spin(arg_reference_nc: str, arg_dsl_nc: str):
     reference_nc = arg_reference_nc
     global dsl_nc
     dsl_nc = arg_dsl_nc
-    app.run(debug=True, jupyter_mode="jupyterlab")
+    app.run(jupyter_mode="jupyterlab")
 
 
 if __name__ == "__main__":
