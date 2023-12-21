@@ -5,6 +5,8 @@ from typing import Any, Dict, Tuple
 
 import click
 
+from tcn.benchmark.geos_log_parser import parse_geos_log
+from tcn.benchmark.report import report
 from tcn.ci.actions.pipeline import PipelineAction
 from tcn.ci.actions.slurm import SlurmConfiguration
 from tcn.ci.pipeline.geos import (
@@ -13,8 +15,6 @@ from tcn.ci.pipeline.geos import (
 )
 from tcn.ci.pipeline.gtfv3_config import GTFV3Config
 from tcn.ci.pipeline.task import TaskBase, get_config
-from tcn.benchmark.geos_log_parser import parse_geos_log
-from tcn.benchmark.report import report
 from tcn.ci.utils.environment import Environment
 from tcn.ci.utils.progress import Progress
 from tcn.ci.utils.registry import Registry
@@ -32,7 +32,10 @@ class PrologScripts:
         executable_name: str,
         geos_directory: str,
         geos_install_path: str,
+        no_op: bool = False,
     ):
+        if no_op:
+            return
         self._make_gpu_wrapper_script(experiment_directory=experiment_directory)
         self.set_env = set_python_environment(
             geos_directory=geos_directory,
@@ -275,6 +278,9 @@ class HeldSuarez(TaskBase):
         geos_install_directory = env.get("GEOS_INSTALL_DIRECTORY")
         geos = env.get("GEOS_BASE_DIRECTORY")
 
+        validation_experiment_directory = ""
+        validation_prolog_script = PrologScripts("", "", "", "", no_op=True)
+
         # # # Validation # # #
         if (
             env.experiment_action == PipelineAction.Validation
@@ -467,11 +473,13 @@ def pipe(ctx, step: str, action: str, artifact: str, setup_only: bool):
     experience_name = "geos_hs"
     task = Registry.registry["HeldSuarez"]()
     config = get_config(experience_name)
+    metadata: Dict[str, Any] = {}
     env = Environment(
         experience_name=experience_name,
         experiment_action=PipelineAction[action],
         artifact_directory=artifact,
         setup_only=setup_only,
+        metadata=metadata,
     )
     env.set("GEOS_BASE_DIRECTORY", geos_base_directory)
 

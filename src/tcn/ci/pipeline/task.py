@@ -18,17 +18,16 @@ class TaskBase(ABC):
 
     def __init__(self, skip_metadata=False) -> None:
         super().__init__()
-        self.metadata: Dict[str, Any] = {}
         self.skip_metadata = skip_metadata
 
     def _prelude(self, config: Dict[str, Any], env: Environment):
-        self.metadata["timestamp"] = str(datetime.datetime.now())
-        self.metadata["config"] = {"name": env.experiment_name, "value": config}
-        self.metadata["action"] = str(env.experiment_action)
+        env.metadata["timestamp"] = str(datetime.datetime.now())
+        env.metadata["config"] = {"name": env.experiment_name, "value": config}
+        env.metadata["action"] = str(env.experiment_action)
 
-    def _dump_metadata(self):
+    def _dump_metadata(self, env: Environment):
         with open("ci_metadata", "w") as f:
-            yaml.dump(self.metadata, f)
+            yaml.dump(env.metadata, f)
 
     def run(
         self,
@@ -38,7 +37,7 @@ class TaskBase(ABC):
         self._prelude(config, env)
         self.run_action(config, env)
         if not self.skip_metadata:
-            self._dump_metadata()
+            self._dump_metadata(env)
 
     @abstractmethod
     def run_action(
@@ -98,11 +97,13 @@ def dispatch(
     config = get_config(experiment_name)
 
     # Build environment
+    metadata: Dict[str, Any] = {}
     env = Environment(
         experience_name=experiment_name,
         experiment_action=experiment_action,
         artifact_directory=artifact_directory,
         setup_only=setup_only,
+        metadata=metadata,
     )
 
     # Run pipeline

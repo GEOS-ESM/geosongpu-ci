@@ -43,9 +43,9 @@ def envelop(
         range_start, range_stop = data_range
         range_start = int(range_start / dt)
         range_stop = int(range_stop / dt)
+        hws_graph.cli(data_filepath, data_range=slice(range_start, range_stop))
     else:
-        range_start, range_stop = None, None
-    hws_graph.cli(data_filepath, data_range=slice(range_start, range_stop))
+        hws_graph.cli(data_filepath)
 
 
 if __name__ == "__main__":

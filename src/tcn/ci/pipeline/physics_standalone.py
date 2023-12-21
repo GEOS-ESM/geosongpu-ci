@@ -13,7 +13,6 @@ from tcn.ci.utils.shell import ShellScript
 def _run_action(
     config: Dict[str, Any],
     env: Environment,
-    metadata: Dict[str, Any],
     physics_name: str,
     input_data_name: Optional[str] = None,
     compiler: str = "nvfortran",
@@ -25,7 +24,7 @@ def _run_action(
         config,
         env.experiment_name,
         env.experiment_action,
-        metadata,
+        env.metadata,
         override_repo_name=physics_name,
         do_mepo=False,
     )
@@ -96,7 +95,7 @@ def _check(
         # with xxxx the varname
         # and the KEY / yyyy a key, value data to check
         # with KEY = [NEW, DIFF, REF]
-        results = {}
+        results: Dict[str, Any] = {}
         with open(filepath) as f:
             line = f.readline()
             while line != "":
@@ -119,8 +118,8 @@ def _check(
         file_exists = os.path.isfile(oacc_log_name) and os.path.isfile(serial_log_name)
         if not file_exists:
             raise CICheckException(
-                "Physics standalone: ",
-                f"{oacc_log_name} or {serial_log_name} doesn't exists.",
+                "Physics standalone: "
+                f"{oacc_log_name} or {serial_log_name} doesn't exists."
             )
 
         oacc_results = _parse_log(oacc_log_name)
@@ -155,14 +154,10 @@ class OACCMoistRadCoup(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         _run_action(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
             env=env,
-            metadata=metadata,
             physics_name=self.name,
             input_data_name="radcoup_loop",
         )
@@ -174,9 +169,6 @@ class OACCMoistRadCoup(TaskBase):
     ) -> bool:
         return _check(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
-            artifact_directory=env.artifact_directory,
             env=env,
             physics_name=self.name,
         )
@@ -190,14 +182,10 @@ class OACCGFDLMicrophysics(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         _run_action(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
             env=env,
-            metadata=metadata,
             physics_name=self.name,
             input_data_name="gfdl_cloud_microphys_driver",
         )
@@ -209,9 +197,6 @@ class OACCGFDLMicrophysics(TaskBase):
     ) -> bool:
         return _check(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
-            artifact_directory=env.artifact_directory,
             env=env,
             physics_name=self.name,
         )
@@ -225,14 +210,10 @@ class OACCBuoyancy(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         _run_action(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
             env=env,
-            metadata=metadata,
             physics_name=self.name,
             compiler="gfortran",
         )
@@ -244,9 +225,6 @@ class OACCBuoyancy(TaskBase):
     ) -> bool:
         return _check(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
-            artifact_directory=env.artifact_directory,
             env=env,
             physics_name=self.name,
         )
@@ -260,14 +238,10 @@ class OACCCupGfSh(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         _run_action(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
             env=env,
-            metadata=metadata,
             physics_name=self.name,
         )
 
@@ -278,9 +252,6 @@ class OACCCupGfSh(TaskBase):
     ) -> bool:
         return _check(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
-            artifact_directory=env.artifact_directory,
             env=env,
             physics_name=self.name,
         )
@@ -294,14 +265,10 @@ class OACCEvapSublPdfLoop(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         _run_action(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
             env=env,
-            metadata=metadata,
             physics_name=self.name,
         )
 
@@ -312,9 +279,6 @@ class OACCEvapSublPdfLoop(TaskBase):
     ) -> bool:
         return _check(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
-            artifact_directory=env.artifact_directory,
             env=env,
             physics_name=self.name,
         )
@@ -328,14 +292,10 @@ class OACCFillQ2Zero(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         _run_action(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
             env=env,
-            metadata=metadata,
             physics_name=self.name,
             input_data_name="fillq2zero",
         )
@@ -347,9 +307,6 @@ class OACCFillQ2Zero(TaskBase):
     ) -> bool:
         return _check(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
-            artifact_directory=env.artifact_directory,
             env=env,
             physics_name=self.name,
         )
@@ -363,14 +320,10 @@ class OACCAerActivation(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         _run_action(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
             env=env,
-            metadata=metadata,
             physics_name=self.name,
         )
 
@@ -381,9 +334,6 @@ class OACCAerActivation(TaskBase):
     ) -> bool:
         return _check(
             config=config,
-            experiment_name=env.experiment_name,
-            action=env.experiment_action,
-            artifact_directory=env.artifact_directory,
             env=env,
             physics_name=self.name,
         )

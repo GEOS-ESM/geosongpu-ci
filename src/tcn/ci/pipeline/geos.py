@@ -94,13 +94,12 @@ class GEOS(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         git_prelude(
             config,
             env.experiment_name,
             env.experiment_action,
-            metadata,
+            env.metadata,
             override_repo_name="geos",
             do_mepo=True,
         )

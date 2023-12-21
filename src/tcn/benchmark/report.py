@@ -131,13 +131,13 @@ def report(raw_data: List[BenchmarkRawData]) -> Optional[BenchmarkReport]:
         first_fv_timestep_A = benchA.fv_dyncore_timings[0]
         first_fv_timestep_B = benchB.fv_dyncore_timings[0]
 
-        benchA_fvcomp_run = 0
+        benchA_fvcomp_run = 0.0
         for key, value, _ in benchA.fv_gridcomp_detailed_profiling:
             if key == "RUN":
                 benchA_fvcomp_run += value - first_fv_timestep_A
             elif key == "RUN2":
                 benchA_fvcomp_run += value
-        benchB_fvcomp_run = 0
+        benchB_fvcomp_run = 0.0
         for key, value, _ in benchB.fv_gridcomp_detailed_profiling:
             if key == "RUN":
                 benchB_fvcomp_run = value - first_fv_timestep_B
@@ -169,23 +169,27 @@ def report(raw_data: List[BenchmarkRawData]) -> Optional[BenchmarkReport]:
         if benchA.hws_data != {}:
             energy_report = f"{benchA.backend} vs {benchB.backend}\n\n"
 
-            gpu_kW_envelop, cpu_kW_envelop = energy_envelop_calculation(
+            eReport = energy_envelop_calculation(
                 benchA.hws_data["cpu_psu"],
                 benchA.hws_data["gpu_psu"],
             )
             if benchA.backend == "fortran":
-                benchA_global_kW_envelop = cpu_kW_envelop
+                benchA_global_kW_envelop = eReport.CPU_envelop_kWh
             else:
-                benchA_global_kW_envelop = gpu_kW_envelop + cpu_kW_envelop
+                benchA_global_kW_envelop = (
+                    eReport.GPU_envelop_kWh + eReport.CPU_envelop_kWh
+                )
 
-            gpu_kW_envelop, cpu_kW_envelop = energy_envelop_calculation(
+            eReport = energy_envelop_calculation(
                 benchB.hws_data["cpu_psu"],
                 benchB.hws_data["gpu_psu"],
             )
             if benchB.backend == "fortran":
-                benchB_global_kW_envelop = cpu_kW_envelop
+                benchB_global_kW_envelop = eReport.CPU_envelop_kWh
             else:
-                benchB_global_kW_envelop = gpu_kW_envelop + cpu_kW_envelop
+                benchB_global_kW_envelop = (
+                    eReport.GPU_envelop_kWh + eReport.CPU_envelop_kWh
+                )
 
             energy_report += _comparison_in_X(
                 benchA_global_kW_envelop,

@@ -77,24 +77,24 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         benchmark.fv_dyncore_timings = _extract_numerics(dycore_timings)
 
     # Get setup (grid, nodes)
-    grid_stats = _grep(filename, "Resolution of dynamics restart")
-    grid_stats = _extract_numerics(grid_stats)
+    grid_stats_str = _grep(filename, "Resolution of dynamics restart")
+    grid_stats = _extract_numerics(grid_stats_str)
     assert len(grid_stats) == 3
     benchmark.grid_resolution = (
         int(grid_stats[0]),
         int(grid_stats[1]),
         int(grid_stats[2]),
     )
-    NX = _extract_numerics(
+    NX_str = _extract_numerics(
         _grep(filename, "Resource Parameter: NX:", exclude_pattern=True)
     )
-    assert len(NX) == 1
-    NX = int(NX[0])
-    NY = _extract_numerics(
+    assert len(NX_str) == 1
+    NX = int(NX_str[0])
+    NY_str = _extract_numerics(
         _grep(filename, "Resource Parameter: NY:", exclude_pattern=True)
     )
-    assert len(NY) == 1
-    NY = int(NY[0])
+    assert len(NY_str) == 1
+    NY = int(NY_str[0])
     benchmark.node_setup = (NX, int(NY / 6), int(NX * (NY / 6) * 6))
 
     # Get details FV Grid Comp timings

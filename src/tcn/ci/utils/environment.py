@@ -1,5 +1,5 @@
 import os
-from typing import Dict
+from typing import Any, Dict
 
 from tcn.ci.actions.pipeline import PipelineAction
 
@@ -14,12 +14,14 @@ class Environment:
         experiment_action: PipelineAction,
         artifact_directory: str,
         setup_only: bool,
+        metadata: Dict[str, Any],
     ) -> None:
         self.vault: Dict[str, str] = {}
         self.setup_only = setup_only
         self.experiment_name = experience_name
         self.experiment_action = experiment_action
         self.artifact_directory = artifact_directory
+        self.metadata = metadata
 
     def set(self, key: str, value: str):
         self.vault[key] = value

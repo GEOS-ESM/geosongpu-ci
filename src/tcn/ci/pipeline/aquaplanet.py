@@ -5,11 +5,11 @@ from typing import Any, Dict
 
 import click
 
+from tcn.benchmark.geos_log_parser import parse_geos_log
+from tcn.benchmark.report import report
 from tcn.ci.actions.pipeline import PipelineAction
 from tcn.ci.pipeline.geos import copy_input_to_experiment_directory
 from tcn.ci.pipeline.task import TaskBase, get_config
-from tcn.benchmark.geos_log_parser import parse_geos_log
-from tcn.benchmark.report import report
 from tcn.ci.utils.environment import Environment
 from tcn.ci.utils.progress import Progress
 from tcn.ci.utils.registry import Registry
@@ -100,10 +100,9 @@ class Aquaplanet(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         geos = env.get("GEOS_BASE_DIRECTORY")
-        validation_experiment_dir = None
+        validation_experiment_dir = ""
         resolution = None
 
         if (
@@ -272,6 +271,7 @@ def cli(
         experiment_action=PipelineAction[action],
         artifact_directory=artifact,
         setup_only=setup_only,
+        metadata={},
     )
     env.set("GEOS_BASE_DIRECTORY", geos_base_directory)
 

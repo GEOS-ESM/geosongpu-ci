@@ -1,4 +1,5 @@
 import os
+from typing import Any, Dict
 
 # Socket details
 SOCKET_DIRECTORY = "./sockets-runtime"
@@ -28,7 +29,7 @@ CLIENT_CMD_TICK = "tick"
 
 DEFAULT_SAMPLERATE_IN_S = 0.1
 
-CLIENT_CMDS = {
+CLIENT_CMDS: Dict[str, Any] = {
     CLIENT_CMD_START: {
         "action": SERV_ORDER_START,
         "dt": DEFAULT_SAMPLERATE_IN_S,

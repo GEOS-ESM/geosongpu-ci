@@ -1,6 +1,8 @@
+# type: ignore
+
 from math import prod
 from types import ModuleType
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import cffi
 import numpy as np
