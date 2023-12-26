@@ -27,7 +27,7 @@ Validation capacities for physics compares OACC and original Fortran on.
 
 Hardware Sampler - software file socket based package to instrument CPU/GPU usage, memory and TPU.
 
-## `benchmark``
+## `benchmark`
 
 Collection of scripts to mine GEOS log for relevant timing informations for DSL and Fortran runs.
 
