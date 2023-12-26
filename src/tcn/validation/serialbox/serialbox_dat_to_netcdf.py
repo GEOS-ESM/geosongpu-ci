@@ -1,5 +1,13 @@
 ###
 # Copied from the original https://github.com/ai2cm/fv3gfs-fortran/
+#
+# This script grabs the original serialbox .dat and metadata generated in combination
+# with the original namelist (as input.nml). It generates a NetCDF file corresponding to
+# the actual savepoint.
+#
+# Optional capacity to reduce NetCDF size:
+# - do_only_rank: export to NetCDF only one rank. Use `which_rank` to apply.
+# - do_only_savepoint: export only one savepoint
 ###
 
 import sys
@@ -10,7 +18,13 @@ import xarray as xr
 import f90nml
 import numpy as np
 
-sys.path.append("/home/fgdeconi/work/git/serialbox/install/python")  # noqa: E402
+SERIALBOX_PYTHON = os.getenv("SERIALBOX_PYTHON", "")
+if SERIALBOX_PYTHON == "":
+    raise RuntimeError(
+        "You must define env var SERIALBOX_PYTHON to point to root python package of serialbox."
+    )
+
+sys.path.append(SERIALBOX_PYTHON)
 import serialbox  # noqa: E402
 
 
@@ -23,6 +37,18 @@ def get_parser():
     )
     parser.add_argument(
         "output_path", type=str, help="output directory where netcdf data will be saved"
+    )
+    parser.add_argument(
+        "--do_only_rank",
+        type=int,
+        help="Single rank to be exported. Will be exported as 0",
+        required=False,
+    )
+    parser.add_argument(
+        "--do_only_savepoint",
+        type=int,
+        help="Single savepoint to be exported. Will be exported as 0",
+        required=False,
     )
     return parser
 
@@ -49,7 +75,13 @@ def get_serializer(data_path, rank):
     )
 
 
-def main(data_path: str, output_path: str):
+def main(
+    data_path: str,
+    output_path: str,
+    do_only_rank: int = -1,
+    do_only_savepoint: int = -1,
+):
+    print("Make directory & read namelist... 🚧")
     os.makedirs(output_path, exist_ok=True)
     namelist_filename_in = os.path.join(data_path, "input.nml")
     namelist_filename_out = os.path.join(output_path, "input.nml")
@@ -59,8 +91,11 @@ def main(data_path: str, output_path: str):
     total_ranks = (
         6 * namelist["fv_core_nml"]["layout"][0] * namelist["fv_core_nml"]["layout"][1]
     )
+    print("Done ✅")
 
+    print("Read savepoints... 🚧")
     savepoint_names = get_all_savepoint_names(data_path)
+    print(f"Read {savepoint_names}... ✅")
     for savepoint_name in sorted(list(savepoint_names)):
         rank_list = []
         # all ranks have the same names, just look at first one
@@ -69,21 +104,39 @@ def main(data_path: str, output_path: str):
             serializer.fields_at_savepoint(serializer.get_savepoint(savepoint_name)[0])
         )
         serializer_list = []
+        if do_only_rank >= 0:
+            total_ranks = 1
+        print(f"/ Gather data for {savepoint_name} for {total_ranks} ranks... 🚧")
         for rank in range(total_ranks):
+            if do_only_rank >= 0:
+                rank = do_only_rank
+            print(f"/ / Processing rank {rank}")
             serializer = get_serializer(data_path, rank)
             serializer_list.append(serializer)
             savepoints = serializer.get_savepoint(savepoint_name)
             rank_data = {}
             for name in set(names_list):
                 rank_data[name] = []
-                for savepoint in savepoints:
+                if do_only_savepoint < 0:
+                    for savepoint in savepoints:
+                        rank_data[name].append(
+                            read_serialized_data(serializer, savepoint, name)
+                        )
+                else:
                     rank_data[name].append(
-                        read_serialized_data(serializer, savepoint, name)
+                        read_serialized_data(
+                            serializer, savepoints[do_only_savepoint], name
+                        )
                     )
             rank_list.append(rank_data)
-        n_savepoints = len(savepoints)  # checking from last rank is fine
+        print(f"/ {savepoint_name} gathered. ✅")
+        if do_only_savepoint < 0:
+            n_savepoints = len(savepoints)  # checking from last rank is fine
+        else:
+            n_savepoints = 1
         data_vars = {}
         if n_savepoints > 0:
+            print(f"/ Write NETCDF for {savepoint_name}... 🚧")
             encoding = {}
             for varname in set(names_list).difference(["rank"]):
                 data_shape = list(rank_list[0][varname][0].shape)
@@ -120,6 +173,7 @@ def main(data_path: str, output_path: str):
             dataset.to_netcdf(
                 os.path.join(output_path, f"{savepoint_name}.nc"), encoding=encoding
             )
+            print(f"/ Wrote {output_path} ✅")
 
 
 def get_data(data_shape, total_ranks, n_savepoints, output_list, varname):
@@ -140,4 +194,9 @@ def get_data(data_shape, total_ranks, n_savepoints, output_list, varname):
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args()
-    main(data_path=args.data_path, output_path=args.output_path)
+    main(
+        data_path=args.data_path,
+        output_path=args.output_path,
+        do_only_rank=args.do_only_rank,
+        do_only_savepoint=args.do_only_savepoint,
+    )
