@@ -39,6 +39,10 @@ Generator of Python <> Interface based on CFFI as used in GEOS integration of th
 
 Collection of scriupts to plot various outputs of GEOS and DSL.
 
+## Software stack builder (`sw_stack`)
+
+Scripts to download and build the software stack used for the GEOS port.
+
 ## Documentation
 
 Full documentation of this code base.
