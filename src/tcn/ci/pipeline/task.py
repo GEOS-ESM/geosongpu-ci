@@ -61,18 +61,7 @@ class TaskBase(ABC):
 
 
 def _find_experiments() -> str:
-    # pip install smtn
-    candidate = f"{sys.prefix}/smtn/ci_experiments/experiments.yaml"
-    if os.path.isfile(candidate):
-        return candidate
-    # pip install --user smtn
-    candidate = f"{site.USER_BASE}/smtn/ci_experiments/experiments.yaml"
-    if os.path.isfile(candidate):
-        return candidate
-    # pip install -e smtn
-    candidate = os.path.join(
-        os.path.dirname(__file__), "../../ci_experiments/experiments.yaml"
-    )
+    candidate = os.path.join(os.path.dirname(__file__), "../data/experiments.yaml")
     if os.path.isfile(candidate):
         return candidate
     raise RuntimeError("Cannot find experiments.yaml")

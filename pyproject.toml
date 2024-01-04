@@ -40,6 +40,12 @@ dependencies = [
     "netcdf4==1.6.3",
 ]
 
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.tpl"]
+
 [project.scripts]
 tcn-ci = "tcn.ci.dispatch:cli"
 tcn-hws = "tcn.hws.cli:cli"
