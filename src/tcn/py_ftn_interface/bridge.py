@@ -2,7 +2,6 @@ import subprocess
 from typing import Any, Dict, List
 
 import clang_format as cf
-import fprettify
 import jinja2
 
 from tcn.py_ftn_interface.base import Function, InterfaceConfig
@@ -126,6 +125,9 @@ class Bridge(InterfaceConfig):
             f.write(code)
 
         # Format
+        # Note: pdoc dies when this is imported at file level. -_o_-
+        import fprettify  # noqa
+
         fprettify.reformat_inplace(ftn_source_filepath)
 
         return self
