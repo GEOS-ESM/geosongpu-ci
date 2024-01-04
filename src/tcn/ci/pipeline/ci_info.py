@@ -12,7 +12,6 @@ class CIInfo(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         super().__init__(skip_metadata=True)
         ShellScript("showquota").write(

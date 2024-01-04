@@ -14,7 +14,6 @@ class Heartbeat(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         pass
 

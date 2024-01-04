@@ -15,7 +15,6 @@ class CIClean(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         super().__init__(skip_metadata=True)
         work_dir = abspath(f"{env.CI_WORKSPACE}/../")
@@ -40,7 +39,6 @@ class SlurmCancelJob(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         # Build GEOS
         ShellScript("cancel_slurm_jobs").write(["scancel -u gmao_ci"]).execute()

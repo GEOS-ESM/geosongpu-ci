@@ -12,7 +12,6 @@ class WIP(TaskBase):
         self,
         config: Dict[str, Any],
         env: Environment,
-        metadata: Dict[str, Any],
     ):
         # Build GEOS
         ShellScript(name="wip").write(
