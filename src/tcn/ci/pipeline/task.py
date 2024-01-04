@@ -1,7 +1,5 @@
 import datetime
 import os
-import site
-import sys
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Iterable
 
@@ -62,6 +60,7 @@ class TaskBase(ABC):
 
 def _find_experiments() -> str:
     candidate = os.path.join(os.path.dirname(__file__), "../data/experiments.yaml")
+    print(candidate)
     if os.path.isfile(candidate):
         return candidate
     raise RuntimeError("Cannot find experiments.yaml")
