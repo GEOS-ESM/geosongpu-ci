@@ -4,6 +4,8 @@ import plotly.express as px
 import plotly.graph_objects as pgo
 import xarray as xr
 
+from typing import List, Optional
+
 
 def merge_variable(directory: str, variable: str):
     """Real slow! Better to use ncrcat from NCO suite"""
@@ -27,13 +29,36 @@ def plot_line_mean_dtime_dlon(nc4_file: str, variable: str):
     fig.write_image(f"time_lat_averaged_of_{variable}.png")
 
 
-def plot_heatmaps_mean_on_K(dataset: xr.Dataset, variable: str, write=False):
-    find_z = [k for k in dataset[variable].dims if "z" in str(k)]
-    assert len(find_z) == 1
-    ds_mean_dt_K = dataset[variable].mean(["tile", "time", find_z[0]])
+def plot_heatmaps_mean_on_K(
+    dataset: xr.Dataset,
+    variable: str,
+    write=False,
+    mean_dims: Optional[List[str]] = None,
+):
+    # Prep dims
+    if mean_dims is None:
+        dims = []
+        # Do we have a "tile" dims
+        find_tile = [k for k in dataset[variable].dims if "tile" in str(k)]
+        if len(find_tile) == 1:
+            dims.append(str(find_tile[0]))
+        # We expect time
+        dims.append("time")
+        # Do we have a K dim (try "z" or "lev")
+        find_z = [k for k in dataset[variable].dims if "z" in str(k) or "lev" in str(k)]
+        assert len(find_z) == 1
+        dims.append(str(find_z[0]))
+    else:
+        dims = mean_dims
+    # Mean
+    ds_mean_dt_K = dataset[variable].mean(dims)
+    # Plot
     fig = px.imshow(ds_mean_dt_K, color_continuous_scale="RdBu_r")
     if write:
-        fig.write_image(f"heatmap__time_K_averaged_of_{variable}.png")
+        dims_as_str = "_".join(dims) if dims else ""
+        filename = f"heatmap__averaged_over_{dims_as_str}__of_{variable}.png"
+        print(f"Writing {filename}")
+        fig.write_image(filename)
     return fig
 
 

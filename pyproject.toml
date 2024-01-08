@@ -35,6 +35,7 @@ dependencies = [
     "dash_bootstrap_components",
     "dask",
     "plotly",
+    "kaleido",
     "pre-commit",
     "xarray",
     "netcdf4==1.6.3",
