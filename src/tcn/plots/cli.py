@@ -21,13 +21,16 @@ def dash_compare(reference_nc4: str, computed_nc4: str):
 @click.argument("input_nc4", type=str)
 @click.argument("variable", type=str)
 @click.option("--dimensions", "-d", multiple=True, type=str)
-def heatmap(input_nc4: str, variable: str, dimensions: List[str]):
+@click.option("--diff_with", "-dw", type=str)
+def heatmap(input_nc4: str, variable: str, dimensions: List[str], diff_with: str):
     nc_data = xr.open_mfdataset(input_nc4)
+    nc_B_data = xr.open_mfdataset(diff_with) if diff_with else None
     plot_heatmaps_mean_on_K(
         dataset=nc_data,
         variable=variable,
         write=True,
         mean_dims=list(dimensions) or None,
+        dataset_B=nc_B_data,
     )
 
 

@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as pgo
 import xarray as xr
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 
 def merge_variable(directory: str, variable: str):
@@ -29,34 +29,49 @@ def plot_line_mean_dtime_dlon(nc4_file: str, variable: str):
     fig.write_image(f"time_lat_averaged_of_{variable}.png")
 
 
+def _auto_detect_dimensions(dataset: xr.Dataset, variable: str):
+    dims = []
+    # Do we have a "tile" dims
+    find_tile = [k for k in dataset[variable].dims if "tile" in str(k)]
+    if len(find_tile) == 1:
+        dims.append(str(find_tile[0]))
+    # We expect time
+    dims.append("time")
+    # Do we have a K dim (try "z" or "lev")
+    find_z = [k for k in dataset[variable].dims if "z" in str(k) or "lev" in str(k)]
+    assert len(find_z) == 1
+    dims.append(str(find_z[0]))
+    return dims
+
+
+def _mean_on_dims(
+    dataset: xr.Dataset, variable: str, dims: Optional[List[str]] = None
+) -> Tuple[xr.DataArray, List[str]]:
+    dims = _auto_detect_dimensions(dataset, variable) if not dims else dims
+    return dataset[variable].mean(dims), dims
+
+
 def plot_heatmaps_mean_on_K(
     dataset: xr.Dataset,
     variable: str,
     write=False,
     mean_dims: Optional[List[str]] = None,
+    dataset_B: Optional[xr.Dataset] = None,
 ):
-    # Prep dims
-    if mean_dims is None:
-        dims = []
-        # Do we have a "tile" dims
-        find_tile = [k for k in dataset[variable].dims if "tile" in str(k)]
-        if len(find_tile) == 1:
-            dims.append(str(find_tile[0]))
-        # We expect time
-        dims.append("time")
-        # Do we have a K dim (try "z" or "lev")
-        find_z = [k for k in dataset[variable].dims if "z" in str(k) or "lev" in str(k)]
-        assert len(find_z) == 1
-        dims.append(str(find_z[0]))
+    # Average dataset - optionally do a diff
+    array_A, dims = _mean_on_dims(dataset, variable, mean_dims)
+    if dataset_B:
+        array_B, _unused = _mean_on_dims(dataset_B, variable, dims)
+        array = array_B - array_A
     else:
-        dims = mean_dims
-    # Mean
-    ds_mean_dt_K = dataset[variable].mean(dims)
+        array = array_A
+
     # Plot
-    fig = px.imshow(ds_mean_dt_K, color_continuous_scale="RdBu_r")
+    fig = px.imshow(array, color_continuous_scale="RdBu_r")
     if write:
         dims_as_str = "_".join(dims) if dims else ""
-        filename = f"heatmap__averaged_over_{dims_as_str}__of_{variable}.png"
+        postfix = "__DIFF" if dataset_B else ""
+        filename = f"heatmap__averaged_over_{dims_as_str}__of_{variable}{postfix}.png"
         print(f"Writing {filename}")
         fig.write_image(filename)
     return fig
