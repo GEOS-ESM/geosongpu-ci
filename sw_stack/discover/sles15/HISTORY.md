@@ -12,14 +12,14 @@ Last edit: _December 29th 2023_
 
 ### OpenMPI
 
-We build OpenMPI throught the UCX layer with cuda-enabled and GRDCopy and GPUDirect on (linus kernels are check via `check_gpu_comms`).
+We build OpenMPI throught the UCX layer with cuda-enabled and GRDCopy and GPUDirect on.
 
-- GDRCOPY: 2.3
+- GDRCOPY: Must be installed on the compiling machine as a kernel module.
 - GCC: 12.3.0 [^1] (via `comp/gcc/12.3.0` on discover)
 - CUDA (via `nvhpc`): 12.2 [^2] (via `nvidia/nvhpc-nompi/23.9` on discover)
 - UCX: 1.15.0
 - OpenMPI: 4.1.6 [^3]
-- OSU-MICROBENCHMARK: 7.2
+- OSU-MICROBENCHMARK: 7.3
 
 Test of the stack can be done via the `osu-microbenchmark` with latency & bandwith saved in `osu-bench.sh`.
 

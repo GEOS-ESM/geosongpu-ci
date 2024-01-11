@@ -52,6 +52,8 @@ echo " === OSU === "
 
 cd $DSLSW_BASE/osu-micro-benchmarks-$DSLSW_OSUMICRO_VER
 ./configure \
+    CC=mpicc \
+    CXX=mpicxx \
     --prefix=$DSLSW_INSTALL_DIR/osu \
     --enable-cuda \
     --with-cuda-include=$CUDA_DIR/include \
@@ -85,3 +87,6 @@ cmake -DCMAKE_INSTALL_PREFIX=$DSLSW_INSTALL_DIR/serialbox \
       ..
 make -j32 install
 
+
+echo " === Baselibs === "
+echo "TODO: build baselibs!"
