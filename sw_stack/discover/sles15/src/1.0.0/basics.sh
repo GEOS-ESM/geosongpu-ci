@@ -26,6 +26,8 @@ module load nvidia/nvhpc-nompi/23.9
 CUDA_DIR=/usr/local/other/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/
 module load comp/gcc/12.3.0
 module load other/boost/1.77.0
+module use -a /discover/nobackup/projects/geosongpu/sw_sles15/modulesfiles/
+module load DSLwork/1.0.0
 
 # Enforce proper compilers
 export FC=gfortran

@@ -1,5 +1,5 @@
-prereq("comp/gcc/12.3.0")
-prereq("nvidia/nvhpc-nompi/23.9")
+load("comp/gcc/12.3.0")
+load("nvidia/nvhpc-nompi/23.9")
 
 local install_dir  = "/discover/nobackup/projects/geosongpu/sw_sles15/v1.0.0/install/"
 
@@ -27,5 +27,5 @@ setenv("PMIX_MCA_mca_base_component_show_load_errors","0")
 
 -- Python 3 --
 local py_pkgdir = pathJoin(install_dir, "python3")
-prepend_path("PATH",pathJoin(ompi_pkgdir,"bin"))
-prepend_path("LD_LIBRARY_PATH",pathJoin(ompi_pkgdir,"lib"))
+prepend_path("PATH",pathJoin(py_pkgdir,"bin"))
+prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib"))
