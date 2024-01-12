@@ -35,8 +35,8 @@ mv v$DSLSW_SERIALBOX_VER.tar.gz serialbox-$DSLSW_SERIALBOX_VER.tar.gz
 tar zxpvf serialbox-$DSLSW_SERIALBOX_VER.tar.gz
 rm serialbox-$DSLSW_SERIALBOX_VER.tar.gz
 
-git clone --recurse-submodules -b v$DSLSW_BASELIBS_VER https://github.com/GEOS-ESM/ESMA-Baselibs.git ./baselibs/$DSLSW_BASELIBS_VER
-cd ./baselibs/$DSLSW_BASELIBS_VER
+git clone --recurse-submodules -b v$DSLSW_BASELIBS_VER https://github.com/GEOS-ESM/ESMA-Baselibs.git ./baselibs-$DSLSW_BASELIBS_VER
+cd ./baselibs-$DSLSW_BASELIBS_VER
 make download
 echo "=>Baselibs >> Removing HDF4 from the ESSENTIALS"
 sed -i 's/ESSENTIAL_DIRS = jpeg zlib szlib hdf4 hdf5/ESSENTIAL_DIRS = jpeg zlib szlib hdf5/g' GNUmakefile
