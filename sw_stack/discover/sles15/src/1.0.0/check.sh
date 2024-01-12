@@ -7,4 +7,3 @@ echo `which $FC`
 echo `which $CC`
 
 echo $LD_LIBRARY_PATH
-

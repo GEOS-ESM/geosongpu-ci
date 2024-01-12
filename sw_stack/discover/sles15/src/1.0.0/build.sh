@@ -52,6 +52,8 @@ echo " === OSU === "
 
 cd $DSLSW_BASE/osu-micro-benchmarks-$DSLSW_OSUMICRO_VER
 ./configure \
+    CC=mpicc \
+    CXX=mpicxx \
     --prefix=$DSLSW_INSTALL_DIR/osu \
     --enable-cuda \
     --with-cuda-include=$CUDA_DIR/include \
@@ -85,3 +87,10 @@ cmake -DCMAKE_INSTALL_PREFIX=$DSLSW_INSTALL_DIR/serialbox \
       ..
 make -j32 install
 
+
+echo " === Baselibs === "
+make ESMF_COMM=openmpi \
+      BUILD=ESSENTIALS \
+      ALLOW_ARGUMENT_MISMATCH=-fallow-argument-mismatch \
+      --prefix=$DSLSW_INSTALL_DIR/baselibs-$DSLSW_BASELIBS_VER/install/x86_64-pc-linux-gnu/Linux \
+      install
