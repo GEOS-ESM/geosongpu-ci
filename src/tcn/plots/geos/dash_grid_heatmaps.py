@@ -17,7 +17,11 @@ def diff_plots(reference, candidate):
         if len(candidate[c].dims) != 5:
             continue
         figs.append(
-            ph.plot_heatmaps_diff_mean_on_K(candidate, reference, variable=str(c))
+            ph.plot(
+                dataset=candidate,
+                dataset_B=reference,
+                variable=str(c),
+            )
         )
     return figs
 
@@ -27,7 +31,7 @@ def ref_plots(reference, candidate):
     for c in candidate.variables:
         if len(candidate[c].dims) != 5:
             continue
-        figs.append(ph.plot_heatmaps_mean_on_K(reference, variable=str(c)))
+        figs.append(ph.plot(dataset=reference, variable=str(c)))
     return figs
 
 
@@ -36,7 +40,7 @@ def dsl_plots(reference, candidate):
     for c in candidate.variables:
         if len(candidate[c].dims) != 5:
             continue
-        figs.append(ph.plot_heatmaps_mean_on_K(candidate, variable=str(c)))
+        figs.append(ph.plot(dataset=candidate, variable=str(c)))
     return figs
 
 
