@@ -42,3 +42,13 @@ echo "=>Baselibs >> Removing HDF4 from the ESSENTIALS"
 sed -i 's/ESSENTIAL_DIRS = jpeg zlib szlib hdf4 hdf5/ESSENTIAL_DIRS = jpeg zlib szlib hdf5/g' GNUmakefile
 sed -i 's/\/zlib \/szlib \/jpeg \/hdf5 \/hdf \/netcdf,\\/\/ \/zlib \/szlib \/jpeg \/hdf5 \/netcdf,\\/g' GNUmakefile
 cd $DSLSW_BASE
+
+mkdir gnu
+cd gnu
+git clone https://github.com/SourceryTools/nvptx-tools
+git clone git://sourceware.org/git/newlib-cygwin.git nvptx-newlib
+git clone --branch releases/gcc-${DSLSW_GNU_VER} git://gcc.gnu.org/git/gcc.git gcc
+cd gcc
+contrib/download_prerequisites
+
+cd $DSLSW_BASE
