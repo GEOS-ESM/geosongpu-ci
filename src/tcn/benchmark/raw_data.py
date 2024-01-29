@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Tuple
+import plotly.express as px
 
 
 @dataclass
@@ -15,6 +16,7 @@ class BenchmarkRawData:
     fv_gridcomp_detailed_profiling: List[Tuple[str, float, str]] = field(
         default_factory=list
     )
+    agcm_timings: List[Tuple[str, float, str]] = field(default_factory=list)
     hws_data: Dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -28,3 +30,24 @@ class BenchmarkRawData:
             .replace(" ", "-")
             .replace(")", "-")
         )
+
+    def plot_agcm(self, path: str):
+        comps = []
+        parents = []
+        values = []
+        for name, time, parent in self.agcm_timings:
+            comps.append(name)
+            values.append(time)
+            parents.append(parent)
+        data = dict(comps=comps, parents=parents, values=values)
+        print(data)
+        fig = px.sunburst(data, names="comps", parents="parents", values="values")
+        fig = px.sunburst(
+            data,
+            names="comps",
+            parents="parents",
+            values="values",
+            branchvalues="total",
+        )
+        fig.write_image(path, width=800, height=800)
+        fig.write_html(path[:-3] + "html")
