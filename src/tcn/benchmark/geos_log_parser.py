@@ -241,6 +241,65 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
             else:
                 benchmark.agcm_timings.append((shortname, measures[1], parent))
 
+    # OGCM minus the AGCM tag (for GEOS-FP)
+    global_profiler_entry = "Model Throughput"
+    global_profiler_entry_then_run = [global_profiler_entry, "--Run"]
+    end_of_log_entry = "GEOSgcm Run Status"
+    ogcm_profiler_patterns = [
+        ("------OGCM", "OGCM", ""),
+        ("--------ORAD", "ORAD", "OGCM"),
+        ("--------SEAICE", "SEAICE", "OGCM"),
+        ("----------DATASEAICE", "DATASEAICE", "SEAICE"),
+        ("--------OCEAN", "OCEAN", "OGCM"),
+        ("----------DATASEA", "DATASEA", "OCEAN"),
+    ]
+    for pattern, shortname, parent in ogcm_profiler_patterns:
+        measures = _extract_numerics(
+            _grep(
+                filename,
+                pattern,
+                start_patterns=global_profiler_entry_then_run,
+                end_pattern=end_of_log_entry,
+                expected=False,
+                starts_with=True,
+            )
+        )
+        if measures != []:
+            if shortname == "DATASEA":
+                # Bug reading DATASEA in DATASEAICE
+                benchmark.ogcm_timings.append((shortname, measures[6], parent))
+            elif shortname == "SEAICE":
+                # Bug reading SEAICE in SEAICETHERMO
+                benchmark.ogcm_timings.append((shortname, measures[6], parent))
+            else:
+                benchmark.ogcm_timings.append((shortname, measures[1], parent))
+
+    # Full run
+    global_profiler_entry = "Model Throughput"
+    global_profiler_entry_then_run = [global_profiler_entry, "--Run"]
+    end_of_log_entry = "GEOSgcm Run Status"
+    run_profiler_patterns = [
+        ("--Run", "RUN", ""),
+        ("----EXTDATA", "EXTDATA", "RUN"),
+        ("----GCM", "GCM", "RUN"),
+        ("------AIAU", "AIAU", "GCM"),
+        ("------ADFI", "ADFI", "GCM"),
+        ("----HIST", "HIST", "RUN"),
+    ]
+    for pattern, shortname, parent in run_profiler_patterns:
+        measures = _extract_numerics(
+            _grep(
+                filename,
+                pattern,
+                start_patterns=global_profiler_entry_then_run,
+                end_pattern=end_of_log_entry,
+                expected=False,
+                starts_with=True,
+            )
+        )
+        if measures != []:
+            benchmark.run_timings.append((shortname, measures[1], parent))
+
     # Model throughput
     global_init_time = _grep(
         filename, "--Initialize", start_patterns=[global_profiler_entry]
@@ -261,4 +320,4 @@ if __name__ == "__main__":
 
     benchmark_data = parse_geos_log(sys.argv[1])
     print(benchmark_data)
-    benchmark_data.plot_agcm("./AGCM.png")
+    benchmark_data.plot_run("./RUN.png")
