@@ -1,6 +1,7 @@
-from typing import List, Optional, Tuple
+import sys
+from typing import List, Optional
 
-from tcn.benchmark.raw_data import BenchmarkRawData
+from tcn.benchmark.raw_data import BenchmarkData
 from tcn.benchmark.string_trf import extract_numerics
 
 
@@ -37,8 +38,8 @@ def _grep(
     return results
 
 
-def parse_geos_log(filename: str) -> BenchmarkRawData:
-    benchmark = BenchmarkRawData()
+def parse_geos_log(filename: str) -> BenchmarkData:
+    benchmark = BenchmarkData()
 
     # Get backend
     is_gtfv3 = (
@@ -91,6 +92,24 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
     assert len(NY_str) == 1
     NY = int(NY_str[0])
     benchmark.node_setup = (NX, int(NY / 6), int(NX * (NY / 6) * 6))
+
+    # Model throughput
+    global_profiler_entry = "Model Throughput"
+    global_init_time = _grep(
+        filename, "--Initialize", start_patterns=[global_profiler_entry]
+    )
+    benchmark.global_init_time = extract_numerics(global_init_time)[1]
+    global_run_time = _grep(filename, "--Run", start_patterns=[global_profiler_entry])
+    benchmark.global_run_time = extract_numerics(global_run_time)[1]
+    global_finalize_time = _grep(
+        filename, "--Finalize", start_patterns=[global_profiler_entry]
+    )
+    benchmark.global_finalize_time = extract_numerics(global_finalize_time)[1]
+
+    #
+    # WARNING - THIS IS A BESPOKE PARSE. THIS HAS BEEN REPLACED
+    #           BY A GENERIC PARSER IN BENCHMARKDATA
+    #
 
     # Get details FV Grid Comp timings
     dyn_profiler_entry = "Times for component <DYN>"
@@ -172,7 +191,6 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
             benchmark.agcm_timings.append((shortname, measures[4], parent))
 
     # AGCM (for GEOS-FP)
-    global_profiler_entry = "Model Throughput"
     global_profiler_entry_then_run = [global_profiler_entry, "--Run"]
     end_of_log_entry = "GEOSgcm Run Status"
     agcm_profiler_patterns = [
@@ -286,24 +304,10 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         if measures != []:
             benchmark.run_timings.append((shortname, measures[1], parent))
 
-    # Model throughput
-    global_init_time = _grep(
-        filename, "--Initialize", start_patterns=[global_profiler_entry]
-    )
-    benchmark.global_init_time = extract_numerics(global_init_time)[1]
-    global_run_time = _grep(filename, "--Run", start_patterns=[global_profiler_entry])
-    benchmark.global_run_time = extract_numerics(global_run_time)[1]
-    global_finalize_time = _grep(
-        filename, "--Finalize", start_patterns=[global_profiler_entry]
-    )
-    benchmark.global_finalize_time = extract_numerics(global_finalize_time)[1]
-
     return benchmark
 
 
 if __name__ == "__main__":
-    import sys
-
     benchmark_data = parse_geos_log(sys.argv[1])
     # print(benchmark_data)
     benchmark_data.plot_all("./GEOS-FP.png")
