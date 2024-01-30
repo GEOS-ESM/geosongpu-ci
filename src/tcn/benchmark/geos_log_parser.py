@@ -1,12 +1,7 @@
-import re
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from tcn.benchmark.raw_data import BenchmarkRawData
-
-_numeric_const_pattern = (
-    "[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?"  # noqa
-)
-RE_NUMERIC = re.compile(_numeric_const_pattern, re.VERBOSE)
+from tcn.benchmark.string_trf import extract_numerics
 
 
 def _grep(
@@ -42,15 +37,6 @@ def _grep(
     return results
 
 
-def _extract_numerics(strings: List[str]) -> List[float]:
-    results = []
-    for s in strings:
-        for r in RE_NUMERIC.findall(s):
-            results.append(r)
-
-    return [float(r) for r in results]
-
-
 def parse_geos_log(filename: str) -> BenchmarkRawData:
     benchmark = BenchmarkRawData()
 
@@ -72,34 +58,34 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
     # Get timings of FV
     if is_gtfv3:
         interface_timings = _grep(filename, " 0 , geos_gtfv3", exclude_pattern=True)
-        benchmark.fv_dyncore_timings = _extract_numerics(interface_timings)
+        benchmark.fv_dyncore_timings = extract_numerics(interface_timings)
 
         if "dace" in benchmark.backend:
             dycore_timings = _grep(
                 filename, "] Run...", exclude_pattern=True, expected=False
             )
-            benchmark.inner_dycore_timings = _extract_numerics(dycore_timings)
+            benchmark.inner_dycore_timings = extract_numerics(dycore_timings)
     else:
         dycore_timings = _grep(
             filename, " 0: fv_dynamics", exclude_pattern=True, expected=False
         )
-        benchmark.fv_dyncore_timings = _extract_numerics(dycore_timings)
+        benchmark.fv_dyncore_timings = extract_numerics(dycore_timings)
 
     # Get setup (grid, nodes)
     grid_stats_str = _grep(filename, "Resolution of dynamics restart")
-    grid_stats = _extract_numerics(grid_stats_str)
+    grid_stats = extract_numerics(grid_stats_str)
     assert len(grid_stats) == 3
     benchmark.grid_resolution = (
         int(grid_stats[0]),
         int(grid_stats[1]),
         int(grid_stats[2]),
     )
-    NX_str = _extract_numerics(
+    NX_str = extract_numerics(
         _grep(filename, "Resource Parameter: NX:", exclude_pattern=True)
     )
     assert len(NX_str) == 1
     NX = int(NX_str[0])
-    NY_str = _extract_numerics(
+    NY_str = extract_numerics(
         _grep(filename, "Resource Parameter: NY:", exclude_pattern=True)
     )
     assert len(NY_str) == 1
@@ -124,7 +110,7 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         ("--------DYN_EPILOGUE", "DYN_EPILOGUE", "DYN"),
     ]
     for pattern, shortname, parent in dyn_profiler_patterns:
-        measures = _extract_numerics(
+        measures = extract_numerics(
             _grep(
                 filename,
                 pattern,
@@ -147,7 +133,7 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         ("------BACM_1M", "BACM_1M", "MOIST"),
     ]
     for pattern, shortname, parent in moist_profiler_patterns:
-        measures = _extract_numerics(
+        measures = extract_numerics(
             _grep(
                 filename,
                 pattern,
@@ -173,7 +159,7 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         ("--------DIFFUSE", "DIFFUSE", "TURBULENCE"),
     ]
     for pattern, shortname, parent in turbulence_profiler_patterns:
-        measures = _extract_numerics(
+        measures = extract_numerics(
             _grep(
                 filename,
                 pattern,
@@ -221,7 +207,7 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         ("--------ORBIT", "ORBIT", "AGCM"),
     ]
     for pattern, shortname, parent in agcm_profiler_patterns:
-        measures = _extract_numerics(
+        measures = extract_numerics(
             _grep(
                 filename,
                 pattern,
@@ -254,7 +240,7 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         ("----------DATASEA", "DATASEA", "OCEAN"),
     ]
     for pattern, shortname, parent in ogcm_profiler_patterns:
-        measures = _extract_numerics(
+        measures = extract_numerics(
             _grep(
                 filename,
                 pattern,
@@ -287,7 +273,7 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
         ("----HIST", "HIST", "RUN"),
     ]
     for pattern, shortname, parent in run_profiler_patterns:
-        measures = _extract_numerics(
+        measures = extract_numerics(
             _grep(
                 filename,
                 pattern,
@@ -304,13 +290,13 @@ def parse_geos_log(filename: str) -> BenchmarkRawData:
     global_init_time = _grep(
         filename, "--Initialize", start_patterns=[global_profiler_entry]
     )
-    benchmark.global_init_time = _extract_numerics(global_init_time)[1]
+    benchmark.global_init_time = extract_numerics(global_init_time)[1]
     global_run_time = _grep(filename, "--Run", start_patterns=[global_profiler_entry])
-    benchmark.global_run_time = _extract_numerics(global_run_time)[1]
+    benchmark.global_run_time = extract_numerics(global_run_time)[1]
     global_finalize_time = _grep(
         filename, "--Finalize", start_patterns=[global_profiler_entry]
     )
-    benchmark.global_finalize_time = _extract_numerics(global_finalize_time)[1]
+    benchmark.global_finalize_time = extract_numerics(global_finalize_time)[1]
 
     return benchmark
 
@@ -319,5 +305,5 @@ if __name__ == "__main__":
     import sys
 
     benchmark_data = parse_geos_log(sys.argv[1])
-    print(benchmark_data)
-    benchmark_data.plot_run("./RUN.png")
+    # print(benchmark_data)
+    benchmark_data.plot_all("./GEOS-FP.png")

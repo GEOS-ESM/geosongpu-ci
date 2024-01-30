@@ -1,6 +1,8 @@
+import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 import plotly.express as px
+from tcn.benchmark.string_trf import extract_numerics
 
 
 @dataclass
@@ -22,6 +24,7 @@ class BenchmarkRawData:
     ogcm_timings: List[Tuple[str, float, str]] = field(default_factory=list)
     # All run items without AGCM or OGCM
     run_timings: List[Tuple[str, float, str]] = field(default_factory=list)
+    timings: List[Tuple[str, float, str]] = field(default_factory=list)
     hws_data: Dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -47,6 +50,41 @@ class BenchmarkRawData:
         )
         fig.write_image(path, width=800, height=800)
         fig.write_html(path[:-3] + "html")
+
+    def parse_geos_log_summary(self, filename: str):
+        parents: List[Tuple[str, int]] = []
+        start_patterns = ["Model Throughput", "All"]
+        start_pattern: Optional[str] = start_patterns.pop(0)
+        end_pattern = "GEOSgcm Run Status: 0"
+        with open(filename, "r") as f:
+            for line in f.readlines():
+                # Skip until parsing
+                if start_pattern and start_pattern and start_pattern in line:
+                    if start_patterns != []:
+                        start_pattern = start_patterns.pop(0)
+                    else:
+                        start_pattern = None
+                # Parsing is done
+                if end_pattern and end_pattern in line:
+                    break
+                # Parse result line
+                if not start_pattern:
+                    name_and_hierarchy = line.split(" ")[0]
+                    timings = " ".join(line.split(" ")[1:])
+                    hierarchy_level = len(name_and_hierarchy) - len(
+                        name_and_hierarchy.lstrip("-")
+                    )
+                    name = name_and_hierarchy.lstrip("-")
+                    time = extract_numerics([timings])[1]
+                    parent = ""
+                    if len(parents) > 0 and parents[-1][1] < hierarchy_level:
+                        parent = parents[-1][0]
+                    else:
+                        while len(parents) > 0 and parents[-1][1] >= hierarchy_level:
+                            parents.pop()
+                        parent = parents[-1][0] if len(parents) else ""
+                    parents.append((name, hierarchy_level))
+                    self.timings.append((name, time, parent))
 
     def plot_agcm(self, path: str):
         comps = []
@@ -92,3 +130,34 @@ class BenchmarkRawData:
             parents.append(parent)
         data = dict(comps=comps, parents=parents, values=values)
         self._sunburst_plot(data, path)
+
+    def plot_all(self, path: str):
+        comps = []
+        parents = []
+        values = []
+        prefix = ""
+        for name, time, parent in self.timings:
+            # Sunburst doesn't allow for duplicates so
+            # we have to prefix names and parents
+            if name == "SetService":
+                prefix = "s"
+            if name == "Initialize":
+                prefix = "i"
+            if name == "Run":
+                prefix = "r"
+            if name == "Finalize":
+                prefix = "f"
+            comps.append(prefix + name)
+            values.append(time)
+            if parent == "All":
+                parents.append(parent)
+            else:
+                parents.append(prefix + parent)
+        data = dict(comps=comps, parents=parents, values=values)
+        self._sunburst_plot(data, path)
+
+
+if __name__ == "__main__":
+    bench = BenchmarkRawData()
+    bench.parse_geos_log_summary(sys.argv[1])
+    bench.plot_all("./model_breakdown.png")
