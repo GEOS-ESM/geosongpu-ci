@@ -14,6 +14,7 @@ export DSLSW_LAPACK_VER=3.11.0
 export DSLSW_PY_VER=3.8.10
 export DSLSW_BASELIBS_VER=7.14.1
 export DSLSW_SERIALBOX_VER=2.6.1
+export DSLSW_GNU_VER=12.2.0
 
 # Base directory & versioning
 export DSLSW_BASE=$PWD/build
