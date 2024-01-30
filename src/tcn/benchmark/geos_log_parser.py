@@ -1,55 +1,19 @@
 import sys
-from typing import List, Optional
 
-from tcn.benchmark.raw_data import BenchmarkData
-from tcn.benchmark.string_trf import extract_numerics
-
-
-def _grep(
-    filename: str,
-    pattern: str,
-    exclude_pattern: Optional[bool] = False,
-    start_patterns: Optional[List[str]] = None,
-    end_pattern: Optional[str] = None,
-    expected: Optional[bool] = True,
-    starts_with: bool = False,
-) -> List[str]:
-    results = []
-    spatterns = start_patterns.copy() if start_patterns else None
-    start_pattern = spatterns.pop(0) if spatterns else None
-    with open(filename, "r") as f:
-        for line in f.readlines():
-            if start_pattern and start_pattern and start_pattern in line:
-                if spatterns != []:
-                    start_pattern = spatterns.pop(0) if spatterns else None
-                else:
-                    start_pattern = None
-            if end_pattern and end_pattern in line:
-                break
-            if not start_pattern and pattern in line:
-                if exclude_pattern and starts_with and line.startswith(pattern):
-                    line = "".join(line.split(pattern)[1:])
-                elif exclude_pattern and pattern in line:
-                    line = "".join(line.split(pattern)[1:])
-                if line != "":
-                    results.append(line)
-    if expected and results == []:
-        raise RuntimeError(f"Expecting {pattern} to be found")
-    return results
+from tcn.benchmark.benchmark import Benchmark
+from tcn.benchmark.string_trf import extract_numerics, grep
 
 
-def parse_geos_log(filename: str) -> BenchmarkData:
-    benchmark = BenchmarkData()
+def parse_geos_log(filename: str) -> Benchmark:
+    benchmark = Benchmark()
 
     # Get backend
-    is_gtfv3 = (
-        _grep(filename, "RUN_GTFV3:1", exclude_pattern=True, expected=False) != []
-    )
+    is_gtfv3 = grep(filename, "RUN_GTFV3:1", exclude_pattern=True, expected=False) != []
     if not is_gtfv3:
         benchmark.backend = "fortran"
     else:
         backend_pattern = "backend : "
-        grepped = _grep(filename, backend_pattern, exclude_pattern=True, expected=False)
+        grepped = grep(filename, backend_pattern, exclude_pattern=True, expected=False)
         if grepped == []:
             benchmark.backend = "gtfv3 (details failed to parse)"
         else:
@@ -58,22 +22,22 @@ def parse_geos_log(filename: str) -> BenchmarkData:
 
     # Get timings of FV
     if is_gtfv3:
-        interface_timings = _grep(filename, " 0 , geos_gtfv3", exclude_pattern=True)
+        interface_timings = grep(filename, " 0 , geos_gtfv3", exclude_pattern=True)
         benchmark.fv_dyncore_timings = extract_numerics(interface_timings)
 
         if "dace" in benchmark.backend:
-            dycore_timings = _grep(
+            dycore_timings = grep(
                 filename, "] Run...", exclude_pattern=True, expected=False
             )
             benchmark.inner_dycore_timings = extract_numerics(dycore_timings)
     else:
-        dycore_timings = _grep(
+        dycore_timings = grep(
             filename, " 0: fv_dynamics", exclude_pattern=True, expected=False
         )
         benchmark.fv_dyncore_timings = extract_numerics(dycore_timings)
 
     # Get setup (grid, nodes)
-    grid_stats_str = _grep(filename, "Resolution of dynamics restart")
+    grid_stats_str = grep(filename, "Resolution of dynamics restart")
     grid_stats = extract_numerics(grid_stats_str)
     assert len(grid_stats) == 3
     benchmark.grid_resolution = (
@@ -82,12 +46,12 @@ def parse_geos_log(filename: str) -> BenchmarkData:
         int(grid_stats[2]),
     )
     NX_str = extract_numerics(
-        _grep(filename, "Resource Parameter: NX:", exclude_pattern=True)
+        grep(filename, "Resource Parameter: NX:", exclude_pattern=True)
     )
     assert len(NX_str) == 1
     NX = int(NX_str[0])
     NY_str = extract_numerics(
-        _grep(filename, "Resource Parameter: NY:", exclude_pattern=True)
+        grep(filename, "Resource Parameter: NY:", exclude_pattern=True)
     )
     assert len(NY_str) == 1
     NY = int(NY_str[0])
@@ -95,13 +59,13 @@ def parse_geos_log(filename: str) -> BenchmarkData:
 
     # Model throughput
     global_profiler_entry = "Model Throughput"
-    global_init_time = _grep(
+    global_init_time = grep(
         filename, "--Initialize", start_patterns=[global_profiler_entry]
     )
     benchmark.global_init_time = extract_numerics(global_init_time)[1]
-    global_run_time = _grep(filename, "--Run", start_patterns=[global_profiler_entry])
+    global_run_time = grep(filename, "--Run", start_patterns=[global_profiler_entry])
     benchmark.global_run_time = extract_numerics(global_run_time)[1]
-    global_finalize_time = _grep(
+    global_finalize_time = grep(
         filename, "--Finalize", start_patterns=[global_profiler_entry]
     )
     benchmark.global_finalize_time = extract_numerics(global_finalize_time)[1]
@@ -130,7 +94,7 @@ def parse_geos_log(filename: str) -> BenchmarkData:
     ]
     for pattern, shortname, parent in dyn_profiler_patterns:
         measures = extract_numerics(
-            _grep(
+            grep(
                 filename,
                 pattern,
                 start_patterns=[dyn_profiler_entry],
@@ -153,7 +117,7 @@ def parse_geos_log(filename: str) -> BenchmarkData:
     ]
     for pattern, shortname, parent in moist_profiler_patterns:
         measures = extract_numerics(
-            _grep(
+            grep(
                 filename,
                 pattern,
                 start_patterns=[moist_profiler_entry],
@@ -179,7 +143,7 @@ def parse_geos_log(filename: str) -> BenchmarkData:
     ]
     for pattern, shortname, parent in turbulence_profiler_patterns:
         measures = extract_numerics(
-            _grep(
+            grep(
                 filename,
                 pattern,
                 start_patterns=[turbulence_profiler_entry],
@@ -226,7 +190,7 @@ def parse_geos_log(filename: str) -> BenchmarkData:
     ]
     for pattern, shortname, parent in agcm_profiler_patterns:
         measures = extract_numerics(
-            _grep(
+            grep(
                 filename,
                 pattern,
                 start_patterns=global_profiler_entry_then_run,
@@ -259,7 +223,7 @@ def parse_geos_log(filename: str) -> BenchmarkData:
     ]
     for pattern, shortname, parent in ogcm_profiler_patterns:
         measures = extract_numerics(
-            _grep(
+            grep(
                 filename,
                 pattern,
                 start_patterns=global_profiler_entry_then_run,
@@ -292,7 +256,7 @@ def parse_geos_log(filename: str) -> BenchmarkData:
     ]
     for pattern, shortname, parent in run_profiler_patterns:
         measures = extract_numerics(
-            _grep(
+            grep(
                 filename,
                 pattern,
                 start_patterns=global_profiler_entry_then_run,

@@ -6,7 +6,7 @@ from tcn.benchmark.string_trf import extract_numerics
 
 
 @dataclass
-class BenchmarkData:
+class Benchmark:
     backend: str = ""
     grid_resolution: Tuple[int, int, int] = (0, 0, 0)  # nx / ny / nz
     node_setup: Tuple[int, int, int] = (0, 0, 0)  # NX / NY / Total ranks used
@@ -158,6 +158,6 @@ class BenchmarkData:
 
 
 if __name__ == "__main__":
-    bench = BenchmarkData()
+    bench = Benchmark()
     bench.parse_geos_log_summary(sys.argv[1])
     bench.plot_all("./model_breakdown.png")

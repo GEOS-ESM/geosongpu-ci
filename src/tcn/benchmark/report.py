@@ -7,7 +7,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 from tcn.benchmark.geos_log_parser import parse_geos_log
-from tcn.benchmark.raw_data import BenchmarkData
+from tcn.benchmark.benchmark import Benchmark
 from tcn.hws.graph import energy_envelop_calculation
 
 
@@ -35,7 +35,7 @@ def _index_in_profiling(parent, profilings) -> int:
     return -1
 
 
-def sankey_plot_of_gridcomp(raw_data: BenchmarkData, filename: str, title: str):
+def sankey_plot_of_gridcomp(raw_data: Benchmark, filename: str, title: str):
     sources = []
     targets = []
     values = []
@@ -92,7 +92,7 @@ def _comparison_in_X(value_A, value_B, label: str, unit: str = "s") -> str:
         )
 
 
-def report(raw_data: List[BenchmarkData]) -> Optional[BenchmarkReport]:
+def report(raw_data: List[Benchmark]) -> Optional[BenchmarkReport]:
     if raw_data == []:
         return None
 
@@ -207,7 +207,7 @@ def report(raw_data: List[BenchmarkData]) -> Optional[BenchmarkReport]:
 @click.command()
 @click.argument("geos_logs", nargs=-1)
 def cli(geos_logs: Iterable[str]):
-    benchmark_raw_data: List[BenchmarkData] = []
+    benchmark_raw_data: List[Benchmark] = []
     for log in geos_logs:
         benchmark_raw_data.append(parse_geos_log(log))
     r = report(benchmark_raw_data)
