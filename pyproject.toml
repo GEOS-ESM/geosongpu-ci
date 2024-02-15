@@ -39,6 +39,7 @@ dependencies = [
     "pre-commit",
     "xarray",
     "netcdf4==1.6.3",
+    "pandas",
 ]
 
 [tool.setuptools]
