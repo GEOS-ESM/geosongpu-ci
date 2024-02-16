@@ -2,7 +2,7 @@ import pathlib
 import pandas as pd
 import plotly.express as px
 import json
-from tcn.plots.colors import COLORS_RETRO_HIGH_CONTRAST
+from tcn.plots.colors import COLORS_RETRO_HIGH_CONTRAST  # type:ignore
 
 THIS_DIR = pathlib.Path(__file__).parent.resolve()
 RESULT_DIR = THIS_DIR / "../"
