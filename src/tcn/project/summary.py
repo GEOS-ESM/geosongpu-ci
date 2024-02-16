@@ -15,6 +15,7 @@ def _pie_plots(df, column_name: str, plot_name: str):
         names=column_name,
         color_discrete_sequence=list(COLORS_RETRO.values()),
         title=f"{column_name} ({len(filtered)})",
+        template="simple_white",
     )
     fig.update_traces(textinfo="value+percent")
     fig.write_image(f"{plot_name}.png")
