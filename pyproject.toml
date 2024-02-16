@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tcn"
-version = "2023.0.0"
+version = "2024.0.0"
 authors = [
     { name = "NASA Advanced Software and Technology Group", email = "florian.g.deconinck@nasa.gov" },
 ]
@@ -41,6 +41,7 @@ dependencies = [
     "netcdf4==1.6.3",
     "f90nml",
     "GitPython",
+    "pandas",
 ]
 
 [tool.setuptools]
