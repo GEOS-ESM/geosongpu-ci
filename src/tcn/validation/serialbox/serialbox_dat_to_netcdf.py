@@ -18,15 +18,6 @@ import xarray as xr
 import f90nml
 import numpy as np
 
-SERIALBOX_PYTHON = os.getenv("SERIALBOX_PYTHON", "")
-if SERIALBOX_PYTHON == "":
-    raise RuntimeError(
-        "You must define env var SERIALBOX_PYTHON to point to root python package of serialbox."
-    )
-
-sys.path.append(SERIALBOX_PYTHON)
-import serialbox  # noqa: E402
-
 
 def get_parser():
     parser = argparse.ArgumentParser("converts serialbox data to netcdf")
@@ -61,15 +52,15 @@ def read_serialized_data(serializer, savepoint, variable):
     return data
 
 
-def get_all_savepoint_names(data_path):
+def get_all_savepoint_names(serialbox, data_path):
     savepoint_names = set()
-    serializer = get_serializer(data_path, rank=0)
+    serializer = get_serializer(serialbox, data_path, rank=0)
     for savepoint in serializer.savepoint_list():
         savepoint_names.add(savepoint.name)
     return savepoint_names
 
 
-def get_serializer(data_path, rank):
+def get_serializer(serialbox, data_path, rank):
     return serialbox.Serializer(
         serialbox.OpenModeKind.Read, data_path, "Generator_rank" + str(rank)
     )
@@ -81,6 +72,15 @@ def main(
     do_only_rank: int = -1,
     do_only_savepoint: int = -1,
 ):
+    SERIALBOX_PYTHON = os.getenv("SERIALBOX_PYTHON", "")
+    if SERIALBOX_PYTHON == "":
+        raise RuntimeError(
+            "You must define env var SERIALBOX_PYTHON to point to root python package of serialbox."
+        )
+
+    sys.path.append(SERIALBOX_PYTHON)
+    import serialbox  # noqa: E402
+
     print("Make directory & read namelist... 🚧")
     os.makedirs(output_path, exist_ok=True)
     namelist_filename_in = os.path.join(data_path, "input.nml")
@@ -94,12 +94,12 @@ def main(
     print("Done ✅")
 
     print("Read savepoints... 🚧")
-    savepoint_names = get_all_savepoint_names(data_path)
+    savepoint_names = get_all_savepoint_names(serialbox, data_path)
     print(f"Read {savepoint_names}... ✅")
     for savepoint_name in sorted(list(savepoint_names)):
         rank_list = []
         # all ranks have the same names, just look at first one
-        serializer = get_serializer(data_path, rank=0)
+        serializer = get_serializer(serialbox, data_path, rank=0)
         names_list = list(
             serializer.fields_at_savepoint(serializer.get_savepoint(savepoint_name)[0])
         )
@@ -111,7 +111,7 @@ def main(
             if do_only_rank >= 0:
                 rank = do_only_rank
             print(f"/ / Processing rank {rank}")
-            serializer = get_serializer(data_path, rank)
+            serializer = get_serializer(serialbox, data_path, rank)
             serializer_list.append(serializer)
             savepoints = serializer.get_savepoint(savepoint_name)
             rank_data = {}
