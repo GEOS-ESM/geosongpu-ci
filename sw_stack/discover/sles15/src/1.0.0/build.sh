@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source the shared basics
-source ./basics.v1.0.0.sh
+source ./basics.sh
 
 echo " === GDR Copy (requires kernel running on the box) === "
 #cd $DSLSW_BASE/gdrcopy-$DSLSW_GDRCOPY_VER

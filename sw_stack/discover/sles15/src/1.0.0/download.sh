@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Source the share basics
-source ./basics.v1.0.0.sh
+source ./basics.sh
 
 cd $DSLSW_BASE
 

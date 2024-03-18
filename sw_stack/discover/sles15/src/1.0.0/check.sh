@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./basics.v1.0.0.sh
+source ./basics.sh
 
 echo $DSLSW_INSTALL_DIR
 echo `which $FC`
