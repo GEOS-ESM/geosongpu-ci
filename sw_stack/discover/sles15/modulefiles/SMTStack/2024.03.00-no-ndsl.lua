@@ -1,8 +1,7 @@
 load("comp/gcc/12.3.0")
 load("nvidia/nvhpc-nompi/23.9")
 
-local version = getenv("DSLSW_VERSION")
-local install_dir  = pathJoin(pathJoin("/discover/nobackup/projects/geosongpu/sw_sles15/live/src/", version), "install/")
+local install_dir  = "/discover/nobackup/projects/geosongpu/sw_sles15/live/src/2024.03.00/install"
 
 -- UCX --
 local ucx_pkgdir = pathJoin(install_dir, "ucx")

@@ -25,7 +25,7 @@ We build OpenMPI throught the UCX layer with cuda-enabled and GRDCopy and GPUDir
 - OpenMPI: 4.1.6 [^3]
 - OSU-MICROBENCHMARK: 7.3
 - Boost headers: 1.76.0
-- NDSL: 2024.03.00
+- NDSL: 2024.03.01
 
 When defining `BUILD_GCC_OFFLOAD`:
 
