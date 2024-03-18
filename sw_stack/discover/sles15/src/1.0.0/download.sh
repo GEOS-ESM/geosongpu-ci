@@ -44,6 +44,8 @@ sed -i 's/\/zlib \/szlib \/jpeg \/hdf5 \/hdf \/netcdf,\\/\/ \/zlib \/szlib \/jpe
 cd $DSLSW_BASE
 
 if [ -z ${BUILD_GCC_OFFLOAD+x} ]; then
+    echo "Skip building offloaded GCC. Define BUILD_GCC_OFFLOAD to build."
+else
     mkdir gnu
     cd gnu
     git clone https://github.com/SourceryTools/nvptx-tools

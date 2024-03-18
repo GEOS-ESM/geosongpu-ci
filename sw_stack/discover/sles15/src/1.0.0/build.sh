@@ -96,6 +96,8 @@ make ESMF_COMM=openmpi \
       install
 
 if [ -z ${BUILD_GCC_OFFLOAD+x} ]
+    echo "Skip building offloaded GCC. Define BUILD_GCC_OFFLOAD to build."
+else
     echo " === GNU gcc/gfortran/g++ with OpenACC and OpenMP Offload on NVIDIA GPUs === "
     module rm comp/gcc/12.3.0
     module rm nvidia/nvhpc-nompi/23.9
@@ -149,6 +151,7 @@ if [ -z ${BUILD_GCC_OFFLOAD+x} ]
     cd ..
 fi
 
+echo " === Make NDSL venv === "
 cd $DSLSW_INSTALL_DIR
 ./python3/bin/python3 -m venv venv
 source ./venv/bin/activate
