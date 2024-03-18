@@ -1,7 +1,8 @@
 load("comp/gcc/12.3.0")
 load("nvidia/nvhpc-nompi/23.9")
 
-local install_dir  = "/discover/nobackup/projects/geosongpu/sw_sles15/v1.0.0/install/"
+local version = getenv("DSLSW_VERSION")
+local install_dir  = pathJoin(pathJoin("/discover/nobackup/projects/geosongpu/sw_sles15/live/src/", version), "install/")
 
 -- UCX --
 local ucx_pkgdir = pathJoin(install_dir, "ucx")
@@ -29,7 +30,7 @@ setenv("PMIX_MCA_mca_base_component_show_load_errors","0")
 local boost_pkgdir = pathJoin(install_dir, "boost")
 setenv("BOOST_ROOT", boost_pkgdir)
 
--- Python 3 --
-local py_pkgdir = pathJoin(install_dir, "python3")
+-- Load venv --
+local py_pkgdir = pathJoin(install_dir, "/venv/bin")
 prepend_path("PATH",pathJoin(py_pkgdir,"bin"))
-prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib"))
+

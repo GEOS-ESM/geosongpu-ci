@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export DSLSW_VERSION="1.0.0"
+export DSLSW_VERSION="2024.03.0"
 echo "DSL Software Stack v${DSLSW_VERSION}"
 
 # Version
@@ -29,8 +29,8 @@ mkdir -p $DSLSW_INSTALL_DIR
 module load nvidia/nvhpc-nompi/23.9
 CUDA_DIR=/usr/local/other/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/
 module load comp/gcc/12.3.0
-module use -a /discover/nobackup/projects/geosongpu/sw_sles15/modulesfiles/
-module load SMTStack/1.0.0
+module use -a /discover/nobackup/projects/geosongpu/sw_sles15/live/modulefiles/
+module load SMTStack/${DSLSW_VERSION}
 
 # Enforce proper compilers
 export FC=gfortran

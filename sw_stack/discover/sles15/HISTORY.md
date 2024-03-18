@@ -8,7 +8,7 @@ All versions of the software for a given version are saved in `basics.sh`.
 
 Last edit: _March 18th 2024_
 
-## v1.0.0
+## v2024.03.00
 
 ### Options
 
