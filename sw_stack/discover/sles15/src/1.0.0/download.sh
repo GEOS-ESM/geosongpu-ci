@@ -67,8 +67,5 @@ cd $DSLSW_BASE
 
 # Git clone `ndsl`, with the minimuum amount of history
 cd $DSLSW_INSTALL_DIR
-git clone --recurse-submodules --shallow-submodules \ 
-        -b $DSLSW_NDSL \
-        --single-branch --depth 1 \
-        https://github.com/NOAA-GFDL/NDSL.git ndsl
+git clone --recurse-submodules --shallow-submodules -b $DSLSW_NDSL_VER --single-branch --depth 1 https://github.com/NOAA-GFDL/NDSL.git ndsl
 cd $DSLSW_BASE
