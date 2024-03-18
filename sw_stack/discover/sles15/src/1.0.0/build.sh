@@ -89,13 +89,9 @@ make -j32 install
 
 
 echo " === Baselibs === "
-make ESMF_COMM=openmpi \
-      BUILD=ESSENTIALS \
-      ALLOW_ARGUMENT_MISMATCH=-fallow-argument-mismatch \
-      --prefix=$DSLSW_INSTALL_DIR/baselibs-$DSLSW_BASELIBS_VER/install/x86_64-pc-linux-gnu/Linux \
-      install
+make ESMF_COMM=openmpi BUILD=ESSENTIALS ALLOW_ARGUMENT_MISMATCH=-fallow-argument-mismatch --prefix=$DSLSW_INSTALL_DIR/baselibs-$DSLSW_BASELIBS_VER/install/x86_64-pc-linux-gnu/Linux install
 
-if [ -z ${BUILD_GCC_OFFLOAD+x} ]
+if [ -z ${BUILD_GCC_OFFLOAD+x} ]; then
     echo "Skip building offloaded GCC. Define BUILD_GCC_OFFLOAD to build."
 else
     echo " === GNU gcc/gfortran/g++ with OpenACC and OpenMP Offload on NVIDIA GPUs === "
