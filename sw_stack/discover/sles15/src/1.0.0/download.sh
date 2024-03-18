@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Source the share basics
 source ./basics.sh
@@ -43,7 +43,7 @@ sed -i 's/ESSENTIAL_DIRS = jpeg zlib szlib hdf4 hdf5/ESSENTIAL_DIRS = jpeg zlib 
 sed -i 's/\/zlib \/szlib \/jpeg \/hdf5 \/hdf \/netcdf,\\/\/ \/zlib \/szlib \/jpeg \/hdf5 \/netcdf,\\/g' GNUmakefile
 cd $DSLSW_BASE
 
-if [ -z ${BUILD_GCC_OFFLOAD+x} ]
+if [ -z ${BUILD_GCC_OFFLOAD+x} ]; then
     mkdir gnu
     cd gnu
     git clone https://github.com/SourceryTools/nvptx-tools
