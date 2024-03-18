@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export DSLSW_VERSION="2024.03.0"
+export DSLSW_VERSION="2024.03.00"
 echo "DSL Software Stack v${DSLSW_VERSION}"
 
 # Version
