@@ -25,7 +25,11 @@ setenv("OMP_STACKSIZE","1G")
 setenv("OMPI_MCA_mca_base_component_show_load_errors","0")
 setenv("PMIX_MCA_mca_base_component_show_load_errors","0")
 
--- Python 3 --
-local py_pkgdir = pathJoin(install_dir, "python3")
+-- BOOST HEADERS (as expected by gt4py) --
+local boost_pkgdir = pathJoin(install_dir, "boost")
+setenv("BOOST_ROOT", boost_pkgdir)
+
+-- Load venv --
+local py_pkgdir = pathJoin(install_dir, "/venv/bin")
 prepend_path("PATH",pathJoin(py_pkgdir,"bin"))
-prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib"))
+

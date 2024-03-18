@@ -43,12 +43,30 @@ sed -i 's/ESSENTIAL_DIRS = jpeg zlib szlib hdf4 hdf5/ESSENTIAL_DIRS = jpeg zlib 
 sed -i 's/\/zlib \/szlib \/jpeg \/hdf5 \/hdf \/netcdf,\\/\/ \/zlib \/szlib \/jpeg \/hdf5 \/netcdf,\\/g' GNUmakefile
 cd $DSLSW_BASE
 
-mkdir gnu
-cd gnu
-git clone https://github.com/SourceryTools/nvptx-tools
-git clone git://sourceware.org/git/newlib-cygwin.git nvptx-newlib
-git clone --branch releases/gcc-${DSLSW_GNU_VER} git://gcc.gnu.org/git/gcc.git gcc
-cd gcc
-contrib/download_prerequisites
+if [ -z ${BUILD_GCC_OFFLOAD+x} ]
+    mkdir gnu
+    cd gnu
+    git clone https://github.com/SourceryTools/nvptx-tools
+    git clone git://sourceware.org/git/newlib-cygwin.git nvptx-newlib
+    git clone --branch releases/gcc-${DSLSW_GNU_VER} git://gcc.gnu.org/git/gcc.git gcc
+    cd gcc
+    contrib/download_prerequisites
+fi
 
+# Stream include out of boost source
+cd $DSLSW_INSTALL_DIR
+wget https://boostorg.jfrog.io/artifactory/main/release/$DSLSW_BOOST_VER/source/boost_$DSLSW_BOOST_VER_STR.tar.gz
+tar zxpvf boost_$DSLSW_BOOST_VER_STR.tar.gz
+rm boost_$DSLSW_BOOST_VER_STR.tar.gz
+mkdir -p boost/include
+mv boost_$DSLSW_BOOST_VER_STR/boost boost/include
+rm -r boost_$DSLSW_BOOST_VER_STR
+cd $DSLSW_BASE
+
+# Git clone `ndsl`, with the minimuum amount of history
+cd $DSLSW_INSTALL_DIR
+git clone --recurse-submodules --shallow-submodules \ 
+        -b $DSLSW_NDSL \
+        --single-branch --depth 1 \
+        https://github.com/NOAA-GFDL/NDSL.git ndsl
 cd $DSLSW_BASE

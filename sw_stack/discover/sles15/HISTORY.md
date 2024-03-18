@@ -6,9 +6,13 @@ All versions of the software for a given version are saved in `basics.sh`.
 `build` directory is the throwaway directory where everything is downloaded then built.
 `install` is saves all library and executable once build is done.
 
-Last edit: _December 29th 2023_
+Last edit: _March 18th 2024_
 
 ## v1.0.0
+
+### Options
+
+`BUILD_GCC_OFFLOAD`: builds an offload ready GCC 12.2
 
 ### OpenMPI
 
@@ -20,6 +24,12 @@ We build OpenMPI throught the UCX layer with cuda-enabled and GRDCopy and GPUDir
 - UCX: 1.15.0
 - OpenMPI: 4.1.6 [^3]
 - OSU-MICROBENCHMARK: 7.3
+- Boost headers: 1.76.0
+- NDSL: 2024.03.00
+
+When defining `BUILD_GCC_OFFLOAD`:
+
+- GCC with offload: 12.2.0
 
 Test of the stack can be done via the `osu-microbenchmark` with latency & bandwith saved in `osu-bench.sh`.
 
@@ -36,12 +46,8 @@ _Note:_
 
 ### Python
 
-- Python: 3.8.10 [^4]
+- Python: 3.11.7 [^4]
 
 ### Serialbox
 
 - Latest stable is 2.6.1. Development is over.
-
-_Note:_
-
-- [^4]: `3.10.12` leads to failure in DaCe parsing.
