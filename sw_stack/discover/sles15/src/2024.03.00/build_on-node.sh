@@ -89,7 +89,12 @@ make -j32 install
 
 
 echo " === Baselibs === "
-ESMF_COMM=openmpi BUILD=ESSENTIALS ALLOW_ARGUMENT_MISMATCH=-fallow-argument-mismatch make --prefix=$DSLSW_INSTALL_DIR/baselibs-$DSLSW_BASELIBS_VER/install/x86_64-pc-linux-gnu/Linux install
+cd $DSLSW_BASE/baselibs-$DSLSW_BASELIBS_VER
+make ESMF_COMM=openmpi \
+    BUILD=ESSENTIALS \
+    ALLOW_ARGUMENT_MISMATCH=-fallow-argument-mismatch \
+    prefix=$DSLSW_INSTALL_DIR/baselibs-$DSLSW_BASELIBS_VER/install/x86_64-pc-linux-gnu/Linux \
+    install
 
 if [ -z ${BUILD_GCC_OFFLOAD+x} ]; then
     echo "Skip building offloaded GCC. Define BUILD_GCC_OFFLOAD to build."
@@ -147,9 +152,3 @@ else
     cd ..
 fi
 
-echo " === Make NDSL venv === "
-cd $DSLSW_INSTALL_DIR
-./python3/bin/python3 -m venv venv
-source ./venv/bin/activate
-pip install --upgrade setuptools pip
-pip install -e $DSLSW_INSTALL_DIR/ndsl
