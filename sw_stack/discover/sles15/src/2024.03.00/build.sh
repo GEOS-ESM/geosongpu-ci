@@ -82,14 +82,14 @@ cd $DSLSW_BASE/serialbox-$DSLSW_SERIALBOX_VER
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=$DSLSW_INSTALL_DIR/serialbox \
-      -DSERIALBOX_ENABLE_FORTRAN=ON \
-      -DSERIALBOX_EXAMPLES=OFF \
-      ..
+    -DSERIALBOX_ENABLE_FORTRAN=ON \
+    -DSERIALBOX_EXAMPLES=OFF \
+    ..
 make -j32 install
 
 
 echo " === Baselibs === "
-make ESMF_COMM=openmpi BUILD=ESSENTIALS ALLOW_ARGUMENT_MISMATCH=-fallow-argument-mismatch --prefix=$DSLSW_INSTALL_DIR/baselibs-$DSLSW_BASELIBS_VER/install/x86_64-pc-linux-gnu/Linux install
+ESMF_COMM=openmpi BUILD=ESSENTIALS ALLOW_ARGUMENT_MISMATCH=-fallow-argument-mismatch make --prefix=$DSLSW_INSTALL_DIR/baselibs-$DSLSW_BASELIBS_VER/install/x86_64-pc-linux-gnu/Linux install
 
 if [ -z ${BUILD_GCC_OFFLOAD+x} ]; then
     echo "Skip building offloaded GCC. Define BUILD_GCC_OFFLOAD to build."
