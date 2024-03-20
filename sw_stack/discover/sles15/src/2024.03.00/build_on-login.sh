@@ -9,3 +9,4 @@ cd $DSLSW_INSTALL_DIR
 source ./venv/bin/activate
 pip install --upgrade setuptools pip
 pip install -e $DSLSW_INSTALL_DIR/ndsl
+pip install mpi4py cffi
