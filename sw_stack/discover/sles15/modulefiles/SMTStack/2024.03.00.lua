@@ -1,5 +1,5 @@
 load("comp/gcc/12.3.0")
-load("nvidia/nvhpc-nompi/23.9")
+load("nvidia/nvhpc-byo-compiler/23.9")
 
 local install_dir  = "/discover/nobackup/projects/geosongpu/sw_sles15/live/src/2024.03.00/install"
 

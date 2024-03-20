@@ -27,11 +27,9 @@ export DSLSW_INSTALL_DIR=$PWD/install
 mkdir -p $DSLSW_INSTALL_DIR
 
 # Modules
-module load nvidia/nvhpc-nompi/23.9
-CUDA_DIR=/usr/local/other/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/
-module load comp/gcc/12.3.0
 module use -a /discover/nobackup/projects/geosongpu/sw_sles15/live/modulefiles/
 module load SMTStack/${DSLSW_VERSION}
+CUDA_DIR=/usr/local/other/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/
 
 # Enforce proper compilers
 export FC=gfortran
