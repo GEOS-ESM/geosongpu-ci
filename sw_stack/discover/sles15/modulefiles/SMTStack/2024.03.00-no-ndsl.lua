@@ -25,6 +25,10 @@ setenv("OMP_STACKSIZE","1G")
 setenv("OMPI_MCA_mca_base_component_show_load_errors","0")
 setenv("PMIX_MCA_mca_base_component_show_load_errors","0")
 
+-- LAPACK --
+local lapack_pkgdir = pathJoin(install_dir, "lapack")
+prepend_path("LD_LIBRARY_PATH",pathJoin(lapack_pkgdir,"lib64"))
+
 -- BOOST HEADERS (as expected by gt4py) --
 local boost_pkgdir = pathJoin(install_dir, "boost")
 setenv("BOOST_ROOT", boost_pkgdir)
@@ -33,3 +37,4 @@ setenv("BOOST_ROOT", boost_pkgdir)
 local py_pkgdir = pathJoin(install_dir, "python3")
 prepend_path("PATH",pathJoin(py_pkgdir,"bin"))
 prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib"))
+prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib64"))
