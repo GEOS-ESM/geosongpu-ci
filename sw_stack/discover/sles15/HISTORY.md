@@ -26,6 +26,7 @@ We build OpenMPI throught the UCX layer with cuda-enabled and GRDCopy and GPUDir
 - OSU-MICROBENCHMARK: 7.3
 - Boost headers: 1.76.0
 - NDSL: 2024.03.01
+- Serialbox: 2.6.3-unreleased
 
 When defining `BUILD_GCC_OFFLOAD`:
 
@@ -42,11 +43,11 @@ _Note:_
 ### Baselibs
 
 - LAPACK/BLAS: 3.11.0
-- BASELIBS: 7.14.1
+- BASELIBS: 7.17.1
 
 ### Python
 
-- Python: 3.11.7 [^4]
+- Python: 3.11.7
 
 ### Serialbox
 

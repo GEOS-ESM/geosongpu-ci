@@ -30,10 +30,9 @@ wget https://www.python.org/ftp/python/$DSLSW_PY_VER/Python-$DSLSW_PY_VER.tgz
 tar zxpvf Python-$DSLSW_PY_VER.tgz
 rm Python-$DSLSW_PY_VER.tgz
 
-wget https://github.com/GridTools/serialbox/archive/refs/tags/v$DSLSW_SERIALBOX_VER.tar.gz
-mv v$DSLSW_SERIALBOX_VER.tar.gz serialbox-$DSLSW_SERIALBOX_VER.tar.gz
-tar zxpvf serialbox-$DSLSW_SERIALBOX_VER.tar.gz
-rm serialbox-$DSLSW_SERIALBOX_VER.tar.gz
+git clone https://github.com/GridTools/serialbox.git serialbox-$DSLSW_SERIALBOX_VER
+cd serialbox-$DSLSW_SERIALBOX_VER
+git checkout $DSLSW_SERIALBOX_SHA
 
 git clone --recurse-submodules -b v$DSLSW_BASELIBS_VER https://github.com/GEOS-ESM/ESMA-Baselibs.git ./baselibs-$DSLSW_BASELIBS_VER
 cd ./baselibs-$DSLSW_BASELIBS_VER
