@@ -1,7 +1,8 @@
 load("comp/gcc/12.3.0")
-load("nvidia/nvhpc-nompi/23.9")
+load("lib/mkl/2023.2.0")
+load("nvidia/nvhpc-byo-compiler/23.9")
 
-local install_dir  = "/discover/nobackup/projects/geosongpu/sw_sles15/v1.0.0/install/"
+local install_dir  = "/discover/nobackup/projects/geosongpu/sw_sles15/live/src/2024.03.00/install"
 
 -- UCX --
 local ucx_pkgdir = pathJoin(install_dir, "ucx")
@@ -25,7 +26,12 @@ setenv("OMP_STACKSIZE","1G")
 setenv("OMPI_MCA_mca_base_component_show_load_errors","0")
 setenv("PMIX_MCA_mca_base_component_show_load_errors","0")
 
+-- BOOST HEADERS (as expected by gt4py) --
+local boost_pkgdir = pathJoin(install_dir, "boost")
+setenv("BOOST_ROOT", boost_pkgdir)
+
 -- Python 3 --
 local py_pkgdir = pathJoin(install_dir, "python3")
 prepend_path("PATH",pathJoin(py_pkgdir,"bin"))
 prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib"))
+prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib64"))

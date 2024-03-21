@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source basics.sh
+source ./basics.sh
 
 # need to be ran on a salloc with 2 process on one node each
 if [[ $(hostname -s) != warpa* ]]; then

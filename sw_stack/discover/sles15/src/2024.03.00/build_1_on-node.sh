@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source the shared basics
-source ./basics.v1.0.0.sh
+source ./basics.sh
 
 echo " === GDR Copy (requires kernel running on the box) === "
 #cd $DSLSW_BASE/gdrcopy-$DSLSW_GDRCOPY_VER
@@ -63,13 +63,6 @@ cd $DSLSW_BASE/osu-micro-benchmarks-$DSLSW_OSUMICRO_VER
 make -j32
 make install
 
-echo " === Lapack === "
-cd $DSLSW_BASE/lapack-$DSLSW_LAPACK_VER
-mkdir build
-cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=$DSLSW_INSTALL_DIR/lapack
-make -j32 install
-
 echo " === Python === "
 cd $DSLSW_BASE/Python-$DSLSW_PY_VER
 ./configure --prefix=$DSLSW_INSTALL_DIR/python3 --enable-shared --enable-optimizations
@@ -82,67 +75,73 @@ cd $DSLSW_BASE/serialbox-$DSLSW_SERIALBOX_VER
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=$DSLSW_INSTALL_DIR/serialbox \
-      -DSERIALBOX_ENABLE_FORTRAN=ON \
-      -DSERIALBOX_EXAMPLES=OFF \
-      ..
+    -DSERIALBOX_ENABLE_FORTRAN=ON \
+    -DSERIALBOX_EXAMPLES=OFF \
+    ..
 make -j32 install
 
 
 echo " === Baselibs === "
+cd $DSLSW_BASE/baselibs-$DSLSW_BASELIBS_VER
 make ESMF_COMM=openmpi \
-      BUILD=ESSENTIALS \
-      ALLOW_ARGUMENT_MISMATCH=-fallow-argument-mismatch \
-      --prefix=$DSLSW_INSTALL_DIR/baselibs-$DSLSW_BASELIBS_VER/install/x86_64-pc-linux-gnu/Linux \
-      install
+    BUILD=ESSENTIALS \
+    ALLOW_ARGUMENT_MISMATCH=-fallow-argument-mismatch \
+    prefix=$DSLSW_INSTALL_DIR/baselibs-$DSLSW_BASELIBS_VER/install/x86_64-pc-linux-gnu/Linux \
+    install
 
-echo " === GNU gcc/gfortran/g++ with OpenACC and OpenMP Offload on NVIDIA GPUs === "
-module rm comp/gcc/12.3.0
-module rm nvidia/nvhpc-nompi/23.9
-unset CC
-unset CXX
-unset FC
+if [ -z ${BUILD_GCC_OFFLOAD+x} ]; then
+    echo "Skip building offloaded GCC. Define BUILD_GCC_OFFLOAD to build."
+else
+    echo " === GNU gcc/gfortran/g++ with OpenACC and OpenMP Offload on NVIDIA GPUs === "
+    module rm comp/gcc/12.3.0
+    module rm nvidia/nvhpc-nompi/23.9
+    unset CC
+    unset CXX
+    unset FC
 
-# Build assembler and linking tools
-cd $DSLSW_BASE/gnu/nvptx-tools
-./configure \
-    --with-cuda-driver-include=$CUDA_DIR/include \
-    --with-cuda-driver-lib=$CUDA_DIR/lib64 \
-    --prefix=$DSLSW_INSTALL_DIR/gnu
-make || exit 1
-make install || exit 1
-cd ..
+    # Build assembler and linking tools
+    cd $DSLSW_BASE/gnu/nvptx-tools
+    ./configure \
+        --with-cuda-driver-include=$CUDA_DIR/include \
+        --with-cuda-driver-lib=$CUDA_DIR/lib64 \
+        --prefix=$DSLSW_INSTALL_DIR/gnu
+    make || exit 1
+    make install || exit 1
+    cd ..
 
-# Set up the GCC source tree
-cd $DSLSW_BASE/gnu/gcc
-ln -s ../nvptx-newlib/newlib newlib
-cd ..
-export target=$(gcc/config.guess)
+    # Set up the GCC source tree
+    cd $DSLSW_BASE/gnu/gcc
+    ln -s ../nvptx-newlib/newlib newlib
+    cd ..
+    export target=$(gcc/config.guess)
 
-# Build nvptx GCC
-mkdir build-nvptx-gcc
-cd build-nvptx-gcc
-../gcc/configure \
-    --target=nvptx-none --with-build-time-tools=$DSLSW_INSTALL_DIR/gnu/nvptx-none/bin \
-    --enable-as-accelerator-for=$target \
-    --disable-sjlj-exceptions \
-    --enable-newlib-io-long-long \
-    --enable-languages="c,c++,fortran,lto" \
-    --prefix=$DSLSW_INSTALL_DIR/gnu
-make -j`nproc` || exit 1
-make install || exit 1
-cd ..
+    # Build nvptx GCC
+    mkdir build-nvptx-gcc
+    cd build-nvptx-gcc
+    ../gcc/configure \
+        --target=nvptx-none --with-build-time-tools=$DSLSW_INSTALL_DIR/gnu/nvptx-none/bin \
+        --enable-as-accelerator-for=$target \
+        --disable-sjlj-exceptions \
+        --enable-newlib-io-long-long \
+        --enable-languages="c,c++,fortran,lto" \
+        --prefix=$DSLSW_INSTALL_DIR/gnu
+    make -j`nproc` || exit 1
+    make install || exit 1
+    cd ..
 
-# Build host GCC
-mkdir build-host-gcc
-cd  build-host-gcc
-../gcc/configure \
-    --enable-offload-targets=nvptx-none \
-    --with-cuda-driver-include=$CUDA_DIR/include \
-    --with-cuda-driver-lib=$CUDA_DIR/lib64 \
-    --disable-bootstrap \
-    --disable-multilib \
-    --enable-languages="c,c++,fortran,lto" \
-    --prefix=$DSLSW_INSTALL_DIR/gnu
-make -j`nproc` || exit 1
-make install || exit 1
-cd ..
+    # Build host GCC
+    mkdir build-host-gcc
+    cd  build-host-gcc
+    ../gcc/configure \
+        --enable-offload-targets=nvptx-none \
+        --with-cuda-driver-include=$CUDA_DIR/include \
+        --with-cuda-driver-lib=$CUDA_DIR/lib64 \
+        --disable-bootstrap \
+        --disable-multilib \
+        --enable-languages="c,c++,fortran,lto" \
+        --prefix=$DSLSW_INSTALL_DIR/gnu
+    make -j`nproc` || exit 1
+    make install || exit 1
+    cd ..
+fi
+
