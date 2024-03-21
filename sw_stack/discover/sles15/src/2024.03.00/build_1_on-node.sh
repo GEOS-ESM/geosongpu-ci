@@ -63,13 +63,6 @@ cd $DSLSW_BASE/osu-micro-benchmarks-$DSLSW_OSUMICRO_VER
 make -j32
 make install
 
-echo " === Lapack === "
-cd $DSLSW_BASE/lapack-$DSLSW_LAPACK_VER
-mkdir build
-cd build
-cmake .. -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$DSLSW_INSTALL_DIR/lapack
-make -j32 install
-
 echo " === Python === "
 cd $DSLSW_BASE/Python-$DSLSW_PY_VER
 ./configure --prefix=$DSLSW_INSTALL_DIR/python3 --enable-shared --enable-optimizations

@@ -1,4 +1,5 @@
 load("comp/gcc/12.3.0")
+load("lib/mkl/2023.2.0")
 load("nvidia/nvhpc-byo-compiler/23.9")
 
 local install_dir  = "/discover/nobackup/projects/geosongpu/sw_sles15/live/src/2024.03.00/install"
@@ -24,10 +25,6 @@ setenv("TMPDIR","/tmp")
 setenv("OMP_STACKSIZE","1G")
 setenv("OMPI_MCA_mca_base_component_show_load_errors","0")
 setenv("PMIX_MCA_mca_base_component_show_load_errors","0")
-
--- LAPACK --
-local lapack_pkgdir = pathJoin(install_dir, "lapack")
-prepend_path("LD_LIBRARY_PATH",pathJoin(lapack_pkgdir,"lib64"))
 
 -- BOOST HEADERS (as expected by gt4py) --
 local boost_pkgdir = pathJoin(install_dir, "boost")

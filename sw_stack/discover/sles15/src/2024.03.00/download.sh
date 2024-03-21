@@ -22,10 +22,6 @@ wget https://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-$D
 tar xfp osu-micro-benchmarks-$DSLSW_OSUMICRO_VER.tar.gz
 rm osu-micro-benchmarks-$DSLSW_OSUMICRO_VER.tar.gz
 
-wget https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v$DSLSW_LAPACK_VER.tar.gz
-tar xfzp v$DSLSW_LAPACK_VER.tar.gz
-rm v$DSLSW_LAPACK_VER.tar.gz
-
 wget https://www.python.org/ftp/python/$DSLSW_PY_VER/Python-$DSLSW_PY_VER.tgz
 tar zxpvf Python-$DSLSW_PY_VER.tgz
 rm Python-$DSLSW_PY_VER.tgz
