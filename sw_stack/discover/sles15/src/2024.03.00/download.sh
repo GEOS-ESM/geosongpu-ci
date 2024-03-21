@@ -33,6 +33,7 @@ rm Python-$DSLSW_PY_VER.tgz
 git clone https://github.com/GridTools/serialbox.git serialbox-$DSLSW_SERIALBOX_VER
 cd serialbox-$DSLSW_SERIALBOX_VER
 git checkout $DSLSW_SERIALBOX_SHA
+cd $DSLSW_BASE
 
 git clone --recurse-submodules -b v$DSLSW_BASELIBS_VER https://github.com/GEOS-ESM/ESMA-Baselibs.git ./baselibs-$DSLSW_BASELIBS_VER
 cd ./baselibs-$DSLSW_BASELIBS_VER
