@@ -16,6 +16,3 @@ git-token
 
 # Temporary directories for WIP
 tmp_*/
-
-# Docs are auto-build. See .github/workflows/gh_pages_doc.yml
-docs
