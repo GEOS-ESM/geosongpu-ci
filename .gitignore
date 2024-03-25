@@ -16,3 +16,6 @@ git-token
 
 # Temporary directories for WIP
 tmp_*/
+
+# GH Website
+site/

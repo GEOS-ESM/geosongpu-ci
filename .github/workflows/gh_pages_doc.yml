@@ -1,10 +1,10 @@
-name: website
+name: Github Page
 
 # build the documentation whenever there are new commits on main
 on:
   push:
     branches:
-      - main
+      - feature/website
 
 # security: restrict permissions for CI jobs.
 permissions:
@@ -19,16 +19,11 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
-      # ADJUST THIS: install all dependencies (including pdoc)
       - run: pip install -e .
-      # ADJUST THIS: build your documentation into docs/.
-      # We use a custom build script for pdoc itself, ideally you just run `pdoc -o docs/ ...` here.
-      - run: pdoc -o docs/ tcn
-
+      - run: mkdocs build
       - uses: actions/upload-pages-artifact@v2
         with:
-          path: docs/
+          path: site/
 
   # Deploy the artifact to GitHub pages.
   # This is a separate job so that only actions/deploy-pages has the necessary permissions.

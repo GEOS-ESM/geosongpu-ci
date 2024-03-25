@@ -24,7 +24,7 @@ dependencies = [
     "click",
     "pyyaml",
     "numpy",
-    "pdoc",
+    "mkdocs",
     "pynvml",
     "psutil",
     "clang-format",
