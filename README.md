@@ -42,15 +42,3 @@ Collection of scriupts to plot various outputs of GEOS and DSL.
 ## Software stack builder (`sw_stack`)
 
 Scripts to download and build the software stack used for the GEOS port.
-
-## Documentation
-
-Full documentation of this code base.
-
-Build with pdoc with:
-
-```python
-pdoc -o ./docs smtn
-```
-
-Documentation is available on [Github Pages](https://geos-esm.github.io/SMT-Nebulae/SMT-Nebulae.html) and will be build automatically at every `main` commit
