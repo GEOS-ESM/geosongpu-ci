@@ -20,9 +20,10 @@
 
 title: Software Modernization Team 24-26
 email: florian.g.deconinck@nasa.gov
+domain: geos-esm.github.io/SMT-Nebulae/
 description: >- # this means to ignore newlines until "baseurl:"
   ASTG Software Modernization Team 2024-2026 project base
-baseurl: "/docs" # the subpath of your site, e.g. /blog
+baseurl: "/docs/_site" # the subpath of your site, e.g. /blog
 url: "https://geos-esm.github.io/SMT-Nebulae/" # the base hostname & protocol for your site, e.g. http://example.com
 
 # Build settings
