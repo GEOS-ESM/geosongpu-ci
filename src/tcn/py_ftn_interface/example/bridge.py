@@ -18,10 +18,9 @@ ffibuilder.embedding_init_code(
     from bridge import ffi
 
     @ffi.def_extern()
-    def python_function(data:"data_t"):
+    def python_function(x, y):
         print("In python_function")
-        print(type(data))
-        print(data.x, data.y)
+        print(x, y)
 """
 )
 
