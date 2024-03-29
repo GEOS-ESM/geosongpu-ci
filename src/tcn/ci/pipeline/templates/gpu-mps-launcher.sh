@@ -3,12 +3,28 @@
 # For debug of this script
 #set -x
 
+HOSTNAME=`hostname`
+if [ ${OMPI_COMM_WORLD_LOCAL_RANK:0} ]; then
+    LOCAL_RANK=$OMPI_COMM_WORLD_LOCAL_RANK
+elif [ ${SLURM_LOCALID:0} ]; then
+    LOCAL_RANK=$SLURM_LOCALID
+else
+    if [ $LOCAL_RANK -eq 0 ]; then
+        echo "Unimplemented MPI environement, can't read local rank. Exiting."
+    fi
+    exit 1
+fi
+
 # Hardware sampling is a python tools that reads at intervals
 # various hardware sensors (power, usage, memory load...)
 if [ -z ${HARDWARE_SAMPLING} ]; then
-    echo "Hardware sampling is OFF"
+    if [ $LOCAL_RANK -eq 0 ]; then
+        echo "Hardware sampling is OFF"
+    fi
 else
-    echo "Hardware sampling is ON"
+    if [ $LOCAL_RANK -eq 0 ]; then
+        echo "Hardware sampling is ON"
+    fi
     # We restrict usage to (world) rank 0
     if [ $SLURM_PROCID -eq 0 ]; then
         geosongpu_hws server &
@@ -20,28 +36,24 @@ fi
 # Nvidia's Multi Process Service required to run multiple processed
 # at the same time on one GPU
 
-HOSTNAME=`hostname`
-if [ ${OMPI_COMM_WORLD_LOCAL_RANK:0} ]; then
-    LOCAL_RANK=$OMPI_COMM_WORLD_LOCAL_RANK
-elif [ ${SLURM_LOCALID:0} ]; then
-    LOCAL_RANK=$SLURM_LOCALID
-else
-    echo "Unimplemented MPI environement, can't read local rank. Exiting."
-    exit 1
-fi
-
 # We open GPU visibility to full node at first
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 if [ -z ${MPS_ON} ]; then
-    echo "MPS is OFF"
+    if [ $LOCAL_RANK -eq 0 ]; then
+        echo "MPS is OFF"
+    fi
     # No MPS, we assume rank==GPU
     GPU=$LOCAL_RANK
     export CUDA_VISIBLE_DEVICES=$GPU
 else
-    echo "MPS is ON"
+    if [ $LOCAL_RANK -eq 0 ]; then
+        echo "MPS is ON"
+    fi
     if [ -z ${PER_DEVICE_PROCESS} ]; then
-        echo "PER_DEVICE_PROCESS needs to be setup on MPS. Exiting."
+        if [ $LOCAL_RANK -eq 0 ]; then
+            echo "PER_DEVICE_PROCESS needs to be setup on MPS. Exiting."
+        fi
         exit 1
     fi
     # All ranks needs to know where to look
