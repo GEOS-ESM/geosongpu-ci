@@ -5,7 +5,7 @@ source ./basics.sh
 
 echo " === Make NDSL venv === "
 cd $DSLSW_INSTALL_DIR
-./python3/bin/python3 -m venv venv
+python3 -m venv venv
 source ./venv/bin/activate
 pip install --upgrade setuptools pip
 pip install -e $DSLSW_INSTALL_DIR/ndsl
