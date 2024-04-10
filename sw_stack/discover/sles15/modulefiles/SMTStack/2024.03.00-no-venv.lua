@@ -38,3 +38,7 @@ local py_pkgdir = pathJoin(install_dir, "python3")
 prepend_path("PATH",pathJoin(py_pkgdir,"bin"))
 prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib"))
 prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib64"))
+
+-- Baselibs at a BASEDIR --
+local baselibs_pkgdir = pathJoin(install_dir, "baselibs-7.17.1/install/x86_64-pc-linux-gnu/")
+setenv("BASEDIR", baselibs_pkgdir)
