@@ -6,6 +6,8 @@ typedef struct
     float x;
     int y;
     bool b;
+    // Magic number, see Fortran
+    int i_am_123456789;
 } data_t;
 
 typedef union

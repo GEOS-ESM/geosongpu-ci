@@ -11,6 +11,9 @@ module stub_interface_mod
       real(c_float) :: x
       integer(c_int) :: y
       logical(c_bool) :: b
+      ! Magic number: help guaranteeing layout is kept
+      ! consistant through the interface. Imperfect.
+      integer(c_int) :: i_am_123456789 = 123456789
    end type
 
    interface
@@ -27,5 +30,3 @@ module stub_interface_mod
    end interface
 
 end module stub_interface_mod
-
-

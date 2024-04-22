@@ -3,6 +3,10 @@ import inspect
 
 
 def check_function(data: Data_py_t):
+    # Check the magic number
+    if data.i_am_123456789 != 123456789:
+        raise ValueError("Magic number failure")
+
     print(f"Data comes as {data} of type {type(data)}")
     members = inspect.getmembers(Data_py_t)
     keys = list(
