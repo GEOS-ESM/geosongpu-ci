@@ -4,6 +4,9 @@ load("nvidia/nvhpc-byo-compiler/23.9")
 
 local install_dir  = "/discover/nobackup/projects/geosongpu/sw_sles15/live/src/2024.03.00/install"
 
+-- Fix: GT4Py expects CUDA_HOME to be set --
+setenv("CUDA_HOME", os.getenv("NVHPC_ROOT"))
+
 -- UCX --
 local ucx_pkgdir = pathJoin(install_dir, "ucx")
 prepend_path("LD_LIBRARY_PATH",pathJoin(ucx_pkgdir,"lib"))
@@ -40,3 +43,7 @@ prepend_path("LD_LIBRARY_PATH",pathJoin(py_pkgdir,"lib64"))
 local py_pkgdir = pathJoin(install_dir, "venv")
 prepend_path("PATH",pathJoin(py_pkgdir,"bin"))
 setenv("VIRTUAL_ENV", py_pkgdir)
+
+-- Baselibs at a BASEDIR --
+local baselibs_pkgdir = pathJoin(install_dir, "baselibs-7.17.1/install/x86_64-pc-linux-gnu/")
+setenv("BASEDIR", baselibs_pkgdir)

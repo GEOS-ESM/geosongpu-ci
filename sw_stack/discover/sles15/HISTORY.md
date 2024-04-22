@@ -6,7 +6,7 @@ All versions of the software for a given version are saved in `basics.sh`.
 `build` directory is the throwaway directory where everything is downloaded then built.
 `install` is saves all library and executable once build is done.
 
-Last edit: _March 18th 2024_
+Last edit: _March 22th 2024_
 
 ## v2024.03.00
 
@@ -36,6 +36,13 @@ When defining `BUILD_GCC_OFFLOAD`:
 - GCC with offload: 12.2.0
 
 Test of the stack can be done via the `osu-microbenchmark` with latency & bandwith saved in `osu-bench.sh`.
+
+### Python stack
+
+Required `ndsl` dependency plus:
+
+- cffi: latest (for fortran<>python bridge)
+- cupy-cuda12x: latest
 
 _Note:_
 
