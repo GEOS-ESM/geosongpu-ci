@@ -16,13 +16,11 @@ ffibuilder.set_source(
 ffibuilder.embedding_init_code(
     """
     from bridge import ffi
-    from runtime_code import some_function
+    from runtime_code import check_function
 
     @ffi.def_extern()
     def python_function(data:"data_t", union_v: "union_t"):
-        print("In python_function")
-        
-        some_function(data)
+        check_function(data)
 
 """
 )

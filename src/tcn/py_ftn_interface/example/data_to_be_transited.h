@@ -1,9 +1,11 @@
 #pragma once
+#include <stdbool.h>
 
 typedef struct
 {
-    int x;
+    float x;
     int y;
+    bool b;
 } data_t;
 
 typedef union

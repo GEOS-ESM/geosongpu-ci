@@ -4,7 +4,7 @@ program test
    implicit none
 
    type(data_t) :: d
-   d = data_t(42, 24)
+   d = data_t(42.42, 24, .true.)
    call python_function_f(d, 39)
 
    print *, 'test'
