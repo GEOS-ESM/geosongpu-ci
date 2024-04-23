@@ -6,7 +6,13 @@ All versions of the software for a given version are saved in `basics.sh`.
 `build` directory is the throwaway directory where everything is downloaded then built.
 `install` is saves all library and executable once build is done.
 
-Last edit: _March 22th 2024_
+Last edit: _April 22th 2024_
+
+## v2024.04.00
+
+### Changes
+
+- NDSL `2024.03.01` -> `2024.04.00`
 
 ## v2024.03.00
 
