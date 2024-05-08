@@ -68,7 +68,7 @@ else
         nvidia-cuda-mps-control -d
     fi
     # MPS server is socket base, leave time for the filesystem
-    sleep 10
+    sleep 3
     # Server should be spun, we restrict this rank to a single GPU
     GPU=$((LOCAL_RANK/PER_DEVICE_PROCESS))
     export CUDA_VISIBLE_DEVICES=$GPU
