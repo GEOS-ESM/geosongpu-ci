@@ -19,9 +19,9 @@ Validation capacities for physics compares OACC and original Fortran on.
 | Validation                    | Status    |
 | ------------------------------------------ | --------- |
 | NCCS Discover Heartbeat                    | [![💓](https://github.com/GEOS-ESM/SMT-Nebulae/actions/workflows/discover_heartbeat_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/SMT-Nebulae/actions/workflows/discover_heartbeat_nightly.yml) |
-| NCCS Discover GEOS Held-Suarez Validation  | [![HS](https://github.com/GEOS-ESM/SMT-Nebulae/actions/workflows/discover_hs_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/SMT-Nebulae/actions/workflows/discover_hs_nightly.yml) |
+| NCCS Discover GEOS Held-Suarez Validation  | Deactivated |
 | NCCS Discover Physics Standalone           | Deactivated |
-| NCCS Discover GEOS Aquaplanet Validation   | [![AQ](https://github.com/GEOS-ESM/SMT-Nebulae/actions/workflows/discover_aq_nightly.yml/badge.svg)](https://github.com/GEOS-ESM/SMT-Nebulae/actions/workflows/discover_aq_nightly.yml) |
+| NCCS Discover GEOS Aquaplanet Validation   | Deactivated |
 
 ## `hws`
 
