@@ -1,6 +1,12 @@
-from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
-from ndsl.dsl.stencil import GridIndexing, StencilConfig, StencilFactory
-from ndsl.dsl.stencil_config import CompilationConfig, RunMode
+from ndsl import(
+    StencilFactory,
+    GridIndexing,
+    StencilConfig,
+    DaceConfig,
+    DaCeOrchestration,
+    CompilationConfig,
+    RunMode
+)
 import matplotlib.pyplot as plt
 
 
