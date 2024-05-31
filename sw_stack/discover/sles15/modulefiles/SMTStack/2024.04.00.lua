@@ -47,3 +47,9 @@ setenv("VIRTUAL_ENV", py_pkgdir)
 -- Baselibs at a BASEDIR --
 local baselibs_pkgdir = pathJoin(install_dir, "baselibs-7.17.1/install/x86_64-pc-linux-gnu/")
 setenv("BASEDIR", baselibs_pkgdir)
+
+-- Serialbox --
+local ser_pkgdir = pathJoin(install_dir, "serialbox")
+prepend_path("SERIALBOX_ROOT", ser_pkgdir)
+prepend_path("PATH",pathJoin(ser_pkgdir,"python/pp_ser"))
+prepend_path("LD_LIBRARY_PATH",pathJoin(ser_pkgdir,"lib"))
