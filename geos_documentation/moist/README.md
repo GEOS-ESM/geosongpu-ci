@@ -1,0 +1,4 @@
+Comp: GEOSgcm_GridComp
+Sub-directory: GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSphysics_GridComp/GEOSmoist_GridComp
+NDSL port: GEOSgcm_GridComp/GEOSagcm_GridComp/GEOSphysics_GridComp/GEOSmoist_GridComp/pyMoist
+
