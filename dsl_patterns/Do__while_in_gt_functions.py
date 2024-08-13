@@ -1,25 +1,14 @@
-""" Get the top/bottom of the column of air in a stencil
+""" While loops in stencil functions
 
 Last update: 2024/07/24
-Description: gt4py doesn't allow for direct indexing in K while doing relative indexing in the
-    other cartesian dimensions. To be able to get the top/bottom of the column of air, we can
-    rely on the `interval` and `temporary` generation features.
-Fortran equivalent:
-```fortran
-do L=1,LM
-  do J=1,JM
-   do I=1,IM
-      ...
-      Field(i,j,LM)
-      ...
-```
-as seen in  https://github.com/GEOS-ESM/GEOSgcm_GridComp/blob/db55c301840d98b788b0e17045510af726c0f555/GEOSagcm_GridComp/GEOSphysics_GridComp/GEOSmoist_GridComp/GEOS_GFDL_1M_InterfaceMod.F90#L603
+Description: gt4py allows while loop patterns in stencils. This pattern is also allowed to be 
+    used in `gtscript.function`.
 """
 
-from gt4py.cartesian.gtscript import computation, interval, PARALLEL, FORWARD
+from gt4py.cartesian.gtscript import computation, interval, PARALLEL, function
 from ndsl.boilerplate import get_factories_single_tile_numpy
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.typing import FloatField, FloatFieldIJ
+from ndsl.dsl.typing import FloatField
 from ndsl import StencilFactory, QuantityFactory, orchestrate
 import numpy as np
 
@@ -30,12 +19,17 @@ stcil_fctry, ijk_qty_fctry = get_factories_single_tile_numpy(
 )
 
 
-def stencil(PLEmb: FloatField, PLEmb_top: FloatFieldIJ, out_field: FloatField):
-    with computation(FORWARD), interval(-1, None):
-        PLEmb_top = PLEmb
+@function
+def while_in_function(field: FloatField):
+    lev = 0
+    while field[0, 0, lev] < 4:
+        lev += 1
+    return lev
 
+
+def stencil(in_field: FloatField, out_field: FloatField):
     with computation(PARALLEL), interval(...):
-        out_field = PLEmb_top
+        out_field = while_in_function(in_field)
 
 
 class Code:
@@ -51,8 +45,8 @@ class Code:
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
-    def __call__(self, PLEmb: FloatField, out_field: FloatField):
-        self.stencil(PLEmb, self._tmp, out_field)
+    def __call__(self, I: FloatField, O: FloatField):
+        self.stencil(I, O)
 
 
 if __name__ == "__main__":
@@ -65,4 +59,4 @@ if __name__ == "__main__":
 
     print(f"Input:\n{I}\n")
     print(f"Output:\n{O}\n")
-    assert np.all(O == 42)
+    assert (O[0, 0, :] == [3.0, 2.0, 1.0, 0.0]).all()
