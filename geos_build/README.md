@@ -1,0 +1,1 @@
+Adapat the `basics.sh` to your local needs. It has been written for Discover and a specific user.
