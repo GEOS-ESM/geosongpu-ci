@@ -8,6 +8,10 @@ All versions of the software for a given version are saved in `basics.sh`.
 
 Last edit: _April 22th 2024_
 
+## v2024.XX.XX
+
+- OMPI: adapt flags to SLES15
+
 ## v2024.04.00
 
 ### Changes
