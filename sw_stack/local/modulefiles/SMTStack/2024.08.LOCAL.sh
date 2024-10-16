@@ -35,8 +35,12 @@ boost_pkgdir="$install_dir/boost"
 export BOOST_ROOT= boost_pkgdir
 
 # Baselibs at a BASEDIR #
+# >>>>>>>>>> TOCHANGE <<<<<<<<<<<<<< #
+# Put down the correct target (linux-gnu, Darwin...)
+
 baselibs_pkgdir="$install_dir/baselibs-7.17.1/install/x86_64-pc-linux-gnu/"
 export BASEDIR=baselibs_pkgdir
+# >>>>>>>>>><<<<<<<<<<<<<< #
 
 # Serialbox #
 export SERIALBOX_ROOT=$ser_pkgdir

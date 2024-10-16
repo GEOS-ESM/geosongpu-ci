@@ -26,6 +26,7 @@ export DSLSW_INSTALL_DIR=$PWD/install
 mkdir -p $DSLSW_INSTALL_DIR
 
 # >>>>>>>>>> TOCHANGE <<<<<<<<<<<<<< #
+# Pick one!
 
 # Modules
 module use -a /home/fgdeconi/work/sw/stack/modulefiles/
@@ -40,6 +41,9 @@ source /home/fgdeconi/work/sw/stack/modulefiles/2024.08.LOCAL.sh
 CUDA_DIR=$NVHPC_ROOT/cuda/
 
 # Enforce proper compilers
+# >>>>>>>>>> TOCHANGE <<<<<<<<<<<<<< #
+# On MacOS you might have to point to `gfortran-12`
 export FC=gfortran
 export CC=gcc
 export CXX=g++
+# >>>>>>>>>><<<<<<<<<<< #
