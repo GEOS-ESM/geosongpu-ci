@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 # Source the share basics
 source ./basics.sh

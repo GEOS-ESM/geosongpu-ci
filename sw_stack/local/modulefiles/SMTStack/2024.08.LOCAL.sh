@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# >>>>>>>>>> TOCHANGE <<<<<<<<<<<<<< #
-install_dir="/home/fgdeconi/work/sw/stack/src/2024.08.LOCAL/install"
-ser_pkgdir="/home/fgdeconi/work/git/serialbox/install"
+# >>>>>>>>>> SET TO LOCAL PATHS <<<<<<<<<<<<<< #
+install_dir="/Users/ckropiew/GEOS_dependencies/install"
+ser_pkgdir="/Users/ckropiew/GEOS_dependencies/install/serialbox"
 # >>>>>>>>>>>>>>><<<<<<<<<<<<<< #
 
 # Fix: GT4Py expects CUDA_HOME to be set #
@@ -15,9 +15,9 @@ export LD_LIBRARY_PATH="$ucx_pkgdir/lib":$LD_LIBRARY_PATH
 # OMPI #
 ompi_pkgdir="$install_dir/ompi"
 
-export M_MPI_ROOT=ompi_pkgdir
-export OPENMPI=ompi_pkgdir
-export MPI_HOME=ompi_pkgdir
+export M_MPI_ROOT=$ompi_pkgdir
+export OPENMPI=$ompi_pkgdir
+export MPI_HOME=$ompi_pkgdir
 
 export PATH="$ompi_pkgdir/bin":$PATH
 export LD_LIBRARY_PATH="$ompi_pkgdir/lib":$LD_LIBRARY_PATH
@@ -32,11 +32,11 @@ export PMIX_MCA_mca_base_component_show_load_errors="0"
 
 # BOOST HEADERS (as expected by gt4py)
 boost_pkgdir="$install_dir/boost"
-export BOOST_ROOT= boost_pkgdir
+export BOOST_ROOT=$boost_pkgdir
 
 # Baselibs at a BASEDIR #
-baselibs_pkgdir="$install_dir/baselibs-7.17.1/install/x86_64-pc-linux-gnu/"
-export BASEDIR=baselibs_pkgdir
+baselibs_pkgdir="$install_dir/baselibs-7.27.0/install/"
+export BASEDIR=$baselibs_pkgdir
 
 # Serialbox #
 export SERIALBOX_ROOT=$ser_pkgdir
@@ -45,7 +45,12 @@ export LD_LIBRARY_PATH="$ser_pkgdir/lib":$LD_LIBRARY_PATH
 export PYTHONPATH="$ser_pkgdir/python":$PYTHONPATH
 
 # Python 3
-# py_pkgdir="$install_dir/python3"
-# export PATH="$py_pkgdir/bin":$PATH
-# export LD_LIBRARY_PATH="$py_pkgdir/lib":$LD_LIBRARY_PATH
-# export LD_LIBRARY_PATH="$py_pkgdir/lib64":$LD_LIBRARY_PATH
+py_pkgdir="$install_dir/python3"
+export PATH="$py_pkgdir/bin":$PATH
+export LD_LIBRARY_PATH="$py_pkgdir/lib":$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH="$py_pkgdir/lib64":$LD_LIBRARY_PATH
+
+# Enforce proper compilers
+export FC=/opt/homebrew/opt/gcc@14/bin/gfortran-14
+export CC=/opt/homebrew/opt/gcc@14/bin/gcc-14
+export CXX=/opt/homebrew/opt/gcc@14/bin/g++-14

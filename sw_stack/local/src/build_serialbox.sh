@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 # Source the share basics
 source ./basics.sh
@@ -7,12 +7,12 @@ cd $DSLSW_BASE
 
 echo " === Serialbox === "
 
-git clone https://github.com/GridTools/serialbox.git serialbox-$DSLSW_SERIALBOX_VER
-cd serialbox-$DSLSW_SERIALBOX_VER
-git checkout $DSLSW_SERIALBOX_SHA
+git clone https://github.com/FlorianDeconinck/serialbox.git serialbox
+cd serialbox
+git checkout $DSLSW_SERIALBOX_VER
 cd $DSLSW_BASE
 
-cd $DSLSW_BASE/serialbox-$DSLSW_SERIALBOX_VER
+cd $DSLSW_BASE/serialbox
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=$DSLSW_INSTALL_DIR/serialbox \
