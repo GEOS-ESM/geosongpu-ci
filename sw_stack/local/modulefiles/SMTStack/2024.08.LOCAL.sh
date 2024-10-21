@@ -54,3 +54,7 @@ export LD_LIBRARY_PATH="$py_pkgdir/lib64":$LD_LIBRARY_PATH
 export FC=/opt/homebrew/opt/gcc@14/bin/gfortran-14
 export CC=/opt/homebrew/opt/gcc@14/bin/gcc-14
 export CXX=/opt/homebrew/opt/gcc@14/bin/g++-14
+
+# Weird Mac necessity
+export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/
+
