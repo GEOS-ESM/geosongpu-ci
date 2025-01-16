@@ -3,6 +3,7 @@
 # >>>>>>>>>> SET TO LOCAL PATHS <<<<<<<<<<<<<< #
 install_dir="/Users/ckropiew/GEOS_dependencies/install"
 ser_pkgdir="/Users/ckropiew/GEOS_dependencies/install/serialbox"
+homebrew_install_dir="/opt/homebrew/Cellar"
 # >>>>>>>>>>>>>>><<<<<<<<<<<<<< #
 
 # Fix: GT4Py expects CUDA_HOME to be set #
@@ -31,7 +32,8 @@ export OMPI_MCA_mca_base_component_show_load_errors="0"
 export PMIX_MCA_mca_base_component_show_load_errors="0"
 
 # BOOST HEADERS (as expected by gt4py)
-boost_pkgdir="$install_dir/boost"
+# boost_pkgdir="$install_dir/boost"
+boost_pkgdir="$homebrew_install_dir/boost/1.86.0_1"
 export BOOST_ROOT=$boost_pkgdir
 
 # Baselibs at a BASEDIR #
@@ -45,7 +47,7 @@ export LD_LIBRARY_PATH="$ser_pkgdir/lib":$LD_LIBRARY_PATH
 export PYTHONPATH="$ser_pkgdir/python":$PYTHONPATH
 
 # Python 3
-py_pkgdir="$install_dir/python3"
+py_pkgdir="/Library/Frameworks/Python.framework/Versions/3.11"
 export PATH="$py_pkgdir/bin":$PATH
 export LD_LIBRARY_PATH="$py_pkgdir/lib":$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH="$py_pkgdir/lib64":$LD_LIBRARY_PATH
